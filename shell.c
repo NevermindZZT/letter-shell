@@ -31,26 +31,24 @@
 *                               修改tab键功能，加入自动补全
 *                               无输入情况下，按下tab输入help命令
 *                               有输入情况下，进行自动补全
+*                   20187/24    v1.7
+*                               增加SHELL_TypeDef结构体
+*                               采用新的命令添加方式，现在可以在任意文件的函数
+*                               外部采用宏SHELL_EXPORT_CMD进行命令定义
 *******************************************************************************/
 
 #include    "shell.h"
 #include    "string.h"
 
-uint8_t shellCommandBuff[SHELL_COMMAND_MAX_LENGTH];
-uint8_t shellCommandFlag = 0;
-
-#if SHELL_USE_PARAMETER == 1
-    static uint8_t commandPara[SHELL_PARAMETER_MAX_NUMBER][SHELL_PARAMETER_MAX_LENGTH];
-    static uint8_t commandCount;
-    static uint8_t *commandPointer[SHELL_PARAMETER_MAX_NUMBER];
-#endif
-
+static SHELL_TypeDef shell = 
+{
+    .shellCommandFlag = 0,
 #if SHELL_USE_HISTORY == 1
-    static uint8_t shellHistoryCommand[SHELL_HISTORY_MAX_NUMBER][SHELL_COMMAND_MAX_LENGTH];
-    static uint8_t shellHistoryCount = 0;                       //已记录的历史命令数量
-    static int8_t shellHistoryFlag = 0;                         //当前记录位置
-    static int8_t shellHistoryOffset = 0;
+    .shellHistoryCount = 0,
+    .shellHistoryFlag = 0,
+    .shellHistoryOffset = 0,
 #endif
+};
 
 /**
 * shell 命令表，使用 {command, function, description} 的格式添加命令
@@ -62,20 +60,20 @@ uint8_t shellCommandFlag = 0;
 *           argc 为参数个数，argv 为参数，参数皆为字符串格式，需自行进行数据转换
 * description 为对命令的描述，字符串格式
 */
-const SHELL_CommandTypeDef shellCommandList[] = 
-{
-    /*command               function                description*/
-    {(uint8_t *)"letter",   shellLetter,            (uint8_t *)"letter shell"},
-    {(uint8_t *)"reboot",   shellReboot,            (uint8_t *)"reboot system"},
-    {(uint8_t *)"help",     shellShowCommandList,   (uint8_t *)"show command list"},
-    {(uint8_t *)"clear",    shellClear,             (uint8_t *)"clear command line"},
+//const SHELL_CommandTypeDef shellCommandList[] = 
+//{
+//    /*command               function                description*/
+//    {(uint8_t *)"letter",   shellLetter,            (uint8_t *)"letter shell"},
+//    {(uint8_t *)"reboot",   shellReboot,            (uint8_t *)"reboot system"},
+//    {(uint8_t *)"help",     shellShowCommandList,   (uint8_t *)"show command list"},
+//    {(uint8_t *)"clear",    shellClear,             (uint8_t *)"clear command line"},
+//    
+//#if SHELL_USE_PARAMETER == 1    /*带参函数命令*/
+//    {(uint8_t *)"paraTest", (void (*)())shellParaTest, (uint8_t *)"test parameter"},
+//#endif
+//    
+//};
     
-#if SHELL_USE_PARAMETER == 1    /*带参函数命令*/
-    {(uint8_t *)"paraTest", (void (*)())shellParaTest, (uint8_t *)"test parameter"},
-#endif
-    
-};
-
 
 /*******************************************************************************
 *@function  shellReceiveByte
@@ -150,9 +148,15 @@ void shellInit(void)
 #if SHELL_USE_PARAMETER == 1
     for (int i = 0; i < SHELL_PARAMETER_MAX_NUMBER; i++)
     {
-        commandPointer[i] = commandPara[i];
+        shell.commandPointer[i] = shell.commandPara[i];
     }
 #endif
+    
+    extern const int shellCommand$$Base;
+    extern const int shellCommand$$Limit;
+    
+    shell.shellCommandBase = (SHELL_CommandTypeDef *)(&shellCommand$$Base);
+    shell.shellCommandLimit = (SHELL_CommandTypeDef *)(&shellCommand$$Limit);
 }
 
 
@@ -199,98 +203,123 @@ void shellHandler(uint8_t receiveData)
     {
         case '\r':
         case '\n':
-            if (shellCommandFlag >= SHELL_COMMAND_MAX_LENGTH - 1)
+            if (shell.shellCommandFlag >= SHELL_COMMAND_MAX_LENGTH - 1)
             {
                 shellDisplay("\r\nError: Command is too long\r\n");
-                shellCommandBuff[shellCommandFlag] = 0;
-                shellCommandFlag = 0;
+                shell.shellCommandBuff[shell.shellCommandFlag] = 0;
+                shell.shellCommandFlag = 0;
                 shellDisplay(SHELL_COMMAND);
                 break;
             }
             
-            if (shellCommandFlag == 0)
+            if (shell.shellCommandFlag == 0)
             {
                 shellDisplay(SHELL_COMMAND);
                 break;
             }
             else
             {
-                shellCommandBuff[shellCommandFlag++] = 0;
+                shell.shellCommandBuff[shell.shellCommandFlag++] = 0;
 #if SHELL_USE_PARAMETER == 1
-                commandCount = 0;
+                shell.commandCount = 0;
                 
                 uint8_t j = 0;
-                for (int8_t i = 0; i < shellCommandFlag; i++)
+                for (int8_t i = 0; i < shell.shellCommandFlag; i++)
                 {
-                    if (shellCommandBuff[i] != ' ' &&
-                        shellCommandBuff[i] != '\t' &&
-                        shellCommandBuff[i] != 0)
+                    if (shell.shellCommandBuff[i] != ' ' &&
+                        shell.shellCommandBuff[i] != '\t' &&
+                        shell.shellCommandBuff[i] != 0)
                     {
-                        commandPara[commandCount][j++] = shellCommandBuff[i];
+                        shell.commandPara[shell.commandCount][j++] = shell.shellCommandBuff[i];
                     }
                     else
                     {
                         if (j != 0)
                         {
-                            commandPara[commandCount][j] = 0;
-                            commandCount ++;
+                            shell.commandPara[shell.commandCount][j] = 0;
+                            shell.commandCount ++;
                             j = 0;
                         }
                     }
                 }
-                shellCommandFlag = 0;
+                shell.shellCommandFlag = 0;
                 
-                if (commandCount == 0)                      //是否为无效指令
+                if (shell.commandCount == 0)                      //是否为无效指令
                 {
                     shellDisplay(SHELL_COMMAND);
                     break;
                 }
                 
 #if SHELL_USE_HISTORY ==1
-                shellStringCopy(shellHistoryCommand[shellHistoryFlag++], shellCommandBuff);
-                if (++shellHistoryCount > SHELL_HISTORY_MAX_NUMBER)
+                shellStringCopy(shell.shellHistoryCommand[shell.shellHistoryFlag++],
+                                shell.shellCommandBuff);
+                if (++shell.shellHistoryCount > SHELL_HISTORY_MAX_NUMBER)
                 {
-                    shellHistoryCount = SHELL_HISTORY_MAX_NUMBER;
+                    shell.shellHistoryCount = SHELL_HISTORY_MAX_NUMBER;
                 }
-                if (shellHistoryFlag >= SHELL_HISTORY_MAX_NUMBER)
+                if (shell.shellHistoryFlag >= SHELL_HISTORY_MAX_NUMBER)
                 {
-                    shellHistoryFlag = 0;
+                    shell.shellHistoryFlag = 0;
                 }
-                shellHistoryOffset = 0;
+                shell.shellHistoryOffset = 0;
 #endif
                 
                 shellDisplay("\r\n");
                 runFlag = 0;
-
-                for (int8_t i = sizeof(shellCommandList) / sizeof(SHELL_CommandTypeDef) - 1;
-                     i >=  0; i--)
+                
+                for (int8_t  i= 0;
+                     i < ((uint32_t)shell.shellCommandLimit - (uint32_t)shell.shellCommandBase) / sizeof(SHELL_CommandTypeDef);
+                     i++)
                 {
-                    if (strcmp((const char *)commandPara[0],
-                        (const char *)shellCommandList[i].name) == 0)
+                    if (strcmp((const char *)shell.commandPara[0],
+                        (const char *)(shell.shellCommandBase + i)->name) == 0)
                     {
                         runFlag = 1;
-                        shellCommandList[i].function(commandCount, commandPointer);
+                        (shell.shellCommandBase + i)->function(shell.commandCount, shell.commandPointer);
                         break;
                     }
                 }
+//                for (int8_t i = sizeof(shellCommandList) / sizeof(SHELL_CommandTypeDef) - 1;
+//                     i >=  0; i--)
+//                {
+//                    if (strcmp((const char *)shell.commandPara[0],
+//                        (const char *)shellCommandList[i].name) == 0)
+//                    {
+//                        runFlag = 1;
+//                        shellCommandList[i].function(shell.commandCount, shell.commandPointer);
+//                        break;
+//                    }
+//                }
                 
 #else /*SHELL_USE_PARAMETER == 1*/
                 
-                shellCommandBuff[shellCommandFlag] = 0;
-                shellCommandFlag = 0;
+                shell.shellCommandBuff[shell.shellCommandFlag] = 0;
+                shell.shellCommandFlag = 0;
                 shellDisplay("\r\n");
                 runFlag = 0;
-                for (int8_t i = sizeof(shellCommandList) / sizeof(SHELL_CommandTypeDef) - 1;
-                     i >=  0; i--)
+                for (int8_t  i= 0;
+                     i < (shell.shellCommandLimit - shell.shellCommandBase) / sizeof(SHELL_CommandTypeDef);
+                     i++)
                 {
-                    if (strcmp((const char *)shellCommandBuff,
-                        (const char *)shellCommandList[i].name) == 0)
+                    if (strcmp((const char *)shell.shellCommandBuff,
+                        (const char *)(shell.shellCommandBase + i)->name) == 0)
                     {
                         runFlag = 1;
-                        shellCommandList[i].function();
+                        (shell.shellCommandBase + i)->function();
                         break;
                     }
                 }
+//                for (int8_t i = sizeof(shellCommandList) / sizeof(SHELL_CommandTypeDef) - 1;
+//                     i >=  0; i--)
+//                {
+//                    if (strcmp((const char *)shell.shellCommandBuff,
+//                        (const char *)shellCommandList[i].name) == 0)
+//                    {
+//                        runFlag = 1;
+//                        shellCommandList[i].function();
+//                        break;
+//                    }
+//                }
 #endif /*SHELL_USE_PARAMETER == 1*/
                 
                 if (runFlag == 0)
@@ -302,27 +331,28 @@ void shellHandler(uint8_t receiveData)
             break;
             
         case 0x08:                                          //退格
-            if (shellCommandFlag != 0)
+            if (shell.shellCommandFlag != 0)
             {
-                shellCommandFlag--;
+                shell.shellCommandFlag--;
                 shellBackspace(1);
             }
             break;
             
         case '\t':                                          //制表符
         #if SHELL_USE_HISTORY == 1
-            if (shellCommandFlag != 0)
+            if (shell.shellCommandFlag != 0)
             {
-                for (int8_t i = sizeof(shellCommandList) / sizeof(SHELL_CommandTypeDef) - 1;
-                     i >=  0; i--)
+                for (int8_t  i= 0;
+                     i < ((uint32_t)shell.shellCommandLimit - (uint32_t)shell.shellCommandBase) / sizeof(SHELL_CommandTypeDef);
+                     i++)
                 {
-                    if (strncmp((const char *)shellCommandBuff,
-                        (const char *)shellCommandList[i].name, shellCommandFlag) == 0)
+                    if (strncmp((const char *)shell.shellCommandBuff,
+                        (const char *)(shell.shellCommandBase + i)->name, shell.shellCommandFlag) == 0)
                     {
-                        shellBackspace(shellCommandFlag);
-                        shellCommandFlag = shellStringCopy(shellCommandBuff, 
-                                           shellCommandList[i].name);
-                        shellDisplay(shellCommandBuff);
+                        shellBackspace(shell.shellCommandFlag);
+                        shell.shellCommandFlag = shellStringCopy(shell.shellCommandBuff, 
+                                           (shell.shellCommandBase + i)->name);
+                        shellDisplay(shell.shellCommandBuff);
                     }
                 }
 //                shellBackspace(shellCommandFlag);
@@ -333,10 +363,10 @@ void shellHandler(uint8_t receiveData)
             }
             else                                            //无历史命令，输入help
             {
-                shellBackspace(shellCommandFlag);
-                shellCommandFlag = 4;
-                shellStringCopy(shellCommandBuff, (uint8_t *)"help");
-                shellDisplay(shellCommandBuff);
+                shellBackspace(shell.shellCommandFlag);
+                shell.shellCommandFlag = 4;
+                shellStringCopy(shell.shellCommandBuff, (uint8_t *)"help");
+                shellDisplay(shell.shellCommandBuff);
             }
         #endif
             break;
@@ -352,19 +382,19 @@ void shellHandler(uint8_t receiveData)
                     if (receiveData == 0x41)                //方向上键
                     {
                     #if SHELL_USE_HISTORY == 1
-                        shellBackspace(shellCommandFlag);
-                        if (shellHistoryOffset-- 
-                            <= -((shellHistoryCount > shellHistoryFlag)
-                                ? shellHistoryCount : shellHistoryFlag))
+                        shellBackspace(shell.shellCommandFlag);
+                        if (shell.shellHistoryOffset-- 
+                            <= -((shell.shellHistoryCount > shell.shellHistoryFlag)
+                                ? shell.shellHistoryCount : shell.shellHistoryFlag))
                         {
-                            shellHistoryOffset 
-                            = -((shellHistoryCount > shellHistoryFlag)
-                                ? shellHistoryCount : shellHistoryFlag);
+                            shell.shellHistoryOffset 
+                            = -((shell.shellHistoryCount > shell.shellHistoryFlag)
+                                ? shell.shellHistoryCount : shell.shellHistoryFlag);
                         }
-                        shellCommandFlag = shellStringCopy(shellCommandBuff,
-                            shellHistoryCommand[(shellHistoryFlag + SHELL_HISTORY_MAX_NUMBER
-                                                 + shellHistoryOffset) % SHELL_HISTORY_MAX_NUMBER]);
-                        shellDisplay(shellCommandBuff);
+                        shell.shellCommandFlag = shellStringCopy(shell.shellCommandBuff,
+                            shell.shellHistoryCommand[(shell.shellHistoryFlag + SHELL_HISTORY_MAX_NUMBER
+                                                 + shell.shellHistoryOffset) % SHELL_HISTORY_MAX_NUMBER]);
+                        shellDisplay(shell.shellCommandBuff);
                     #else
                         //shellDisplay("up\r\n");
                     #endif
@@ -372,16 +402,16 @@ void shellHandler(uint8_t receiveData)
                     else if (receiveData == 0x42)           //方向下键
                     {
                     #if SHELL_USE_HISTORY == 1
-                        if (++shellHistoryOffset >= 0)
+                        if (++shell.shellHistoryOffset >= 0)
                         {
-                            shellHistoryOffset = -1;
+                            shell.shellHistoryOffset = -1;
                             break;
                         }
-                        shellBackspace(shellCommandFlag);
-                        shellCommandFlag = shellStringCopy(shellCommandBuff,
-                            shellHistoryCommand[(shellHistoryFlag + SHELL_HISTORY_MAX_NUMBER
-                                                 + shellHistoryOffset) % SHELL_HISTORY_MAX_NUMBER]);
-                        shellDisplay(shellCommandBuff);
+                        shellBackspace(shell.shellCommandFlag);
+                        shell.shellCommandFlag = shellStringCopy(shell.shellCommandBuff,
+                            shell.shellHistoryCommand[(shell.shellHistoryFlag + SHELL_HISTORY_MAX_NUMBER
+                                                 + shell.shellHistoryOffset) % SHELL_HISTORY_MAX_NUMBER]);
+                        shellDisplay(shell.shellCommandBuff);
                     #else
                         //shellDisplay("down\r\n");
                     #endif
@@ -414,14 +444,14 @@ void shellHandler(uint8_t receiveData)
                     break;
                 
                 case CONTROL_FREE:                          //正常按键处理
-normal:             if (shellCommandFlag < SHELL_COMMAND_MAX_LENGTH - 1)
+normal:             if (shell.shellCommandFlag < SHELL_COMMAND_MAX_LENGTH - 1)
                     {
-                        shellCommandBuff[shellCommandFlag++] = receiveData;
+                        shell.shellCommandBuff[shell.shellCommandFlag++] = receiveData;
                         shellDisplayByte(receiveData);
                     }
                     else
                     {
-                        shellCommandFlag++;
+                        shell.shellCommandFlag++;
                         shellDisplayByte(receiveData);
                     }
                     break;
@@ -486,17 +516,21 @@ void shellShowCommandList(void)
     
     shellDisplay("COMMAND                 FUNCTION\r\n\r\n");
     
-    for (uint8_t i = 0; i < sizeof(shellCommandList) / sizeof(SHELL_CommandTypeDef); i++)
+    for(uint8_t i = 0;
+        i < ((uint32_t)shell.shellCommandLimit - (uint32_t)shell.shellCommandBase) / sizeof(SHELL_CommandTypeDef);
+        i++)
+//    for (uint8_t i = 0; i < sizeof(shellCommandList) / sizeof(SHELL_CommandTypeDef); i++)
     {
-        spaceLength = 24 - (int32_t)_ShellDisplay(shellCommandList[i].name);
+        spaceLength = 24 - (int32_t)_ShellDisplay((shell.shellCommandBase + i)->name);
         spaceLength = (spaceLength > 0) ? spaceLength : 4;
         do {
             shellDisplay(" ");
         } while (--spaceLength);
-        shellDisplay(shellCommandList[i].desc);
+        shellDisplay((shell.shellCommandBase + i)->desc);
         shellDisplay("\r\n");
     }
 }
+SHELL_EXPORT_CMD(help, shellShowCommandList, show command list);
 
 
 /*******************************************************************************
@@ -511,6 +545,7 @@ void shellLetter(void)
     shellDisplay("Letter shell "SHELL_VERSION"\r\n");
     shellDisplay("(C) Copyright 2018 Leter, All Right Reserved\r\n");
 }
+SHELL_EXPORT_CMD(letter, shellLetter, letter shell);
 
 
 /*******************************************************************************
@@ -527,6 +562,7 @@ void shellReboot(void)
     __set_FAULTMASK(1);
     NVIC_SystemReset();
 }
+SHELL_EXPORT_CMD(reboot, shellReboot, reboot system);
 
 
 /*******************************************************************************
@@ -540,6 +576,7 @@ void shellClear(void)
 {
     shellDisplay("\033[2J\033[1H");
 }
+SHELL_EXPORT_CMD(clear, shellClear, clear command line);
 
 
 #if SHELL_USE_PARAMETER == 1
@@ -567,4 +604,5 @@ uint32_t shellParaTest(uint32_t argc, uint8_t *argv[])
     }
     return 0;
 }
+SHELL_EXPORT_CMD(paraTest, shellParaTest, test parameter);
 #endif

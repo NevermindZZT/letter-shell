@@ -14,7 +14,7 @@
 #include    "config.h"
 
 /*------------------------------宏定义----------------------------------------*/
-#define     SHELL_VERSION               "v1.5"                  //版本
+#define     SHELL_VERSION               "v1.7"                  //版本
 
 #define     SHELL_USE_PARAMETER         1                       //是否使用带参函数
 #define     SHELL_USE_HISTORY           1                       //是否使用历史命令
@@ -31,6 +31,15 @@
 
 #define     shellDisplay(x)             _ShellDisplay((uint8_t *) (x));
 
+#define     SHELL_EXPORT_CMD(cmd, func, desc)                               \
+            const SHELL_CommandTypeDef                                      \
+            shellCommand##cmd __attribute__((section("shellCommand"))) =    \
+            {                                                               \
+                (uint8_t *)#cmd,                                            \
+                (void (*)())func,                                           \
+                (uint8_t *)#desc                                            \
+            }
+            
 
 /*---------------------------函数指针定义-------------------------------------*/
 typedef void (*shellFunction)();
@@ -43,6 +52,29 @@ typedef struct
     shellFunction function;                                     //shell命令函数
     uint8_t *desc;                                              //shell命令描述
 }SHELL_CommandTypeDef;                                          //shell命令定义
+
+
+typedef struct
+{
+    uint8_t shellCommandBuff[SHELL_COMMAND_MAX_LENGTH];
+    uint8_t shellCommandFlag;
+
+#if SHELL_USE_PARAMETER == 1
+    uint8_t commandPara[SHELL_PARAMETER_MAX_NUMBER][SHELL_PARAMETER_MAX_LENGTH];
+    uint8_t commandCount;
+    uint8_t *commandPointer[SHELL_PARAMETER_MAX_NUMBER];
+#endif
+
+#if SHELL_USE_HISTORY == 1
+    uint8_t shellHistoryCommand[SHELL_HISTORY_MAX_NUMBER][SHELL_COMMAND_MAX_LENGTH];
+    uint8_t shellHistoryCount;                       //已记录的历史命令数量
+    int8_t shellHistoryFlag;                         //当前记录位置
+    int8_t shellHistoryOffset;
+#endif
+    
+    SHELL_CommandTypeDef *shellCommandBase;
+    SHELL_CommandTypeDef *shellCommandLimit;
+}SHELL_TypeDef;
 
 
 typedef enum
