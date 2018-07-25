@@ -3,9 +3,16 @@
 一个体积极小的嵌入式shell
 
 ## 移植说明
-待补充
+- letter shell移植过程比较简单，shell.c文件定义了两个__weak函数，分别实现了串口的接收和串口的发送，如果使用shellMain函数，shell阻塞式运行，则需要根据自己的硬件，重写这两个函数
+- 如果采用中断方式，则需要实现串口发送的函数，然后在串口中断里执行shellHandler函数
+- 如果使用了操作系统，那么需要实现串口发送函数，并将shellHandler交给串口接收的任务进行处理
+- 更特殊的情况，如果使用的是STM32，并且使用了HAL库，那么只需要修改shell.h中的shellUart宏即可
+- 如果不采用串口使用shell，只需要类似的实现字符的发送和接收就行
 ## 使用方式
-待补充
+### 命令定义
+- letter shell v1.7版本开始，采用了SHELL_EXPORT_CMD宏进行命令定义，可以在任意位置（函数体外）进行定义，类似SHELL_EXPORT_CMD(help, shellShowCommandList, show command list);其中，help为命令，即在命令行输入的指令，shellShowCommandList为相对应的函数，最后一个参数即为命令描述，会显示在help命令中
+### 建议终端软件
+- 对于基于串口移植，letter shell建议使用secureCRT软件，letter shell中的相关按键映射都是按照secureCRT进行设计的，使用其他串口软件可能会出现某些功能无法使用的情况
 ## 更新日志
 ### 2018/4/20   v1.0
 - 第一版
