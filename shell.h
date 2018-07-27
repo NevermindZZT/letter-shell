@@ -96,9 +96,7 @@ void shellMain(void);                                           //shell主函数
 
 void shellHandler(uint8_t receiveData);                         //shell处理函数
 
-#if SHELL_USE_HISTORY == 1
 uint8_t shellStringCopy(uint8_t *dest, uint8_t *src);           //字符串复制
-#endif
 
 void shellBackspace(uint8_t length);                            //shell退格
 

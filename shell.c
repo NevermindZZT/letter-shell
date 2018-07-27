@@ -31,10 +31,15 @@
 *                               修改tab键功能，加入自动补全
 *                               无输入情况下，按下tab输入help命令
 *                               有输入情况下，进行自动补全
-*                   20187/24    v1.7
+*                   2018/7/24   v1.7
 *                               增加SHELL_TypeDef结构体
 *                               采用新的命令添加方式，现在可以在任意文件的函数
 *                               外部采用宏SHELL_EXPORT_CMD进行命令定义
+*                   2018/7/26   v1.7.1
+*                               修复不使用带参函数(SHELL_USE_PARAMETER = 0)的
+*                               情况下，无法匹配命令的问题
+*                               修复不使用历史命令(SHELL_USE_HISTORY = 0)的情况
+*                               下，无法使用命令补全的问题
 *******************************************************************************/
 
 #include    "shell.h"
@@ -146,14 +151,14 @@ void shellInit(void)
     shellDisplay(SHELL_COMMAND);
     
 #if SHELL_USE_PARAMETER == 1
-    for (int i = 0; i < SHELL_PARAMETER_MAX_NUMBER; i++)
+    for (uint8_t i = 0; i < SHELL_PARAMETER_MAX_NUMBER; i++)
     {
         shell.commandPointer[i] = shell.commandPara[i];
     }
 #endif
     
-    extern const int shellCommand$$Base;
-    extern const int shellCommand$$Limit;
+    extern const uint32_t shellCommand$$Base;
+    extern const uint32_t shellCommand$$Limit;
     
     shell.shellCommandBase = (SHELL_CommandTypeDef *)(&shellCommand$$Base);
     shell.shellCommandLimit = (SHELL_CommandTypeDef *)(&shellCommand$$Limit);
@@ -298,7 +303,7 @@ void shellHandler(uint8_t receiveData)
                 shellDisplay("\r\n");
                 runFlag = 0;
                 for (int8_t  i= 0;
-                     i < (shell.shellCommandLimit - shell.shellCommandBase) / sizeof(SHELL_CommandTypeDef);
+                     i < ((uint32_t)shell.shellCommandLimit - (uint32_t)shell.shellCommandBase) / sizeof(SHELL_CommandTypeDef);
                      i++)
                 {
                     if (strcmp((const char *)shell.shellCommandBuff,
@@ -339,7 +344,6 @@ void shellHandler(uint8_t receiveData)
             break;
             
         case '\t':                                          //制表符
-        #if SHELL_USE_HISTORY == 1
             if (shell.shellCommandFlag != 0)
             {
                 for (int8_t  i= 0;
@@ -361,14 +365,13 @@ void shellHandler(uint8_t receiveData)
 //                                                        % SHELL_HISTORY_MAX_NUMBER]);
 //                shellDisplay(shellCommandBuff);
             }
-            else                                            //无历史命令，输入help
+            else                                            //无输入，输入help
             {
                 shellBackspace(shell.shellCommandFlag);
                 shell.shellCommandFlag = 4;
                 shellStringCopy(shell.shellCommandBuff, (uint8_t *)"help");
                 shellDisplay(shell.shellCommandBuff);
             }
-        #endif
             break;
             
         case 0x1B:                                          //控制键
@@ -462,7 +465,6 @@ normal:             if (shell.shellCommandFlag < SHELL_COMMAND_MAX_LENGTH - 1)
 }
 
 
-#if SHELL_USE_HISTORY == 1
 /*******************************************************************************
 *@function  shellStringCopy
 *@brief     字符串复制
@@ -482,7 +484,6 @@ uint8_t shellStringCopy(uint8_t *dest, uint8_t *src)
     *dest = 0;
     return count;
 }
-#endif
 
 
 /*******************************************************************************
