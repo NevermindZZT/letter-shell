@@ -14,10 +14,11 @@
 #include    "config.h"
 
 /*------------------------------宏定义----------------------------------------*/
-#define     SHELL_VERSION               "v1.7"                  //版本
+#define     SHELL_VERSION               "v1.8"                  //版本
 
 #define     SHELL_USE_PARAMETER         1                       //是否使用带参函数
 #define     SHELL_USE_HISTORY           1                       //是否使用历史命令
+#define     SHELL_ALLOW_SHIFT           1                       //是否使用左右键移动光标
 
 #define     shellUart                   huart3                  //shell使用的串口
 
@@ -56,8 +57,12 @@ typedef struct
 
 typedef struct
 {
-    uint8_t shellCommandBuff[SHELL_COMMAND_MAX_LENGTH];
-    uint8_t shellCommandFlag;
+    uint8_t commandBuff[SHELL_COMMAND_MAX_LENGTH];
+    uint8_t commandLength;                                      //命令长度
+    
+#if SHELL_ALLOW_SHIFT == 1
+    uint8_t commandCursor;                                      //光标位置
+#endif
 
 #if SHELL_USE_PARAMETER == 1
     uint8_t commandPara[SHELL_PARAMETER_MAX_NUMBER][SHELL_PARAMETER_MAX_LENGTH];
@@ -66,14 +71,14 @@ typedef struct
 #endif
 
 #if SHELL_USE_HISTORY == 1
-    uint8_t shellHistoryCommand[SHELL_HISTORY_MAX_NUMBER][SHELL_COMMAND_MAX_LENGTH];
-    uint8_t shellHistoryCount;                       //已记录的历史命令数量
-    int8_t shellHistoryFlag;                         //当前记录位置
-    int8_t shellHistoryOffset;
+    uint8_t historyCommand[SHELL_HISTORY_MAX_NUMBER][SHELL_COMMAND_MAX_LENGTH];
+    uint8_t historyCount;                                       //已记录的历史命令数量
+    int8_t historyFlag;                                         //当前记录位置
+    int8_t historyOffset;
 #endif
     
-    SHELL_CommandTypeDef *shellCommandBase;
-    SHELL_CommandTypeDef *shellCommandLimit;
+    SHELL_CommandTypeDef *commandBase;
+    SHELL_CommandTypeDef *commandLimit;
 }SHELL_TypeDef;
 
 
@@ -99,6 +104,10 @@ void shellHandler(uint8_t receiveData);                         //shell处理函
 uint8_t shellStringCopy(uint8_t *dest, uint8_t *src);           //字符串复制
 
 void shellBackspace(uint8_t length);                            //shell退格
+
+#if SHELL_ALLOW_SHIFT == 1
+void shellClearLine(void);                                      //shell清楚命令行操作
+#endif
 
 void shellShowCommandList(void);                                //显示所有shell命令
 
