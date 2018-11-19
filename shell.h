@@ -32,6 +32,7 @@
 
 #define     shellDisplay(x)             _ShellDisplay((uint8_t *) (x));
 
+#ifdef      __CC_ARM
 #define     SHELL_EXPORT_CMD(cmd, func, desc)                               \
             const SHELL_CommandTypeDef                                      \
             shellCommand##cmd __attribute__((section("shellCommand"))) =    \
@@ -40,6 +41,9 @@
                 (void (*)())func,                                           \
                 (uint8_t *)#desc                                            \
             }
+#else
+#define     SHELL_EXPORT_CMD(cmd, func, desc)
+#endif
             
 
 /*---------------------------函数指针定义-------------------------------------*/
@@ -106,7 +110,7 @@ uint8_t shellStringCopy(uint8_t *dest, uint8_t *src);           //字符串复�
 void shellBackspace(uint8_t length);                            //shell退格
 
 #if SHELL_ALLOW_SHIFT == 1
-void shellClearLine(void);                                      //shell清楚命令行操作
+void shellClearLine(void);                                      //shell清除命令行操作
 #endif
 
 void shellShowCommandList(void);                                //显示所有shell命令

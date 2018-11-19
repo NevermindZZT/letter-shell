@@ -46,6 +46,13 @@
 *                               优化结构体成员命名
 *                               对开启移动光标功能后，输入参数过长的情况采用新的
 *                               处理方式
+*                   2018/8/15   v1.8.1
+*                               修复不使用光标移动功能的时候，输入命令过长时无法
+*                               正常删除的问题
+*                   2018/10/15  v1.8.2
+*                               针对不使用MDK编译，重新加入命令表定义的方式
+*                   2018/11/19  v1.8.3
+*                               新增对双引号的识别处理，支持带空格的参数
 *******************************************************************************/
 
 #include    "shell.h"
@@ -63,6 +70,32 @@ static SHELL_TypeDef shell =
     .historyOffset = 0,
 #endif
 };
+
+#ifndef __CC_ARM
+/**
+* shell 命令表，使用 {command, function, description} 的格式添加命令
+* 其中
+* command   为命令，字符串格式，长度不能超过 SHELL_PARAMETER_MAX_LENGTH
+*           若不使用带参命令，则长度不超过SHELL_COMMAND_MAX_LENGTH
+* function  为该命令调用的函数，支持(void *)(void)类型的无参函数以及与带参主函数
+*           类似的(void *)(uint32_t argc, uint8_t *argv[])类型的带参函数，其中，
+*           argc 为参数个数，argv 为参数，参数皆为字符串格式，需自行进行数据转换
+* description 为对命令的描述，字符串格式
+*/
+const SHELL_CommandTypeDef shellCommandList[] = 
+{
+    /*command               function                description*/
+    {(uint8_t *)"letter",   shellLetter,            (uint8_t *)"letter shell"},
+    {(uint8_t *)"reboot",   shellReboot,            (uint8_t *)"reboot system"},
+    {(uint8_t *)"help",     shellShowCommandList,   (uint8_t *)"show command list"},
+    {(uint8_t *)"clear",    shellClear,             (uint8_t *)"clear command line"},
+    
+#if SHELL_USE_PARAMETER == 1    /*带参函数命令*/
+   {(uint8_t *)"paraTest", (void (*)())shellParaTest, (uint8_t *)"test parameter"},
+#endif
+    
+};
+#endif
 
 
 /*******************************************************************************
@@ -142,11 +175,16 @@ void shellInit(void)
     }
 #endif
 
+#ifdef __CC_ARM
     extern const uint32_t shellCommand$$Base;
     extern const uint32_t shellCommand$$Limit;
 
     shell.commandBase = (SHELL_CommandTypeDef *)(&shellCommand$$Base);
     shell.commandLimit = (SHELL_CommandTypeDef *)(&shellCommand$$Limit);
+#else
+    shell.commandBase = (SHELL_CommandTypeDef *)shellCommandList;
+    shell.commandLimit = (SHELL_CommandTypeDef *)((uint32_t)shellCommandList + sizeof(shellCommandList));
+#endif
 }
 
 
@@ -217,13 +255,22 @@ void shellHandler(uint8_t receiveData)
             shell.commandCount = 0;
 
             uint8_t j = 0;
+            uint8_t quotes = 0;                             //引号
             for (int8_t i = 0; i < shell.commandLength; i++)
             {
-                if (shell.commandBuff[i] != ' ' &&
-                        shell.commandBuff[i] != '\t' &&
-                        shell.commandBuff[i] != 0)
+                if ((quotes != 0 ||
+                    (shell.commandBuff[i] != ' ' &&
+                    shell.commandBuff[i] != '\t')) &&
+                    shell.commandBuff[i] != 0)
                 {
-                    shell.commandPara[shell.commandCount][j++] = shell.commandBuff[i];
+                    if (shell.commandBuff[i] == '\"')
+                    {
+                        quotes = quotes ? 0 : 1;
+                    }
+                    else
+                    {
+                        shell.commandPara[shell.commandCount][j++] = shell.commandBuff[i];
+                    }
                 }
                 else
                 {
@@ -338,7 +385,6 @@ void shellHandler(uint8_t receiveData)
             }
 #else
             shell.commandLength--;
-            shell.commandBuff[shell.commandLength] = 0;
             shellBackspace(1);
 #endif /* SHELL_ALLOW_SHIFT == 1 */
         }
