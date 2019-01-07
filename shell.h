@@ -1,91 +1,70 @@
-/*- Coding With UTF-8 -*/
-
-
-/*******************************************************************************
-*   File Name：     shell.h
-*   Description：   此文件提供了shell的相关配置，声明
-*   Atuhor：        Letter
-*   Date:           2018/4/20
-*******************************************************************************/
+/**
+ * @file shell.h
+ * @author Letter (NevermindZZT@gmail.cn)
+ * @brief letter shell
+ * @version 2.0.0
+ * @date 2018-12-29
+ * 
+ * @Copyright (c) 2018 Letter
+ * 
+ */
 
 #ifndef     __SHELL_H__
 #define     __SHELL_H__
 
-#include    "config.h"
+#define     SHELL_VERSION               "2.0.0"                 /**< 版本号 */
 
-/*------------------------------宏定义----------------------------------------*/
-#define     SHELL_VERSION               "v1.8"                  //版本
+#define     SHELL_USING_OS              0                       /**< 运行在操作系统环境中 */
+#define     SHELL_USING_CMD_EXPORT      1                       /**< 是否使用命令导出方式 */
+#define     SHELL_AUTO_PRASE            1                       /**< 是否使用shell参数自动解析 */
+#define     SHELL_COMMAND_MAX_LENGTH    50                      /**< shell命令最大长度 */
+#define     SHELL_PARAMETER_MAX_NUMBER  5                       /**< shell命令参数最大数量 */
+#define     SHELL_HISTORY_MAX_NUMBER    5                       /**< 历史命令记录数量 */
 
-#define     SHELL_USE_PARAMETER         1                       //是否使用带参函数
-#define     SHELL_USE_HISTORY           1                       //是否使用历史命令
-#define     SHELL_ALLOW_SHIFT           1                       //是否使用左右键移动光标
+#define     SHELL_COMMAND               "\r\nletter>>"          /**< shell提示符 */
 
-#define     shellUart                   huart3                  //shell使用的串口
-
-#define     SHELL_COMMAND_MAX_LENGTH    50                      //shell命令最大长度
-#define     SHELL_PARAMETER_MAX_LENGTH  10                      //shell命令参数最大长度
-#define     SHELL_PARAMETER_MAX_NUMBER  5                       //shell命令参数最大数量
-
-#define     SHELL_HISTORY_MAX_NUMBER    5                       //历史命令记录数量
-
-#define     SHELL_COMMAND               "\r\n\r\nletter>>"
-
-#define     shellDisplay(x)             _ShellDisplay((uint8_t *) (x));
-
-#ifdef      __CC_ARM
+/**
+ * @brief shell命令导出
+ * 
+ * @attention 命令导出方式目前仅支持 keil 所带的编译器，使用时需要在 keil 的
+ *            Option for Target 中 Linker 选项卡的 Misc controls 中添加 --keep shellCommand*
+ */
+#if SHELL_USING_CMD_EXPORT == 1
 #define     SHELL_EXPORT_CMD(cmd, func, desc)                               \
             const SHELL_CommandTypeDef                                      \
             shellCommand##cmd __attribute__((section("shellCommand"))) =    \
             {                                                               \
-                (uint8_t *)#cmd,                                            \
+                #cmd,                                                       \
                 (void (*)())func,                                           \
-                (uint8_t *)#desc                                            \
+                #desc                                                       \
             }
 #else
 #define     SHELL_EXPORT_CMD(cmd, func, desc)
 #endif
+
+#if SHELL_USING_CMD_EXPORT == 0
+/**
+ * @brief shell命令条目
+ * 
+ * @note 用于shell命令通过命令表的方式定义
+ */
+#define     SHELL_CMD_ITEM(cmd, func, desc)                                 \
+            {                                                               \
+                #cmd,                                                       \
+                (void (*)())func,                                           \
+                #desc                                                       \
+            }
+#endif
             
-
-/*---------------------------函数指针定义-------------------------------------*/
-typedef void (*shellFunction)();
-
-
-/*----------------------------结构体定义--------------------------------------*/
-typedef struct
-{
-    uint8_t *name;                                              //shell命令名称
-    shellFunction function;                                     //shell命令函数
-    uint8_t *desc;                                              //shell命令描述
-}SHELL_CommandTypeDef;                                          //shell命令定义
+typedef char (*shellRead)(void);                                /**< shell读取数据函数原型 */
+typedef void (*shellWrite)(const char);                         /**< shell写数据函数原型 */
+typedef void (*shellFunction)();                                /**< shell指令执行函数原型 */
 
 
-typedef struct
-{
-    uint8_t commandBuff[SHELL_COMMAND_MAX_LENGTH];
-    uint8_t commandLength;                                      //命令长度
-    
-#if SHELL_ALLOW_SHIFT == 1
-    uint8_t commandCursor;                                      //光标位置
-#endif
-
-#if SHELL_USE_PARAMETER == 1
-    uint8_t commandPara[SHELL_PARAMETER_MAX_NUMBER][SHELL_PARAMETER_MAX_LENGTH];
-    uint8_t commandCount;
-    uint8_t *commandPointer[SHELL_PARAMETER_MAX_NUMBER];
-#endif
-
-#if SHELL_USE_HISTORY == 1
-    uint8_t historyCommand[SHELL_HISTORY_MAX_NUMBER][SHELL_COMMAND_MAX_LENGTH];
-    uint8_t historyCount;                                       //已记录的历史命令数量
-    int8_t historyFlag;                                         //当前记录位置
-    int8_t historyOffset;
-#endif
-    
-    SHELL_CommandTypeDef *commandBase;
-    SHELL_CommandTypeDef *commandLimit;
-}SHELL_TypeDef;
-
-
+/**
+ * @brief shell控制指令状态
+ * 
+ */
 typedef enum
 {
     CONTROL_FREE = 0,
@@ -93,36 +72,46 @@ typedef enum
     CONTROL_STEP_TWO,
 }CONTROL_Status;
 
-/*-----------------------------函数声明---------------------------------------*/
 
-uint8_t shellReceiveByte(void);                                 //shell接收一字节数据
+/**
+ * @brief shell 命令定义
+ * 
+ */
+typedef struct
+{
+    const char *name;                                           /**< shell命令名称 */
+    shellFunction function;                                     /**< shell命令函数 */
+    const char *desc;                                           /**< shell命令描述 */
+}SHELL_CommandTypeDef;
 
-void shellDisplayByte(uint8_t data);                            //shell显示一字节数据
 
-void shellInit(void);                                           //shell初始化
+/**
+ * @brief shell对象定义
+ * 
+ */
+typedef struct
+{
+    char buffer[SHELL_COMMAND_MAX_LENGTH];                      /**< shell命令缓冲 */
+    unsigned short length;                                      /**< shell命令长度 */
+    char *param[SHELL_PARAMETER_MAX_NUMBER];                    /**< shell参数 */
+    unsigned short cursor;                                      /**< shell光标位置 */
+    char history[SHELL_HISTORY_MAX_NUMBER][SHELL_COMMAND_MAX_LENGTH];  /**< 历史记录 */
+    unsigned short historyCount;                                /**< 历史记录数量 */
+    short historyFlag;                                          /**< 当前记录位置 */
+    short historyOffset;                                        /**< 历史记录偏移 */
+    SHELL_CommandTypeDef *commandBase;                          /**< 命令表基址 */
+    unsigned short commandNumber;                               /**< 命令数量 */
+    CONTROL_Status status;                                      /**< 控制键状态 */
+    shellRead read;                                             /**< shell读字符 */
+    shellWrite write;                                           /**< shell写字符 */
+}SHELL_TypeDef;
 
-void shellMain(void);                                           //shell主函数（阻塞式）
+void shellInit(SHELL_TypeDef *shell);
+void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsigned short size);
+void shellHandler(SHELL_TypeDef *shell, char data);
 
-void shellHandler(uint8_t receiveData);                         //shell处理函数
-
-uint8_t shellStringCopy(uint8_t *dest, uint8_t *src);           //字符串复制
-
-void shellBackspace(uint8_t length);                            //shell退格
-
-#if SHELL_ALLOW_SHIFT == 1
-void shellClearLine(void);                                      //shell清除命令行操作
-#endif
-
-void shellShowCommandList(void);                                //显示所有shell命令
-
-void shellLetter(void);                                         //显示shell信息
-
-void shellReboot(void);                                         //重启系统
-
-void shellClear(void);                                          //shell清屏
-
-#if SHELL_USE_PARAMETER == 1
-uint32_t shellParaTest(uint32_t argc, uint8_t *argv[]);         //带参函数示例
+#if SHELL_USING_OS == 1
+void shellTask(void *param);
 #endif
 
 #endif

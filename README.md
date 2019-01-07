@@ -4,11 +4,31 @@
 
 ## 移植说明
 
-- letter shell移植过程比较简单，shell.c文件定义了两个__weak函数，分别实现了串口的接收和串口的发送，如果使用shellMain函数，shell阻塞式运行，则需要根据自己的硬件，重写这两个函数
-- 如果采用中断方式，则需要实现串口发送的函数，然后在串口中断里执行shellHandler函数
-- 如果使用了操作系统，那么需要实现串口发送函数，并将shellHandler交给串口接收的任务进行处理
-- 更特殊的情况，如果使用的是STM32，并且使用了HAL库，那么只需要修改shell.h中的shellUart宏即可
-- 如果不采用串口使用shell，只需要类似的实现字符的发送和接收就行
+1. 定义shell对象
+
+```C
+SHELL_TypeDef shell
+```
+
+2. 定义shell读，写函数，函数原型如下
+
+```C
+typedef char (*shellRead)(void);                                /**< shell读取数据函数原型 */
+typedef void (*shellWrite)(const char);                         /**< shell写数据函数原型 */
+```
+
+3. 调用shellInit进行初始化
+
+```C
+shell->read = shellRead;
+shell->write = shellWrite;
+shellInit(shell);
+```
+
+4. 说明
+
+- 对于中断方式使用shell，不用定义shell->read，但需要在中断中调用shellHandler
+- 对于使用操作系统的情况，使能```SHELL_USING_OS```宏，然后创建shellTask任务
 
 ## 使用方式
 
@@ -80,3 +100,10 @@
 - 修复不使用光标移动功能的时候，输入命令过长时无法正常删除的问题
 - 针对不使用MDK编译，重新加入命令表定义的方式
 - 新增对双引号的识别处理，支持带空格的参数
+
+### 2019/01/07 2.0.0
+
+- 重构代码，优化逻辑结构，减少内存开销
+- 新增shell扩展模块，支持函数参数自动转化
+- 精简shell可选项
+- 新增多shell支持
