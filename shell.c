@@ -44,7 +44,7 @@ void shellInit(SHELL_TypeDef *shell)
 {
     shellDisplay(shell, "\r\n\r\n");
     shellDisplay(shell, "+=========================================================+\r\n");
-    shellDisplay(shell, "|               (C) COPYRIGHT 2018 Unilink                |\r\n");
+    shellDisplay(shell, "|                (C) COPYRIGHT 2018 Letter                |\r\n");
     shellDisplay(shell, "|                   Letter shell v"SHELL_VERSION"                   |\r\n");
     shellDisplay(shell, "|               Build: "__DATE__" "__TIME__"               |\r\n");
     shellDisplay(shell, "+=========================================================+\r\n");
@@ -78,7 +78,7 @@ void shellInit(SHELL_TypeDef *shell)
  * @param base 命令表基址
  * @param size 命令数量
  * 
- * @note 此接口不可再shellInit之前调用
+ * @note 此接口不可在shellInit之前调用
  * @note 不调用此接口，则使用默认命令表或命令导出形成的命令表(取决于命令定义方式)
  */
 void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsigned short size)
@@ -456,6 +456,7 @@ static void shellTab(SHELL_TypeDef *shell)
         {
             shell->length = maxMatch;
         }
+        shell->buffer[shell->length] = 0;
         shell->cursor = shell->length;
         shellDisplay(shell, shell->buffer);
     }
