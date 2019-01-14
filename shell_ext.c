@@ -28,6 +28,10 @@ static NUM_Type shellExtNumType(char *string)
     {
         type = NUM_TYPE_HEX;
     }
+    else if ((*p == '0') && ((*(p + 1) == 'b') || (*(p + 1) == 'B')))
+    {
+        type = NUM_TYPE_BIN;
+    }
     else if (*p == '0')
     {
         type = NUM_TYPE_OCT;
@@ -191,6 +195,11 @@ static unsigned int shellExtParseNumber(char *string)
         radix = 8;
         offset = 1;
         break;
+
+    case NUM_TYPE_BIN:
+        radix = 2;
+        offset = 2;
+        break;
     
     default:
         break;
@@ -218,7 +227,7 @@ static unsigned int shellExtParseNumber(char *string)
  * @param string 参数
  * @return unsigned int 解析结果
  */
-static unsigned int shellExtParsePara(char *string)
+unsigned int shellExtParsePara(char *string)
 {
     unsigned int value;
     if (*string == '\'' && *(string + 1))
