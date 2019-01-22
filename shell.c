@@ -427,16 +427,19 @@ static void shellTab(SHELL_TypeDef *shell)
     if (shell->length != 0)
     {
         shell->buffer[shell->length] = 0;
-        shellDisplay(shell, "\r\n");
         for (short i = 0; i < shell->commandNumber; i++)
         {
             if (shellStringCompare(shell->buffer, 
                 (char *)(base + i)->name)
                 == shell->length)
             {
-                shellDisplayItem(shell, i);
                 if (matchNum != 0)
                 {
+                    if (matchNum == 1)
+                    {
+                        shellDisplay(shell, "\r\n");
+                    }
+                    shellDisplayItem(shell, lastMatchIndex);
                     length = shellStringCompare((char *)(base + lastMatchIndex)->name,
                                                 (char *)(base +i)->name);
                     maxMatch = (maxMatch > length) ? length : maxMatch;
@@ -445,8 +448,15 @@ static void shellTab(SHELL_TypeDef *shell)
                 matchNum ++;
             }
         }
-        
-        shellDisplay(shell, SHELL_COMMAND);
+
+        if (matchNum == 0)
+        {
+            return;
+        }
+        if (matchNum == 1)
+        {
+            shellClearLine(shell);
+        }
         if (matchNum != 0)
         {
             shell->length = shellStringCopy(shell->buffer,
@@ -454,6 +464,8 @@ static void shellTab(SHELL_TypeDef *shell)
         }
         if (matchNum > 1)
         {
+            shellDisplayItem(shell, lastMatchIndex);
+            shellDisplay(shell, SHELL_COMMAND);
             shell->length = maxMatch;
         }
         shell->buffer[shell->length] = 0;
