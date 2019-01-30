@@ -18,7 +18,7 @@
 
 static unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string);
 static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index);
-static void shellHelp(SHELL_TypeDef *shell);
+static void shellHelp(SHELL_TypeDef *shell, int argc, char *argv[]);
 
 #if SHELL_USING_CMD_EXPORT != 1
 /**
@@ -30,7 +30,7 @@ static void shellHelp(SHELL_TypeDef *shell);
  */
 const SHELL_CommandTypeDef shellDefaultCommandList[] =
 {
-    SHELL_CMD_ITEM(help, shellHelp, command help),
+    SHELL_CMD_ITEM_EX(help, shellHelp, command help, help [command] --show help info of command),
 };
 #endif
 
@@ -345,7 +345,7 @@ static void shellEnter(SHELL_TypeDef *shell)
     base = shell->commandBase;
     if (strcmp((const char *)shell->param[0], "help") == 0)
     {
-        shellHelp(shell);
+        shellHelp(shell, paramCount, shell->param);
         shellDisplay(shell, SHELL_COMMAND);
         return;
     }
@@ -474,7 +474,7 @@ static void shellTab(SHELL_TypeDef *shell)
     }
     else
     {
-        shellHelp(shell);
+        shellHelp(shell, 1, (void *)0);
         shellDisplay(shell, SHELL_COMMAND);
     }
 }
@@ -610,26 +610,36 @@ void shellHandler(SHELL_TypeDef *shell, char data)
 }
 
 
-#if SHELL_USING_OS == 1
+#if SHELL_USING_TASK == 1
 /**
- * @brief shell 任务(操作系统使用)
+ * @brief shell 任务
  * 
  * @param param shell对象
  * 
  * @note 使用操作系统时，定义的shell read函数必须是阻塞式的
+ * @note 不使用操作系统时，可以通过不断查询的方式使用shell，修改宏SHELL_TASK_WHILE
+ *       为0，然后在主循环中不断调用此函数
  */
 void shellTask(void *param)
 {
     SHELL_TypeDef *shell = (SHELL_TypeDef *)param;
+    char data;
     if (shell->read == NULL)
     {
         shellDisplay(shell, "error: shell.read() must be defined\r\n");
         while (1) ;
     }
+#if SHELL_TASK_WHILE == 1
     while (1)
     {
-        shellHandler(shell, shell->read());
+#endif
+        if (shell->read(&data) == 0)
+        {
+            shellHandler(shell, data);
+        }
+#if SHELL_TASK_WHILE == 1
     }
+#endif
 }
 #endif
 
@@ -661,14 +671,47 @@ static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index)
  * @brief shell帮助
  * 
  * @param shell shell对象
+ * @param argc 参数个数
+ * @param argv 参数
  */
-static void shellHelp(SHELL_TypeDef *shell)
+static void shellHelp(SHELL_TypeDef *shell, int argc, char *argv[])
 {
-    shellDisplay(shell, "\r\nCOMMAND LIST:\r\n\r\n");
-
-    for(unsigned short i = 0; i < shell->commandNumber; i++)
+#if SHELL_LONG_HELP == 1
+    if (argc == 1)
     {
-        shellDisplayItem(shell, i);
+#endif /** SHELL_LONG_HELP == 1 */
+        shellDisplay(shell, "\r\nCOMMAND LIST:\r\n\r\n");       
+        for(unsigned short i = 0; i < shell->commandNumber; i++)
+        {
+            shellDisplayItem(shell, i);
+        }
+#if SHELL_LONG_HELP == 1
     }
+    else if (argc == 2) {
+        SHELL_CommandTypeDef *base = shell->commandBase;
+        for (unsigned char i = 0; i < shell->commandNumber; i++)
+        {
+            if (strcmp((const char *)argv[1], (base + i)->name) == 0)
+            {
+                if ((base + i)->help)
+                {
+                    shellDisplay(shell, "command help --");
+                    shellDisplay(shell, (base + i)->name);
+                    shellDisplay(shell, ":\r\n");
+                    shellDisplay(shell, (base + i)->desc);
+                    shellDisplay(shell, "\r\n");
+                    shellDisplay(shell, (base + i)->help);
+                    shellDisplay(shell, "\r\n");
+                }
+                else
+                {
+                    shellDisplay(shell, "no help info\r\n");
+                }
+                return;
+            }
+        }
+        shellDisplay(shell, "command not found\r\n");
+    }
+#endif /** SHELL_LONG_HELP == 1 */
 }
-SHELL_EXPORT_CMD(help, shellHelp, command help);
+SHELL_EXPORT_CMD_EX(help, shellHelp, command help, help [command] --show help info of command);

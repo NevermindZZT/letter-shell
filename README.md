@@ -13,7 +13,7 @@ SHELL_TypeDef shell
 2. 定义shell读，写函数，函数原型如下
 
 ```C
-typedef char (*shellRead)(void);                                /**< shell读取数据函数原型 */
+typedef signed char (*shellRead)(char *);                       /**< shell读取数据函数原型 */
 typedef void (*shellWrite)(const char);                         /**< shell写数据函数原型 */
 ```
 
@@ -22,19 +22,31 @@ typedef void (*shellWrite)(const char);                         /**< shell写数
 ```C
 shell->read = shellRead;
 shell->write = shellWrite;
-shellInit(shell);
+shellInit(&shell);
 ```
 
 4. 说明
 
 - 对于中断方式使用shell，不用定义shell->read，但需要在中断中调用shellHandler
-- 对于使用操作系统的情况，使能```SHELL_USING_OS```宏，然后创建shellTask任务
+- 对于在无操作系统环境下，可以使用查询的方式，使能```SHELL_UISNG_TASK```，然后在循环中不断调用shellTask
+- 对于使用操作系统的情况，使能```SHELL_USING_TASK```和```SHEHLL_TASK_WHILE```宏，然后创建shellTask任务
 
 ## 使用方式
 
 ### 命令定义
 
-- letter shell v1.7版本开始，采用了SHELL_EXPORT_CMD宏进行命令定义，可以在任意位置（函数体外）进行定义，类似SHELL_EXPORT_CMD(help, shellShowCommandList, show command list);其中，help为命令，即在命令行输入的指令，shellShowCommandList为相对应的函数，最后一个参数即为命令描述，会显示在help命令中
+- letter shell 支持在使用keil编译器的时候，在函数体外部，采用定义常量的方式定义命令，例如```SHELL_EXPORT_CMD_EX(help, shellHelp, command help, help [command] --show help info of command);```，或者```SHELL_EXPORT_CMD(help, shellHelp, command help);```，此时，需要在keil的target option中增加--keep shellCommand*，防止定义的命令被优化掉
+
+- 当使用其他编译器时，暂时不支持使用类似keil中命令导出的方式，需要在命令表中添加
+
+```C
+const SHELL_CommandTypeDef shellDefaultCommandList[] =
+{
+    SHELL_CMD_ITEM_EX(help, shellHelp, command help, help [command] --show help info of command),
+};
+```
+
+- 其中，带有EX的命令导出宏最后一个参数为命令的长帮助信息，在shell中使用help [command]可查看帮助信息，通过shell.h中的SHELL_LONG_HELP宏可设置是否使用此功能
 
 ### 建议终端软件
 

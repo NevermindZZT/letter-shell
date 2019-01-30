@@ -14,9 +14,11 @@
 
 #define     SHELL_VERSION               "2.0.0"                 /**< 版本号 */
 
-#define     SHELL_USING_OS              0                       /**< 运行在操作系统环境中 */
+#define     SHELL_USING_TASK            0                       /**< 是否使用默认shell任务 */
 #define     SHELL_USING_CMD_EXPORT      1                       /**< 是否使用命令导出方式 */
+#define     SHELL_TASK_WHILE            1                       /**< 是否使用默认shell任务while循环 */
 #define     SHELL_AUTO_PRASE            1                       /**< 是否使用shell参数自动解析 */
+#define     SHELL_LONG_HELP             1                       /**< 是否使用shell长帮助 */
 #define     SHELL_COMMAND_MAX_LENGTH    50                      /**< shell命令最大长度 */
 #define     SHELL_PARAMETER_MAX_NUMBER  5                       /**< shell命令参数最大数量 */
 #define     SHELL_HISTORY_MAX_NUMBER    5                       /**< 历史命令记录数量 */
@@ -30,6 +32,26 @@
  *            Option for Target 中 Linker 选项卡的 Misc controls 中添加 --keep shellCommand*
  */
 #if SHELL_USING_CMD_EXPORT == 1
+#if SHELL_LONG_HELP == 1
+#define     SHELL_EXPORT_CMD(cmd, func, desc)                               \
+            const SHELL_CommandTypeDef                                      \
+            shellCommand##cmd __attribute__((section("shellCommand"))) =    \
+            {                                                               \
+                #cmd,                                                       \
+                (void (*)())func,                                           \
+                #desc,                                                      \
+                (void *)0                                                   \
+            }
+#define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
+            const SHELL_CommandTypeDef                                      \
+            shellCommand##cmd __attribute__((section("shellCommand"))) =    \
+            {                                                               \
+                #cmd,                                                       \
+                (void (*)())func,                                           \
+                #desc,                                                      \
+                #help                                                       \
+            }
+#else /** SHELL_LONG_HELP == 1 */
 #define     SHELL_EXPORT_CMD(cmd, func, desc)                               \
             const SHELL_CommandTypeDef                                      \
             shellCommand##cmd __attribute__((section("shellCommand"))) =    \
@@ -38,27 +60,79 @@
                 (void (*)())func,                                           \
                 #desc                                                       \
             }
+#define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
+            const SHELL_CommandTypeDef                                      \
+            shellCommand##cmd __attribute__((section("shellCommand"))) =    \
+            {                                                               \
+                #cmd,                                                       \
+                (void (*)())func,                                           \
+                #desc,                                                      \
+            }
+#endif /** SHELL_LONG_HELP == 1 */
 #else
 #define     SHELL_EXPORT_CMD(cmd, func, desc)
-#endif
+#define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)
+#endif /** SHELL_USING_CMD_EXPORT == 1 */
 
-#if SHELL_USING_CMD_EXPORT == 0
 /**
  * @brief shell命令条目
  * 
  * @note 用于shell命令通过命令表的方式定义
  */
+#if SHELL_USING_CMD_EXPORT == 0
+#if SHELL_LONG_HELP == 1
+#define     SHELL_CMD_ITEM(cmd, func, desc)                                 \
+            {                                                               \
+                #cmd,                                                       \
+                (void (*)())func,                                           \
+                #desc,                                                      \
+                (void *)0                                                   \
+            }
+#define     SHELL_CMD_ITEM_EX(cmd, func, desc, help)                        \
+            {                                                               \
+                #cmd,                                                       \
+                (void (*)())func,                                           \
+                #desc,                                                      \
+                #help                                                       \
+            }   
+#else /** SHELL_LONG_HELP == 1 */
 #define     SHELL_CMD_ITEM(cmd, func, desc)                                 \
             {                                                               \
                 #cmd,                                                       \
                 (void (*)())func,                                           \
                 #desc                                                       \
             }
-#endif
-            
-typedef char (*shellRead)(void);                                /**< shell读取数据函数原型 */
-typedef void (*shellWrite)(const char);                         /**< shell写数据函数原型 */
-typedef void (*shellFunction)();                                /**< shell指令执行函数原型 */
+#define     SHELL_CMD_ITEM_EX(cmd, func, desc, help)                        \
+            {                                                               \
+                #cmd,                                                       \
+                (void (*)())func,                                           \
+                #desc,                                                      \
+            }  
+#endif /** SHELL_LONG_HELP == 1 */
+#endif /** SHELL_USING_CMD_EXPORT == 0 */
+
+/**
+ * @brief shell读取数据函数原型
+ * 
+ * @param char shell读取的字符
+ * 
+ * @return char 0 读取数据成功
+ * @return char -1 读取数据失败
+ */
+typedef signed char (*shellRead)(char *);
+
+/**
+ * @brief shell写数据函数原型
+ * 
+ * @param const char 需写的字符
+ */
+typedef void (*shellWrite)(const char);
+
+/**
+ * @brief shell指令执行函数原型
+ * 
+ */
+typedef void (*shellFunction)();
 
 
 /**
@@ -82,6 +156,9 @@ typedef struct
     const char *name;                                           /**< shell命令名称 */
     shellFunction function;                                     /**< shell命令函数 */
     const char *desc;                                           /**< shell命令描述 */
+#if SHELL_LONG_HELP == 1
+    const char *help;                                           /**< shell长帮助信息 */
+#endif
 }SHELL_CommandTypeDef;
 
 
@@ -110,7 +187,7 @@ void shellInit(SHELL_TypeDef *shell);
 void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsigned short size);
 void shellHandler(SHELL_TypeDef *shell, char data);
 
-#if SHELL_USING_OS == 1
+#if SHELL_USING_TASK == 1
 void shellTask(void *param);
 #endif
 

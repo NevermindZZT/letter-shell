@@ -175,7 +175,6 @@ static unsigned int shellExtParseNumber(char *string)
     char offset = 0;
     signed char sign = 1;
     unsigned int valueInt = 0;
-    float valueFloat = 0.0;
 
     if (*string == '-')
     {
