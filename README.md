@@ -1,20 +1,43 @@
 # letter shell
 
+![version](https://img.shields.io/badge/version-2.0.0-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2019.2.12-brightgreen.svg)
+
 一个体积极小的嵌入式shell
+
+## 功能
+
+- 命令自动补全，使用tab键补全命令
+- 命令长帮助，使用help [command]显示命令长帮助
+- 长帮助补全，输入命令后双击tab键补全命令长帮助指令
 
 ## 移植说明
 
 1. 定义shell对象
 
 ```C
-SHELL_TypeDef shell
+SHELL_TypeDef shell;
 ```
 
 2. 定义shell读，写函数，函数原型如下
 
 ```C
-typedef signed char (*shellRead)(char *);                       /**< shell读取数据函数原型 */
-typedef void (*shellWrite)(const char);                         /**< shell写数据函数原型 */
+/**
+ * @brief shell读取数据函数原型
+ *
+ * @param char shell读取的字符
+ *
+ * @return char 0 读取数据成功
+ * @return char -1 读取数据失败
+ */
+typedef signed char (*shellRead)(char *);
+
+/**
+ * @brief shell写数据函数原型
+ *
+ * @param const char 需写的字符
+ */
+typedef void (*shellWrite)(const char);
 ```
 
 3. 调用shellInit进行初始化
@@ -30,6 +53,10 @@ shellInit(&shell);
 - 对于中断方式使用shell，不用定义shell->read，但需要在中断中调用shellHandler
 - 对于在无操作系统环境下，可以使用查询的方式，使能```SHELL_UISNG_TASK```，然后在循环中不断调用shellTask
 - 对于使用操作系统的情况，使能```SHELL_USING_TASK```和```SHEHLL_TASK_WHILE```宏，然后创建shellTask任务
+
+5. 其他配置
+
+- 定义宏```SHELL_GET_TICK()```为获取系统tick函数，使能tab双击操作，用户长帮助补全
 
 ## 使用方式
 
@@ -51,6 +78,7 @@ const SHELL_CommandTypeDef shellDefaultCommandList[] =
 ### 建议终端软件
 
 - 对于基于串口移植，letter shell建议使用secureCRT软件，letter shell中的相关按键映射都是按照secureCRT进行设计的，使用其他串口软件可能会出现某些功能无法使用的情况
+
 
 ## 更新日志
 

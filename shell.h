@@ -22,6 +22,9 @@
 #define     SHELL_COMMAND_MAX_LENGTH    50                      /**< shell命令最大长度 */
 #define     SHELL_PARAMETER_MAX_NUMBER  5                       /**< shell命令参数最大数量 */
 #define     SHELL_HISTORY_MAX_NUMBER    5                       /**< 历史命令记录数量 */
+#define     SHELL_DOUBLE_CLICK_TIME     200                     /**< 双击间隔(ms) */
+
+#define     SHELL_GET_TICK()            0                       /**< 获取系统时间(ms) */
 
 #define     SHELL_COMMAND               "\r\nletter>>"          /**< shell提示符 */
 

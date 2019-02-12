@@ -477,6 +477,28 @@ static void shellTab(SHELL_TypeDef *shell)
         shellHelp(shell, 1, (void *)0);
         shellDisplay(shell, SHELL_COMMAND);
     }
+
+#if SHELL_LONG_HELP == 1
+    static int time = 0;
+    
+    if (SHELL_GET_TICK())
+    {
+        if (matchNum == 1 && SHELL_GET_TICK() - time < SHELL_DOUBLE_CLICK_TIME)
+        {
+            shellClearLine(shell);
+            for (short i = shell->length; i >= 0; i--)
+            {
+                shell->buffer[i + 5] = shell->buffer[i];
+            }
+            shellStringCopy(shell->buffer, "help");
+            shell->buffer[4] = ' ';
+            shell->length += 5;
+            shell->cursor = shell->length;
+            shellDisplay(shell, shell->buffer);
+        }
+        time = SHELL_GET_TICK();
+    }
+#endif /** SHELL_LONG_HELP == 1 */
 }
 
 
