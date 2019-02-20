@@ -12,7 +12,7 @@
 #ifndef     __SHELL_H__
 #define     __SHELL_H__
 
-#define     SHELL_VERSION               "2.0.0"                 /**< 版本号 */
+#define     SHELL_VERSION               "2.0.1"                 /**< 版本号 */
 
 #define     SHELL_USING_TASK            0                       /**< 是否使用默认shell任务 */
 #define     SHELL_USING_CMD_EXPORT      1                       /**< 是否使用命令导出方式 */
@@ -28,6 +28,16 @@
 
 #define     SHELL_COMMAND               "\r\nletter>>"          /**< shell提示符 */
 
+#if defined(__CC_ARM) || __ARMCC_VERSION >= 6000000
+    #define SECTION(x)                  __attribute__((section(x)))
+#elif defined(__ICCARM__)
+    #define SECTION(x)                  @ x
+#elif defined(__GNUC__)
+    #define SECTION(x)                  __attribute__((section(x)))
+#else
+    #define SECTION(x)
+#endif
+
 /**
  * @brief shell命令导出
  * 
@@ -37,35 +47,44 @@
 #if SHELL_USING_CMD_EXPORT == 1
 #if SHELL_LONG_HELP == 1
 #define     SHELL_EXPORT_CMD(cmd, func, desc)                               \
+            const char shellCmd##cmd[] = #cmd;                              \
+            const char shellDesc##cmd[] = #desc;                            \
             const SHELL_CommandTypeDef                                      \
-            shellCommand##cmd __attribute__((section("shellCommand"))) =    \
+            shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
-                #cmd,                                                       \
+                shellCmd##cmd,                                              \
                 (void (*)())func,                                           \
-                #desc,                                                      \
+                shellDesc##cmd,                                             \
                 (void *)0                                                   \
             }
 #define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
+            const char shellCmd##cmd[] = #cmd;                              \
+            const char shellDesc##cmd[] = #desc;                            \
+            const char shellHelp##cmd[] = #help;                            \
             const SHELL_CommandTypeDef                                      \
-            shellCommand##cmd __attribute__((section("shellCommand"))) =    \
+            shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
-                #cmd,                                                       \
+                shellCmd##cmd,                                              \
                 (void (*)())func,                                           \
-                #desc,                                                      \
-                #help                                                       \
+                shellDesc##cmd,                                             \
+                shellHelp##cmd                                              \
             }
 #else /** SHELL_LONG_HELP == 1 */
 #define     SHELL_EXPORT_CMD(cmd, func, desc)                               \
+            const char shellCmd##cmd[] = #cmd;                              \
+            const char shellDesc##cmd[] = #desc;                            \
             const SHELL_CommandTypeDef                                      \
-            shellCommand##cmd __attribute__((section("shellCommand"))) =    \
+            shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 #cmd,                                                       \
                 (void (*)())func,                                           \
                 #desc                                                       \
             }
 #define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
+            const char shellCmd##cmd[] = #cmd;                              \
+            const char shellDesc##cmd[] = #desc;                            \
             const SHELL_CommandTypeDef                                      \
-            shellCommand##cmd __attribute__((section("shellCommand"))) =    \
+            shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 #cmd,                                                       \
                 (void (*)())func,                                           \

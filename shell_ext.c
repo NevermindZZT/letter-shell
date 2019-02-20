@@ -228,7 +228,6 @@ static unsigned int shellExtParseNumber(char *string)
  */
 unsigned int shellExtParsePara(char *string)
 {
-    unsigned int value;
     if (*string == '\'' && *(string + 1))
     {
         return (unsigned int)shellExtParseChar(string);

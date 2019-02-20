@@ -55,15 +55,32 @@ void shellInit(SHELL_TypeDef *shell)
     shell->historyFlag = 0;
     shell->historyOffset = 0;
     shell->status = CONTROL_FREE;
-
+    
 #if SHELL_USING_CMD_EXPORT == 1
-    extern const unsigned int shellCommand$$Base;
-    extern const unsigned int shellCommand$$Limit;
+    #if defined(__CC_ARM) || __ARMCC_VERSION >= 6000000
+        extern const unsigned int shellCommand$$Base;
+        extern const unsigned int shellCommand$$Limit;
 
-    shell->commandBase = (SHELL_CommandTypeDef *)(&shellCommand$$Base);
-    shell->commandNumber = ((unsigned int)(&shellCommand$$Limit)
-                            - (unsigned int)(&shellCommand$$Base))
-                            / sizeof(SHELL_CommandTypeDef);
+        shell->commandBase = (SHELL_CommandTypeDef *)(&shellCommand$$Base);
+        shell->commandNumber = ((unsigned int)(&shellCommand$$Limit)
+                                - (unsigned int)(&shellCommand$$Base))
+                                / sizeof(SHELL_CommandTypeDef);
+    #elif defined(__ICCARM__)
+        shell->commandBase = (SHELL_CommandTypeDef *)(__section_begin("shellCommand"));
+        shell->commandNumber = ((unsigned int)(&__section_end("shellCommand"))
+                                - (unsigned int)(&__section_begin("shellCommand")))
+                                / sizeof(SHELL_CommandTypeDef);
+    #elif defined(__GNUC__)
+        extern const unsigned int _shell_command_start;
+        extern const unsigned int _shell_command_end;
+        
+        shell->commandBase = (SHELL_CommandTypeDef *)(&_shell_command_start);
+        shell->commandNumber = ((unsigned int)(&_shell_command_end)
+                                - (unsigned int)(&_shell_command_start))
+                                / sizeof(SHELL_CommandTypeDef);
+    #else
+        #error not supported compiler, please use command table mode
+    #endif
 #else
     shell->commandBase = (SHELL_CommandTypeDef *)shellDefaultCommandList;
     shell->commandNumber = sizeof(shellDefaultCommandList) / sizeof(SHELL_CommandTypeDef);
@@ -614,6 +631,7 @@ void shellHandler(SHELL_TypeDef *shell, char data)
         break;
 
     case '\b':
+    case 0x7F:
         shellBackspace(shell);
         break;
 
@@ -715,19 +733,16 @@ static void shellHelp(SHELL_TypeDef *shell, int argc, char *argv[])
         {
             if (strcmp((const char *)argv[1], (base + i)->name) == 0)
             {
+                
+                shellDisplay(shell, "command help --");
+                shellDisplay(shell, (base + i)->name);
+                shellDisplay(shell, ":\r\n");
+                shellDisplay(shell, (base + i)->desc);
+                shellDisplay(shell, "\r\n");
                 if ((base + i)->help)
                 {
-                    shellDisplay(shell, "command help --");
-                    shellDisplay(shell, (base + i)->name);
-                    shellDisplay(shell, ":\r\n");
-                    shellDisplay(shell, (base + i)->desc);
-                    shellDisplay(shell, "\r\n");
                     shellDisplay(shell, (base + i)->help);
                     shellDisplay(shell, "\r\n");
-                }
-                else
-                {
-                    shellDisplay(shell, "no help info\r\n");
                 }
                 return;
             }

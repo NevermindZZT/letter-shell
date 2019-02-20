@@ -1,7 +1,7 @@
 # letter shell
 
-![version](https://img.shields.io/badge/version-2.0.0-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2019.2.12-brightgreen.svg)
+![version](https://img.shields.io/badge/version-2.0.1-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2019.2.20-brightgreen.svg)
 
 一个体积极小的嵌入式shell
 
@@ -62,7 +62,25 @@ shellInit(&shell);
 
 ### 命令定义
 
-- letter shell 支持在使用keil编译器的时候，在函数体外部，采用定义常量的方式定义命令，例如```SHELL_EXPORT_CMD_EX(help, shellHelp, command help, help [command] --show help info of command);```，或者```SHELL_EXPORT_CMD(help, shellHelp, command help);```，此时，需要在keil的target option中增加--keep shellCommand*，防止定义的命令被优化掉
+letter支持使用命令导出方式和命令表方式进行命令的添加，定义，通过宏```SHELL_USING_CMD_EXPORT```控制
+
+命令导出方式支持keil，IAR(未测试)以及GCC
+
+### 命令导出方式
+
+letter shell 支持在函数体外部，采用定义常量的方式定义命令，例如```SHELL_EXPORT_CMD_EX(help, shellHelp, command help, help [command] --show help info of command);```，或者```SHELL_EXPORT_CMD(help, shellHelp, command help);```
+
+对于使用keil进行编译，需要在keil的target option中增加--keep shellCommand*，防止定义的命令被优化掉
+
+使用GCC编译时，需要在ld文件中的只读数据区(建议)添加：
+
+```ld
+_shell_command_start = .;
+KEEP (*(shellCommand))
+_shell_command_end = .;
+```
+
+### 命令表方式
 
 - 当使用其他编译器时，暂时不支持使用类似keil中命令导出的方式，需要在命令表中添加
 
@@ -147,3 +165,10 @@ const SHELL_CommandTypeDef shellDefaultCommandList[] =
 - 新增shell扩展模块，支持函数参数自动转化
 - 精简shell可选项
 - 新增多shell支持
+
+### 2019/02/20 2.0.1
+
+- 新增命令导出方式对于IAR，GCC的支持
+- 新增命令长帮助
+- 新增二进制参数支持
+- 修复bug以及一些优化
