@@ -26,9 +26,9 @@
 
 #define     SHELL_GET_TICK()            0                       /**< 获取系统时间(ms) */
 
-#define     SHELL_COMMAND               "\r\nletter>>"          /**< shell提示符 */
+#define     SHELL_DEFAULT_COMMAND       "\r\nletter>>"          /**< shell默认提示符 */
 
-#if defined(__CC_ARM) || __ARMCC_VERSION >= 6000000
+#if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
     #define SECTION(x)                  __attribute__((section(x)))
 #elif defined(__ICCARM__)
     #define SECTION(x)                  @ x
@@ -158,15 +158,15 @@ typedef void (*shellFunction)();
 
 
 /**
- * @brief shell控制指令状态
+ * @brief shell输入状态
  * 
  */
 typedef enum
 {
-    CONTROL_FREE = 0,
-    CONTROL_STEP_ONE,
-    CONTROL_STEP_TWO,
-}CONTROL_Status;
+    SHELL_IN_NORMAL = 0,
+    SHELL_ANSI_ESC,
+    SHELL_ANSI_CSI,
+}SHELL_InputMode;
 
 
 /**
@@ -190,6 +190,7 @@ typedef struct
  */
 typedef struct
 {
+    char *command;                                              /**< shell命令提示符 */
     char buffer[SHELL_COMMAND_MAX_LENGTH];                      /**< shell命令缓冲 */
     unsigned short length;                                      /**< shell命令长度 */
     char *param[SHELL_PARAMETER_MAX_NUMBER];                    /**< shell参数 */
@@ -200,7 +201,7 @@ typedef struct
     short historyOffset;                                        /**< 历史记录偏移 */
     SHELL_CommandTypeDef *commandBase;                          /**< 命令表基址 */
     unsigned short commandNumber;                               /**< 命令数量 */
-    CONTROL_Status status;                                      /**< 控制键状态 */
+    SHELL_InputMode status;                                     /**< 输入状态 */
     shellRead read;                                             /**< shell读字符 */
     shellWrite write;                                           /**< shell写字符 */
 }SHELL_TypeDef;

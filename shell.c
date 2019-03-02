@@ -48,16 +48,17 @@ void shellInit(SHELL_TypeDef *shell)
     shellDisplay(shell, "|                   Letter shell v"SHELL_VERSION"                   |\r\n");
     shellDisplay(shell, "|               Build: "__DATE__" "__TIME__"               |\r\n");
     shellDisplay(shell, "+=========================================================+\r\n");
-    shellDisplay(shell, SHELL_COMMAND);
     shell->length = 0;
     shell->cursor = 0;
     shell->historyCount = 0;
     shell->historyFlag = 0;
     shell->historyOffset = 0;
-    shell->status = CONTROL_FREE;
+    shell->status = SHELL_IN_NORMAL;
+    shell->command = SHELL_DEFAULT_COMMAND;
+    shellDisplay(shell, shell->command);
     
 #if SHELL_USING_CMD_EXPORT == 1
-    #if defined(__CC_ARM) || __ARMCC_VERSION >= 6000000
+    #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
         extern const unsigned int shellCommand$$Base;
         extern const unsigned int shellCommand$$Limit;
 
@@ -67,8 +68,8 @@ void shellInit(SHELL_TypeDef *shell)
                                 / sizeof(SHELL_CommandTypeDef);
     #elif defined(__ICCARM__)
         shell->commandBase = (SHELL_CommandTypeDef *)(__section_begin("shellCommand"));
-        shell->commandNumber = ((unsigned int)(&__section_end("shellCommand"))
-                                - (unsigned int)(&__section_begin("shellCommand")))
+        shell->commandNumber = ((unsigned int)(__section_end("shellCommand"))
+                                - (unsigned int)(__section_begin("shellCommand")))
                                 / sizeof(SHELL_CommandTypeDef);
     #elif defined(__GNUC__)
         extern const unsigned int _shell_command_start;
@@ -309,7 +310,7 @@ static void shellEnter(SHELL_TypeDef *shell)
 
     if (shell->length == 0)
     {
-        shellDisplay(shell, SHELL_COMMAND);
+        shellDisplay(shell, shell->command);
         return;
     }
     
@@ -354,7 +355,7 @@ static void shellEnter(SHELL_TypeDef *shell)
     shell->cursor = 0;
     if (paramCount == 0)
     {
-        shellDisplay(shell, SHELL_COMMAND);
+        shellDisplay(shell, shell->command);
         return;
     }
 
@@ -363,19 +364,18 @@ static void shellEnter(SHELL_TypeDef *shell)
     if (strcmp((const char *)shell->param[0], "help") == 0)
     {
         shellHelp(shell, paramCount, shell->param);
-        shellDisplay(shell, SHELL_COMMAND);
+        shellDisplay(shell, shell->command);
         return;
     }
     for (unsigned char i = 0; i < shell->commandNumber; i++)
     {
         if (strcmp((const char *)shell->param[0], (base + i)->name) == 0)
         {
-        #if SHELL_AUTO_PRASE == 0
             runFlag = 1;
+        #if SHELL_AUTO_PRASE == 0
             (base + i)->function(paramCount, shell->param);
         #else
-            runFlag = shellExtRun((base + i)->function, paramCount, shell->param)
-                      + 1;
+            shellExtRun((base + i)->function, paramCount, shell->param);
         #endif
         }
     }
@@ -383,7 +383,7 @@ static void shellEnter(SHELL_TypeDef *shell)
     {
         shellDisplay(shell, "Command not found\r\n");
     }
-    shellDisplay(shell, SHELL_COMMAND);
+    shellDisplay(shell, shell->command);
 }
 
 
@@ -482,7 +482,7 @@ static void shellTab(SHELL_TypeDef *shell)
         if (matchNum > 1)
         {
             shellDisplayItem(shell, lastMatchIndex);
-            shellDisplay(shell, SHELL_COMMAND);
+            shellDisplay(shell, shell->command);
             shell->length = maxMatch;
         }
         shell->buffer[shell->length] = 0;
@@ -492,7 +492,7 @@ static void shellTab(SHELL_TypeDef *shell)
     else
     {
         shellHelp(shell, 1, (void *)0);
-        shellDisplay(shell, SHELL_COMMAND);
+        shellDisplay(shell, shell->command);
     }
 
 #if SHELL_LONG_HELP == 1
@@ -527,9 +527,54 @@ static void shellTab(SHELL_TypeDef *shell)
  */
 static void shellNormal(SHELL_TypeDef *shell, char data)
 {
+    
+    if (shell->length < SHELL_COMMAND_MAX_LENGTH - 1)
+    {
+        if (shell->length == shell->cursor)
+        {
+            shell->buffer[shell->length++] = data;
+            shell->cursor++;
+            shellDisplayByte(shell, data);
+        }
+        else
+        {
+            for (short i = shell->length - shell->cursor; i > 0; i--)
+            {
+                shell->buffer[shell->cursor + i] = shell->buffer[shell->cursor + i - 1];
+            }
+            shell->buffer[shell->cursor++] = data;
+            shell->buffer[++shell->length] = 0;
+            for (short i = shell->cursor - 1; i < shell->length; i++)
+            {
+                shellDisplayByte(shell, shell->buffer[i]);
+            }
+            for (short i = shell->length - shell->cursor; i > 0; i--)
+            {
+                shellDisplayByte(shell, '\b');
+            }
+        }
+    }
+    else
+    {
+        shellDisplay(shell, "\r\nWarnig: Command is too long\r\n");
+        shellDisplay(shell, shell->command);
+        shellDisplay(shell, shell->buffer);
+        shell->cursor = shell->length;
+    }
+}
+
+
+/**
+ * @brief shell ansi控制系列处理
+ * 
+ * @param shell shell对象
+ * @param data 输入的数据
+ */
+void shellAnsi(SHELL_TypeDef *shell, char data)
+{
     switch ((unsigned char)(shell->status))
     {
-    case CONTROL_STEP_TWO:
+    case SHELL_ANSI_CSI:
         switch (data)
         {
         case 0x41:                                              /** 方向上键 */
@@ -559,53 +604,17 @@ static void shellNormal(SHELL_TypeDef *shell, char data)
         default:
             break;
         }
-        shell->status = CONTROL_FREE;
+        shell->status = SHELL_IN_NORMAL;
         break;
 
-    case CONTROL_STEP_ONE:
+    case SHELL_ANSI_ESC:
         if (data == 0x5B)
         {
-            shell->status = CONTROL_STEP_TWO;
+            shell->status = SHELL_ANSI_CSI;
         }
         else
         {
-            shell->status = CONTROL_FREE;
-        }
-        break;
-
-    case CONTROL_FREE:
-        if (shell->length < SHELL_COMMAND_MAX_LENGTH - 1)
-        {
-            if (shell->length == shell->cursor)
-            {
-                shell->buffer[shell->length++] = data;
-                shell->cursor++;
-                shellDisplayByte(shell, data);
-            }
-            else
-            {
-                for (short i = shell->length - shell->cursor; i > 0; i--)
-                {
-                    shell->buffer[shell->cursor + i] = shell->buffer[shell->cursor + i - 1];
-                }
-                shell->buffer[shell->cursor++] = data;
-                shell->buffer[++shell->length] = 0;
-                for (short i = shell->cursor - 1; i < shell->length; i++)
-                {
-                    shellDisplayByte(shell, shell->buffer[i]);
-                }
-                for (short i = shell->length - shell->cursor; i > 0; i--)
-                {
-                    shellDisplayByte(shell, '\b');
-                }
-            }
-        }
-        else
-        {
-            shellDisplay(shell, "\r\nWarnig: Command is too long\r\n");
-            shellDisplay(shell, SHELL_COMMAND);
-            shellDisplay(shell, shell->buffer);
-            shell->cursor = shell->length;
+            shell->status = SHELL_IN_NORMAL;
         }
         break;
 
@@ -623,30 +632,38 @@ static void shellNormal(SHELL_TypeDef *shell, char data)
  */
 void shellHandler(SHELL_TypeDef *shell, char data)
 {
-    switch (data)
+    if (shell->status == SHELL_IN_NORMAL)
     {
-    case '\r':  
-    case '\n':
-        shellEnter(shell);
-        break;
+        switch (data)
+        {
+        case '\r':  
+        case '\n':
+            shellEnter(shell);
+            break;
 
-    case '\b':
-    case 0x7F:
-        shellBackspace(shell);
-        break;
+        case '\b':
+        case 0x7F:
+            shellBackspace(shell);
+            break;
 
-    case '\t':
-        shellTab(shell);
-        break;
+        case '\t':
+            shellTab(shell);
+            break;
 
-    case 0x1B:
-        shell->status = CONTROL_STEP_ONE;
-        break;
+        case 0x1B:
+            shell->status = SHELL_ANSI_ESC;
+            break;
 
-    default:
-        shellNormal(shell, data);
-        break;
+        default:
+            shellNormal(shell, data);
+            break;
+        }
     }
+    else
+    {
+        shellAnsi(shell, data);
+    }
+    
 }
 
 
