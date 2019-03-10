@@ -58,11 +58,76 @@ shellInit(&shell);
 
 - 定义宏```SHELL_GET_TICK()```为获取系统tick函数，使能tab双击操作，用户长帮助补全
 
+6. 配置宏
+
+shell.h文件中包含几个用于配置shell的宏，在使用前，需要根据需要进行配置
+
+| 宏                         | 意义                           |
+| -------------------------- | ------------------------------ |
+| SHELL_USING_TASK           | 是否使用默认shell任务          |
+| SHELL_USING_CMD_EXPORT     | 是否使用命令导出方式           |
+| SHELL_TASK_WHILE           | 是否使用默认shell任务while循环 |
+| SHELL_AUTO_PRASE           | 是否使用shell参数自动解析      |
+| SHELL_LONG_HELP            | 是否使用shell长帮助            |
+| SHELL_COMMAND_MAX_LENGTH   | shell命令最大长度              |
+| SHELL_PARAMETER_MAX_NUMBER | shell命令参数最大数量          |
+| SHELL_HISTORY_MAX_NUMBER   | 历史命令记录数量               |
+| SHELL_DOUBLE_CLICK_TIME    | 双击间隔(ms)                   |
+| SHELL_GET_TICK()           | 获取系统时间(ms)               |
+| SHELL_DEFAULT_COMMAND      | shell默认提示符                |
+
 ## 使用方式
+
+### 函数定义
+
+letter shell 支持两种形式的函数定义方式，形如main函数定义的```func(int argc, char *agrv[])```以及形如普通C函数的定义```func(int i, char *str, ...)```,这两种方式目前不可共存，只能选择其中的一种，通过宏```SHELL_AUTO_PRASE```选择
+
+#### main函数形式
+
+使用此方式，一个函数定义的例子如下：
+
+```C
+func(int argc, char *agrv[])
+{
+    printf("%dparameter(s)\r\n", argc);
+    for (char i = 1; i < argc; i++)
+    {
+        printf("%s\r\n", argv[i]);
+    }
+}
+SHELL_EXPORT_CMD(func, func, test)
+```
+
+终端调用
+
+```
+letter>>func "hello world"
+2 parameter(s)
+hello world
+```
+
+#### 普通C函数形式
+
+使用此方式，shell会自动对参数进行转化处理，目前支持二进制，八进制，十进制，十六进制整形，字符，字符串的自动处理，如果需要其他类型的参数，请使用字符串的方式作为参数，自行进行处理，例子如下：
+
+```C
+func(int i, char ch, char *str)
+{
+    printf("input int: %d, char: %c, string: %s\r\n", i, ch, str);
+}
+SHELL_EXPORT_CMD(func, func, test)
+```
+
+终端调用
+
+```
+letter>>func 666 'A' "hello world"
+input int: 666, char: A, string: hello world
+```
 
 ### 命令定义
 
-letter支持使用命令导出方式和命令表方式进行命令的添加，定义，通过宏```SHELL_USING_CMD_EXPORT```控制
+letter shell 支持使用命令导出方式和命令表方式进行命令的添加，定义，通过宏```SHELL_USING_CMD_EXPORT```控制
 
 命令导出方式支持keil，IAR(未测试)以及GCC
 
