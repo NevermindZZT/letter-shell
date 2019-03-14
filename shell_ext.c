@@ -257,38 +257,38 @@ int shellExtRun(shellFunction function, int argc, char *argv[])
     switch (argc)
     {
     case 1:
-        function();
-        break;
+        return function();
+        // break;
     case 2:
-        function(shellExtParsePara(argv[1]));
-        break;
+        return function(shellExtParsePara(argv[1]));
+        // break;
     case 3:
-        function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]));
-        break;
+        return function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]));
+        // break;
     case 4:
-        function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
-                 shellExtParsePara(argv[3]));
-        break;
+        return function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
+                        shellExtParsePara(argv[3]));
+        // break;
     case 5:
-        function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
-                 shellExtParsePara(argv[3]), shellExtParsePara(argv[4]));
-        break;
+        return function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
+                        shellExtParsePara(argv[3]), shellExtParsePara(argv[4]));
+        // break;
     case 6:
-        function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
-                 shellExtParsePara(argv[3]), shellExtParsePara(argv[4]),
-                 shellExtParsePara(argv[5]));
-        break;
+        return function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
+                        shellExtParsePara(argv[3]), shellExtParsePara(argv[4]),
+                        shellExtParsePara(argv[5]));
+        // break;
     case 7:
-        function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
-                 shellExtParsePara(argv[3]), shellExtParsePara(argv[4]),
-                 shellExtParsePara(argv[5]), shellExtParsePara(argv[6]));
-        break;
+        return function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
+                        shellExtParsePara(argv[3]), shellExtParsePara(argv[4]),
+                        shellExtParsePara(argv[5]), shellExtParsePara(argv[6]));
+        // break;
     case 8:
-        function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
-                 shellExtParsePara(argv[3]), shellExtParsePara(argv[4]),
-                 shellExtParsePara(argv[5]), shellExtParsePara(argv[6]),
-                 shellExtParsePara(argv[7]));
-        break;
+        return function(shellExtParsePara(argv[1]), shellExtParsePara(argv[2]),
+                        shellExtParsePara(argv[3]), shellExtParsePara(argv[4]),
+                        shellExtParsePara(argv[5]), shellExtParsePara(argv[6]),
+                        shellExtParsePara(argv[7]));
+        // break;
     default:
         return -1;
         // break;

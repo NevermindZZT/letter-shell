@@ -16,11 +16,12 @@
 
 #define     SHELL_USING_TASK            0                       /**< 是否使用默认shell任务 */
 #define     SHELL_USING_CMD_EXPORT      1                       /**< 是否使用命令导出方式 */
+#define     SHELL_DISPLAY_RETURN        1                       /**< 是否显示命令调用函数返回值 */
 #define     SHELL_TASK_WHILE            1                       /**< 是否使用默认shell任务while循环 */
 #define     SHELL_AUTO_PRASE            1                       /**< 是否使用shell参数自动解析 */
 #define     SHELL_LONG_HELP             1                       /**< 是否使用shell长帮助 */
 #define     SHELL_COMMAND_MAX_LENGTH    50                      /**< shell命令最大长度 */
-#define     SHELL_PARAMETER_MAX_NUMBER  5                       /**< shell命令参数最大数量 */
+#define     SHELL_PARAMETER_MAX_NUMBER  8                       /**< shell命令参数最大数量 */
 #define     SHELL_HISTORY_MAX_NUMBER    5                       /**< 历史命令记录数量 */
 #define     SHELL_DOUBLE_CLICK_TIME     200                     /**< 双击间隔(ms) */
 
@@ -53,7 +54,7 @@
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 shellCmd##cmd,                                              \
-                (void (*)())func,                                           \
+                (int (*)())func,                                           \
                 shellDesc##cmd,                                             \
                 (void *)0                                                   \
             }
@@ -65,7 +66,7 @@
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 shellCmd##cmd,                                              \
-                (void (*)())func,                                           \
+                (int (*)())func,                                           \
                 shellDesc##cmd,                                             \
                 shellHelp##cmd                                              \
             }
@@ -77,7 +78,7 @@
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 #cmd,                                                       \
-                (void (*)())func,                                           \
+                (int (*)())func,                                           \
                 #desc                                                       \
             }
 #define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
@@ -87,7 +88,7 @@
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 #cmd,                                                       \
-                (void (*)())func,                                           \
+                (int (*)())func,                                           \
                 #desc,                                                      \
             }
 #endif /** SHELL_LONG_HELP == 1 */
@@ -106,14 +107,14 @@
 #define     SHELL_CMD_ITEM(cmd, func, desc)                                 \
             {                                                               \
                 #cmd,                                                       \
-                (void (*)())func,                                           \
+                (int (*)())func,                                           \
                 #desc,                                                      \
                 (void *)0                                                   \
             }
 #define     SHELL_CMD_ITEM_EX(cmd, func, desc, help)                        \
             {                                                               \
                 #cmd,                                                       \
-                (void (*)())func,                                           \
+                (int (*)())func,                                           \
                 #desc,                                                      \
                 #help                                                       \
             }   
@@ -121,13 +122,13 @@
 #define     SHELL_CMD_ITEM(cmd, func, desc)                                 \
             {                                                               \
                 #cmd,                                                       \
-                (void (*)())func,                                           \
+                (int (*)())func,                                           \
                 #desc                                                       \
             }
 #define     SHELL_CMD_ITEM_EX(cmd, func, desc, help)                        \
             {                                                               \
                 #cmd,                                                       \
-                (void (*)())func,                                           \
+                (int (*)())func,                                           \
                 #desc,                                                      \
             }  
 #endif /** SHELL_LONG_HELP == 1 */
@@ -154,7 +155,7 @@ typedef void (*shellWrite)(const char);
  * @brief shell指令执行函数原型
  * 
  */
-typedef void (*shellFunction)();
+typedef int (*shellFunction)();
 
 
 /**
@@ -193,8 +194,8 @@ typedef struct
     char *command;                                              /**< shell命令提示符 */
     char buffer[SHELL_COMMAND_MAX_LENGTH];                      /**< shell命令缓冲 */
     unsigned short length;                                      /**< shell命令长度 */
-    char *param[SHELL_PARAMETER_MAX_NUMBER];                    /**< shell参数 */
     unsigned short cursor;                                      /**< shell光标位置 */
+    char *param[SHELL_PARAMETER_MAX_NUMBER];                    /**< shell参数 */
     char history[SHELL_HISTORY_MAX_NUMBER][SHELL_COMMAND_MAX_LENGTH];  /**< 历史记录 */
     unsigned short historyCount;                                /**< 历史记录数量 */
     short historyFlag;                                          /**< 当前记录位置 */

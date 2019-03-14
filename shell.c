@@ -132,6 +132,7 @@ static unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string)
 /**
  * @brief shell显示字符
  * 
+ * @param shell shel对象
  * @param data 字符
  */
 static void shellDisplayByte(SHELL_TypeDef *shell, char data)
@@ -142,6 +143,52 @@ static void shellDisplayByte(SHELL_TypeDef *shell, char data)
     }
     shell->write(data);
 }
+
+
+#if SHELL_DISPLAY_RETURN == 1
+/**
+ * @brief shell显示函数调用返回值
+ * 
+ * @param shell shel对象
+ * @param value 值
+ */
+static void shellDisplayReturn(SHELL_TypeDef *shell, int value)
+{
+    char str[11] = "0000000000";
+    unsigned int v = value;
+    char i = 9;
+    char tmp;
+
+    shellDisplay(shell, "Return: ");
+    if (value < 0)
+    {
+        shellDisplay(shell, "-");
+        v = -v;
+    }
+    while (v)
+    {
+        str[i--] = v % 10 + 48;
+        v /= 10;
+    }
+    shellDisplay(shell, str);
+    v = value;
+    if (value < 0)
+    {
+        v = (unsigned int)value;
+    }
+    i = 7;
+    str[8] = 0;
+    while (v)
+    {
+        tmp = v %16;
+        str[i--] = (tmp > 9) ? (tmp + 87) : (tmp + 48);
+        v /= 16;
+    }
+    shellDisplay(shell, ", 0x");
+    shellDisplay(shell, str);
+    shellDisplay(shell, "\r\n");
+}
+#endif /** SHELL_DISPLAY_RETURN == 1 */
 
 
 /**
@@ -307,6 +354,7 @@ static void shellEnter(SHELL_TypeDef *shell)
     unsigned char record = 1;
     SHELL_CommandTypeDef *base;
     unsigned char runFlag = 0;
+    int returnValue;
 
     if (shell->length == 0)
     {
@@ -373,10 +421,13 @@ static void shellEnter(SHELL_TypeDef *shell)
         {
             runFlag = 1;
         #if SHELL_AUTO_PRASE == 0
-            (base + i)->function(paramCount, shell->param);
+            returnValue = (base + i)->function(paramCount, shell->param);
         #else
-            shellExtRun((base + i)->function, paramCount, shell->param);
-        #endif
+            returnValue = shellExtRun((base + i)->function, paramCount, shell->param);
+        #endif /** SHELL_AUTO_PRASE == 0 */
+        #if SHELL_DISPLAY_RETURN == 1
+            shellDisplayReturn(shell, returnValue);
+        #endif /** SHELL_DISPLAY_RETURN == 1 */
         }
     }
     if (runFlag == 0)

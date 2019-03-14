@@ -43,8 +43,8 @@ typedef void (*shellWrite)(const char);
 3. 调用shellInit进行初始化
 
 ```C
-shell->read = shellRead;
-shell->write = shellWrite;
+shell.read = shellRead;
+shell.write = shellWrite;
 shellInit(&shell);
 ```
 
@@ -53,6 +53,7 @@ shellInit(&shell);
 - 对于中断方式使用shell，不用定义shell->read，但需要在中断中调用shellHandler
 - 对于在无操作系统环境下，可以使用查询的方式，使能```SHELL_UISNG_TASK```，然后在循环中不断调用shellTask
 - 对于使用操作系统的情况，使能```SHELL_USING_TASK```和```SHEHLL_TASK_WHILE```宏，然后创建shellTask任务
+- 打印函数返回值，使能```SHELL_DISPLAY_RETURN```宏，返回值均作为整型数据打印
 
 5. 其他配置
 
@@ -66,6 +67,7 @@ shell.h文件中包含几个用于配置shell的宏，在使用前，需要根�
 | -------------------------- | ------------------------------ |
 | SHELL_USING_TASK           | 是否使用默认shell任务          |
 | SHELL_USING_CMD_EXPORT     | 是否使用命令导出方式           |
+| SHELL_DISPLAY_RETURN       | 是否显示命令调用函数返回值     |
 | SHELL_TASK_WHILE           | 是否使用默认shell任务while循环 |
 | SHELL_AUTO_PRASE           | 是否使用shell参数自动解析      |
 | SHELL_LONG_HELP            | 是否使用shell长帮助            |
