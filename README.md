@@ -77,6 +77,7 @@ shell.h文件中包含几个用于配置shell的宏，在使用前，需要根�
 | SHELL_DOUBLE_CLICK_TIME    | 双击间隔(ms)                   |
 | SHELL_GET_TICK()           | 获取系统时间(ms)               |
 | SHELL_DEFAULT_COMMAND      | shell默认提示符                |
+| SHELL_MAX_NUMBER           | 管理的最大shell数量            |
 
 ## 使用方式
 
@@ -126,6 +127,10 @@ SHELL_EXPORT_CMD(func, func, test)
 letter>>func 666 'A' "hello world"
 input int: 666, char: A, string: hello world
 ```
+
+#### 在函数中获取当前shell对象
+
+shell采取一个静态数组对定义的多个shell进行管理，shell数量可以修改宏```SHELL_MAX_NUMBER```定义(为了不使用动态内存分配，此处通过数据进行管理)，从而，在shell执行的函数中，可以调用```shellGetCurrent()```获得当前活动的shell对象，从而可以实现某一个函数在不同的shell对象中发生不同的行为，也可以通过这种方式获得shell对象后，调用```shellDisplay(shell, string)```进行shell的输出
 
 ### 命令定义
 
@@ -239,3 +244,9 @@ const SHELL_CommandTypeDef shellDefaultCommandList[] =
 - 新增命令长帮助
 - 新增二进制参数支持
 - 修复bug以及一些优化
+
+### 2019/03/29 2.0.2
+
+- 新增函数返回值打印
+- 新增shell对象管理，支持在shell调用的函数中获取当前shell对象
+- bug修复

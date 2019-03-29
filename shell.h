@@ -12,7 +12,7 @@
 #ifndef     __SHELL_H__
 #define     __SHELL_H__
 
-#define     SHELL_VERSION               "2.0.1"                 /**< 版本号 */
+#define     SHELL_VERSION               "2.0.2"                 /**< 版本号 */
 
 #define     SHELL_USING_TASK            0                       /**< 是否使用默认shell任务 */
 #define     SHELL_USING_CMD_EXPORT      1                       /**< 是否使用命令导出方式 */
@@ -24,6 +24,7 @@
 #define     SHELL_PARAMETER_MAX_NUMBER  8                       /**< shell命令参数最大数量 */
 #define     SHELL_HISTORY_MAX_NUMBER    5                       /**< 历史命令记录数量 */
 #define     SHELL_DOUBLE_CLICK_TIME     200                     /**< 双击间隔(ms) */
+#define     SHELL_MAX_NUMBER            5                       /**< 管理的最大shell数量 */
 
 #define     SHELL_GET_TICK()            0                       /**< 获取系统时间(ms) */
 
@@ -54,7 +55,7 @@
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 shellCmd##cmd,                                              \
-                (int (*)())func,                                           \
+                (int (*)())func,                                            \
                 shellDesc##cmd,                                             \
                 (void *)0                                                   \
             }
@@ -66,7 +67,7 @@
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 shellCmd##cmd,                                              \
-                (int (*)())func,                                           \
+                (int (*)())func,                                            \
                 shellDesc##cmd,                                             \
                 shellHelp##cmd                                              \
             }
@@ -78,7 +79,7 @@
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 #cmd,                                                       \
-                (int (*)())func,                                           \
+                (int (*)())func,                                            \
                 #desc                                                       \
             }
 #define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
@@ -88,7 +89,7 @@
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
                 #cmd,                                                       \
-                (int (*)())func,                                           \
+                (int (*)())func,                                            \
                 #desc,                                                      \
             }
 #endif /** SHELL_LONG_HELP == 1 */
@@ -107,14 +108,14 @@
 #define     SHELL_CMD_ITEM(cmd, func, desc)                                 \
             {                                                               \
                 #cmd,                                                       \
-                (int (*)())func,                                           \
+                (int (*)())func,                                            \
                 #desc,                                                      \
                 (void *)0                                                   \
             }
 #define     SHELL_CMD_ITEM_EX(cmd, func, desc, help)                        \
             {                                                               \
                 #cmd,                                                       \
-                (int (*)())func,                                           \
+                (int (*)())func,                                            \
                 #desc,                                                      \
                 #help                                                       \
             }   
@@ -122,13 +123,13 @@
 #define     SHELL_CMD_ITEM(cmd, func, desc)                                 \
             {                                                               \
                 #cmd,                                                       \
-                (int (*)())func,                                           \
+                (int (*)())func,                                            \
                 #desc                                                       \
             }
 #define     SHELL_CMD_ITEM_EX(cmd, func, desc, help)                        \
             {                                                               \
                 #cmd,                                                       \
-                (int (*)())func,                                           \
+                (int (*)())func,                                            \
                 #desc,                                                      \
             }  
 #endif /** SHELL_LONG_HELP == 1 */
@@ -203,12 +204,15 @@ typedef struct
     SHELL_CommandTypeDef *commandBase;                          /**< 命令表基址 */
     unsigned short commandNumber;                               /**< 命令数量 */
     SHELL_InputMode status;                                     /**< 输入状态 */
+    unsigned char isActive;                                     /**< 是否是当前活动shell */
     shellRead read;                                             /**< shell读字符 */
     shellWrite write;                                           /**< shell写字符 */
 }SHELL_TypeDef;
 
 void shellInit(SHELL_TypeDef *shell);
 void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsigned short size);
+SHELL_TypeDef *shellGetCurrent(void);
+unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string);
 void shellHandler(SHELL_TypeDef *shell, char data);
 
 #if SHELL_USING_TASK == 1

@@ -16,9 +16,11 @@
 #include "shell_ext.h"
 #endif
 
-static unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string);
+static SHELL_TypeDef *shellList[SHELL_MAX_NUMBER] = {NULL};     /**< shell列表 */
+
+static void shellAdd(SHELL_TypeDef *shell);
 static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index);
-static void shellHelp(SHELL_TypeDef *shell, int argc, char *argv[]);
+static void shellHelp(int argc, char *argv[]);
 
 #if SHELL_USING_CMD_EXPORT != 1
 /**
@@ -55,6 +57,8 @@ void shellInit(SHELL_TypeDef *shell)
     shell->historyOffset = 0;
     shell->status = SHELL_IN_NORMAL;
     shell->command = SHELL_DEFAULT_COMMAND;
+    shell->isActive = 0;
+    shellAdd(shell);
     shellDisplay(shell, shell->command);
     
 #if SHELL_USING_CMD_EXPORT == 1
@@ -107,13 +111,49 @@ void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsig
 
 
 /**
+ * @brief 添加shell到shell列表
+ * 
+ * @param shell shell对象
+ */
+static void shellAdd(SHELL_TypeDef *shell)
+{
+    for (short i = 0; i < SHELL_MAX_NUMBER; i++)
+    {
+        if (shellList[i] == NULL)
+        {
+            shellList[i] = shell;
+            return;
+        }
+    }
+}
+
+
+/**
+ * @brief 获取当前活动shell
+ * 
+ * @return SHELL_TypeDef* 当前活动shell对象
+ */
+SHELL_TypeDef *shellGetCurrent(void)
+{
+    for (short i = 0; i < SHELL_MAX_NUMBER; i++)
+    {
+        if (shellList[i] != NULL && shellList[i]->isActive == 1)
+        {
+            return shellList[i];
+        }
+    }
+    return NULL;
+}
+
+
+/**
  * @brief shell显示字符串
  * 
  * @param shell shell对象
  * @param string 字符串
  * @return unsigned short 字符串长度
  */
-static unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string)
+unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string)
 {
     unsigned short count = 0;
     if (shell->write == NULL)
@@ -411,7 +451,9 @@ static void shellEnter(SHELL_TypeDef *shell)
     base = shell->commandBase;
     if (strcmp((const char *)shell->param[0], "help") == 0)
     {
-        shellHelp(shell, paramCount, shell->param);
+        shell->isActive = 1;
+        shellHelp(paramCount, shell->param);
+        shell->isActive = 0;
         shellDisplay(shell, shell->command);
         return;
     }
@@ -420,11 +462,13 @@ static void shellEnter(SHELL_TypeDef *shell)
         if (strcmp((const char *)shell->param[0], (base + i)->name) == 0)
         {
             runFlag = 1;
+            shell->isActive = 1;
         #if SHELL_AUTO_PRASE == 0
             returnValue = (base + i)->function(paramCount, shell->param);
         #else
             returnValue = shellExtRun((base + i)->function, paramCount, shell->param);
         #endif /** SHELL_AUTO_PRASE == 0 */
+            shell->isActive = 0;
         #if SHELL_DISPLAY_RETURN == 1
             shellDisplayReturn(shell, returnValue);
         #endif /** SHELL_DISPLAY_RETURN == 1 */
@@ -542,7 +586,9 @@ static void shellTab(SHELL_TypeDef *shell)
     }
     else
     {
-        shellHelp(shell, 1, (void *)0);
+        shell->isActive = 1;
+        shellHelp(1, (void *)0);
+        shell->isActive = 0;
         shellDisplay(shell, shell->command);
     }
 
@@ -734,7 +780,7 @@ void shellTask(void *param)
     char data;
     if (shell->read == NULL)
     {
-        shellDisplay(shell, "error: shell.read() must be defined\r\n");
+        shellDisplay(shell, "error: shell.read must be defined\r\n");
         while (1) ;
     }
 #if SHELL_TASK_WHILE == 1
@@ -778,12 +824,16 @@ static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index)
 /**
  * @brief shell帮助
  * 
- * @param shell shell对象
  * @param argc 参数个数
  * @param argv 参数
  */
-static void shellHelp(SHELL_TypeDef *shell, int argc, char *argv[])
+static void shellHelp(int argc, char *argv[])
 {
+    SHELL_TypeDef *shell = shellGetCurrent();
+    if (!shell)
+    {
+        return;
+    }
 #if SHELL_LONG_HELP == 1
     if (argc == 1)
     {
