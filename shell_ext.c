@@ -36,15 +36,13 @@ static NUM_Type shellExtNumType(char *string)
     {
         type = NUM_TYPE_OCT;
     }
-    else
+    
+    while (*p++)
     {
-        while (*p++)
+        if (*p == '.' && *(p + 1) != 0)
         {
-            if (*p == '.' && *(p + 1) != 0)
-            {
-                type = NUM_TYPE_FLOAT;
-                break;
-            }
+            type = NUM_TYPE_FLOAT;
+            break;
         }
     }
 
@@ -175,6 +173,8 @@ static unsigned int shellExtParseNumber(char *string)
     char offset = 0;
     signed char sign = 1;
     unsigned int valueInt = 0;
+    float valueFloat = 0.0;
+    unsigned int devide = 0;
 
     if (*string == '-')
     {
@@ -206,17 +206,27 @@ static unsigned int shellExtParseNumber(char *string)
 
     p = string + offset + ((sign == -1) ? 1 : 0);
 
-    if (type != NUM_TYPE_FLOAT)
+    while (*p)
     {
-        while (*p)
+        if (*p == '.')
         {
-            valueInt = valueInt * radix + shellExtToNum(*p);
+            devide = 1;
             p++;
+            continue;
         }
+        valueInt = valueInt * radix + shellExtToNum(*p);
+        devide *= 10;
+        p++;
+    }
+    if (type == NUM_TYPE_FLOAT && devide != 0)
+    {
+        valueFloat = (float)valueInt / devide * sign;
+        return *(unsigned int *)(&valueFloat);
+    }
+    else
+    {
         return valueInt * sign;
     }
-
-    return 0;
 }
 
 

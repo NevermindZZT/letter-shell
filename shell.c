@@ -196,7 +196,7 @@ static void shellDisplayReturn(SHELL_TypeDef *shell, int value)
 {
     char str[11] = "0000000000";
     unsigned int v = value;
-    char i = 9;
+    char i = 10;
     char tmp;
 
     shellDisplay(shell, "Return: ");
@@ -207,22 +207,22 @@ static void shellDisplayReturn(SHELL_TypeDef *shell, int value)
     }
     while (v)
     {
-        str[i--] = v % 10 + 48;
+        str[--i] = v % 10 + 48;
         v /= 10;
     }
-    shellDisplay(shell, str);
+    shellDisplay(shell, str + i - (value == 0));
     v = value;
     if (value < 0)
     {
         v = (unsigned int)value;
     }
-    i = 7;
+    i = 8;
     str[8] = 0;
     while (v)
     {
-        tmp = v %16;
-        str[i--] = (tmp > 9) ? (tmp + 87) : (tmp + 48);
-        v /= 16;
+        tmp = v & 0x0000000F;
+        str[--i] = (tmp > 9) ? (tmp + 87) : (tmp + 48);
+        v >>= 4;
     }
     shellDisplay(shell, ", 0x");
     shellDisplay(shell, str);
