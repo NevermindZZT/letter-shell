@@ -12,23 +12,9 @@
 #ifndef     __SHELL_H__
 #define     __SHELL_H__
 
+#include "shell_cfg.h"
+
 #define     SHELL_VERSION               "2.0.2"                 /**< 版本号 */
-
-#define     SHELL_USING_TASK            0                       /**< 是否使用默认shell任务 */
-#define     SHELL_USING_CMD_EXPORT      1                       /**< 是否使用命令导出方式 */
-#define     SHELL_DISPLAY_RETURN        1                       /**< 是否显示命令调用函数返回值 */
-#define     SHELL_TASK_WHILE            1                       /**< 是否使用默认shell任务while循环 */
-#define     SHELL_AUTO_PRASE            1                       /**< 是否使用shell参数自动解析 */
-#define     SHELL_LONG_HELP             1                       /**< 是否使用shell长帮助 */
-#define     SHELL_COMMAND_MAX_LENGTH    50                      /**< shell命令最大长度 */
-#define     SHELL_PARAMETER_MAX_NUMBER  8                       /**< shell命令参数最大数量 */
-#define     SHELL_HISTORY_MAX_NUMBER    5                       /**< 历史命令记录数量 */
-#define     SHELL_DOUBLE_CLICK_TIME     200                     /**< 双击间隔(ms) */
-#define     SHELL_MAX_NUMBER            5                       /**< 管理的最大shell数量 */
-
-#define     SHELL_GET_TICK()            0                       /**< 获取系统时间(ms) */
-
-#define     SHELL_DEFAULT_COMMAND       "\r\nletter>>"          /**< shell默认提示符 */
 
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
     #define SECTION(x)                  __attribute__((section(x)))
@@ -214,6 +200,10 @@ void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsig
 SHELL_TypeDef *shellGetCurrent(void);
 unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string);
 void shellHandler(SHELL_TypeDef *shell, char data);
+
+
+void shellHelp(int argc, char *argv[]);
+void shellClear(void);
 
 #if SHELL_USING_TASK == 1
 void shellTask(void *param);

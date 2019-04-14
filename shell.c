@@ -20,7 +20,6 @@ static SHELL_TypeDef *shellList[SHELL_MAX_NUMBER] = {NULL};     /**< shell列表
 
 static void shellAdd(SHELL_TypeDef *shell);
 static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index);
-static void shellHelp(int argc, char *argv[]);
 
 #if SHELL_USING_CMD_EXPORT != 1
 /**
@@ -33,6 +32,7 @@ static void shellHelp(int argc, char *argv[]);
 const SHELL_CommandTypeDef shellDefaultCommandList[] =
 {
     SHELL_CMD_ITEM_EX(help, shellHelp, command help, help [command] --show help info of command),
+    SHELL_CMD_ITEM(cls, shellClear, clear command line),
 };
 #endif
 
@@ -827,7 +827,7 @@ static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index)
  * @param argc 参数个数
  * @param argv 参数
  */
-static void shellHelp(int argc, char *argv[])
+void shellHelp(int argc, char *argv[])
 {
     SHELL_TypeDef *shell = shellGetCurrent();
     if (!shell)
@@ -870,3 +870,19 @@ static void shellHelp(int argc, char *argv[])
 #endif /** SHELL_LONG_HELP == 1 */
 }
 SHELL_EXPORT_CMD_EX(help, shellHelp, command help, help [command] --show help info of command);
+
+
+/**
+ * @brief 清空命令行
+ * 
+ */
+void shellClear(void)
+{
+    SHELL_TypeDef *shell = shellGetCurrent();
+    if (!shell)
+    {
+        return;
+    }
+    shellDisplay(shell, "\033[2J\033[1H");
+}
+SHELL_EXPORT_CMD(cls, shellClear, clear command line);
