@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "2.0.2"                 /**< 版本号 */
+#define     SHELL_VERSION               "2.0.3"                 /**< 版本号 */
 
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
     #define SECTION(x)                  __attribute__((section(x)))
@@ -198,6 +198,7 @@ typedef struct
 void shellInit(SHELL_TypeDef *shell);
 void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsigned short size);
 SHELL_TypeDef *shellGetCurrent(void);
+void shellPrint(SHELL_TypeDef *shell, char *fmt, ...);
 unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string);
 void shellHandler(SHELL_TypeDef *shell, char data);
 

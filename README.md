@@ -250,3 +250,7 @@ const SHELL_CommandTypeDef shellDefaultCommandList[] =
 - 新增函数返回值打印
 - 新增shell对象管理，支持在shell调用的函数中获取当前shell对象
 - bug修复
+
+### 2019/08/16 2.0.3
+
+- 新增一个shell格式化输出函数

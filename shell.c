@@ -11,6 +11,8 @@
 
 #include "shell.h"
 #include "string.h"
+#include "stdio.h"
+#include "stdarg.h"
 
 #if SHELL_AUTO_PRASE == 1
 #include "shell_ext.h"
@@ -144,6 +146,33 @@ SHELL_TypeDef *shellGetCurrent(void)
     }
     return NULL;
 }
+
+
+#if SHELL_PRINT_BUFFER > 0
+/**
+ * @brief shell格式化输出
+ * 
+ * @param shell shell对象
+ * @param fmt 格式化字符串
+ * @param ... 参数
+ */
+void shellPrint(SHELL_TypeDef *shell, char *fmt, ...)
+{
+    char buffer[SHELL_PRINT_BUFFER];
+    va_list vargs;
+
+    if (!shell)
+    {
+        return;
+    }
+
+    va_start(vargs, fmt);
+    vsnprintf(buffer, SHELL_PRINT_BUFFER - 1, fmt, vargs);
+    va_end(vargs);
+    
+    shellDisplay(shell, buffer);
+}
+#endif
 
 
 /**
@@ -662,7 +691,7 @@ static void shellNormal(SHELL_TypeDef *shell, char data)
 
 
 /**
- * @brief shell ansi控制系列处理
+ * @brief shell ansi控制序列处理
  * 
  * @param shell shell对象
  * @param data 输入的数据
