@@ -14,7 +14,47 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "2.0.3"                 /**< 版本号 */
+#define     SHELL_VERSION               "2.0.4"                 /**< 版本号 */
+
+#define     SHELL_KEY_LF                0x0A
+#define     SHELL_KEY_CR                0x0D
+#define     SHELL_KEY_TAB               0x09
+#define     SHELL_KEY_BACKSPACE         0x08
+#define     SHELL_KEY_DELETE            0x7F
+#define     SHELL_KEY_ESC               0x1B
+
+#define     SHELL_KEY_CTRL_T            0x14
+#define     SHELL_KEY_CTRL_A            0x01
+#define     SHELL_KEY_CTRL_B            0x02
+#define     SHELL_KEY_CTRL_C            0x03
+#define     SHELL_KEY_CTRL_D            0x04
+#define     SHELL_KEY_CTRL_E            0x05
+#define     SHELL_KEY_CTRL_F            0x06
+#define     SHELL_KEY_CTRL_G            0x07
+#define     SHELL_KEY_CTRL_H            0x08
+#define     SHELL_KEY_CTRL_I            0x09
+#define     SHELL_KEY_CTRL_J            0x0A
+#define     SHELL_KEY_CTRL_K            0x0B
+#define     SHELL_KEY_CTRL_L            0x0C
+#define     SHELL_KEY_CTRL_M            0x0D
+#define     SHELL_KEY_CTRL_N            0x0E
+#define     SHELL_KEY_CTRL_O            0x0F
+#define     SHELL_KEY_CTRL_P            0x10
+#define     SHELL_KEY_CTRL_Q            0x11
+#define     SHELL_KEY_CTRL_R            0x12
+#define     SHELL_KEY_CTRL_S            0x13
+#define     SHELL_KEY_CTRL_T            0x14
+#define     SHELL_KEY_CTRL_U            0x15
+#define     SHELL_KEY_CTRL_V            0x16
+#define     SHELL_KEY_CTRL_W            0x17
+#define     SHELL_KEY_CTRL_X            0x18
+#define     SHELL_KEY_CTRL_Y            0x19
+#define     SHELL_KEY_CTRL_Z            0x1A
+
+#define     SHELL_VAR_INT               0
+#define     SHELL_VAR_SHORT             1
+#define     SHELL_VAR_CHAR              2
+#define     SHELL_VAR_POINTER           3
 
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
     #define SECTION(x)                  __attribute__((section(x)))
@@ -64,9 +104,9 @@
             const SHELL_CommandTypeDef                                      \
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
-                #cmd,                                                       \
+                shellCmd##cmd                                               \
                 (int (*)())func,                                            \
-                #desc                                                       \
+                shellDesc##cmd                                              \
             }
 #define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
             const char shellCmd##cmd[] = #cmd;                              \
@@ -74,15 +114,43 @@
             const SHELL_CommandTypeDef                                      \
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
-                #cmd,                                                       \
+                shellCmd##cmd,                                              \
                 (int (*)())func,                                            \
-                #desc,                                                      \
+                shellDesc##cmd                                              \
             }
 #endif /** SHELL_LONG_HELP == 1 */
+
+#if SHELL_USING_VAR == 1
+    #define SHELL_EXPORT_VAR(var, variable, desc, type)                     \
+            const char shellVar##var[] = #var;                              \
+            const char shellDesc##var[] = #desc;                            \
+            const SHELL_VaribaleTypeDef                                     \
+            shellVariable##var SECTION("shellVariable") =                   \
+            {                                                               \
+                shellVar##var,                                              \
+                (int)(variable),                                           \
+                shellDesc##var,                                             \
+                type                                                        \
+            }
+#else 
+    #define SHELL_EXPORT_VAR(var, variable, desc, type) 
+#endif /** SHELL_USING_VAR == 1 */
+
 #else
 #define     SHELL_EXPORT_CMD(cmd, func, desc)
 #define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)
+#define     SHELL_EXPORT_VAR(var, variable, desc, type) 
 #endif /** SHELL_USING_CMD_EXPORT == 1 */
+
+#define     SHELL_EXPORT_VAR_INT(var, variable, desc)                       \
+            SHELL_EXPORT_VAR(var, &variable, desc, SHELL_VAR_INT)
+#define     SHELL_EXPORT_VAR_SHORT(var, variable, desc)                     \
+            SHELL_EXPORT_VAR(var, &variable, desc, SHELL_VAR_SHORT)
+#define     SHELL_EXPORT_VAR_CHAR(var, variable, desc)                      \
+            SHELL_EXPORT_VAR(var, &variable, desc, SHELL_VAR_CHAR)
+#define     SHELL_EXPORT_VAR_POINTER(var, variable, desc)                   \
+            SHELL_EXPORT_VAR(var, variable, desc, SHELL_VAR_POINTER)
+
 
 /**
  * @brief shell命令条目
@@ -119,6 +187,23 @@
                 #desc,                                                      \
             }  
 #endif /** SHELL_LONG_HELP == 1 */
+
+#define     SHELL_VAR_ITEM(var, variable, desc, type)                       \
+            {                                                               \
+                #var,                                                       \
+                varialbe,                                                   \
+                #desc,                                                      \
+                type,                                                       \
+            }
+#define     SHELL_VAR_ITEM_INT(var, variable, desc)                         \
+            SHELL_VAR_ITEM(var, &variable, desc, SHELL_VAR_INT)
+#define     SHELL_VAR_ITEM_SHORT(var, variable, desc)                       \
+            SHELL_VAR_ITEM(var, &variable, desc, SHELL_VAR_SHORT)
+#define     SHELL_VAR_ITEM_CHAR(var, variable, desc)                        \
+            SHELL_VAR_ITEM(var, &variable, desc, SHELL_VAR_CHAR)
+#define     SHELL_VAR_ITEM_POINTER(var, variable, desc)                     \
+            SHELL_VAR_ITEM(var, variable, desc, SHELL_VAR_POINTER)
+
 #endif /** SHELL_USING_CMD_EXPORT == 0 */
 
 /**
@@ -172,6 +257,17 @@ typedef struct
 }SHELL_CommandTypeDef;
 
 
+#if SHELL_USING_VAR == 1
+typedef struct
+{
+    const char *name;
+    const int value;
+    const char *desc;
+    const int type;
+} SHELL_VaribaleTypeDef;
+#endif /** SHELL_USING_VAR == 1 */
+
+
 /**
  * @brief shell对象定义
  * 
@@ -189,14 +285,39 @@ typedef struct
     short historyOffset;                                        /**< 历史记录偏移 */
     SHELL_CommandTypeDef *commandBase;                          /**< 命令表基址 */
     unsigned short commandNumber;                               /**< 命令数量 */
+#if SHELL_USING_VAR == 1
+    SHELL_VaribaleTypeDef *variableBase;                        /**< 变量表基址 */
+    unsigned short variableNumber;                              /**< 变量数量 */
+#endif
+    int keyFuncBase;                                            /**< 按键响应表基址 */
+    unsigned short keyFuncNumber;                               /**< 按键响应数量 */
     SHELL_InputMode status;                                     /**< 输入状态 */
     unsigned char isActive;                                     /**< 是否是当前活动shell */
     shellRead read;                                             /**< shell读字符 */
     shellWrite write;                                           /**< shell写字符 */
 }SHELL_TypeDef;
 
+
+/**
+ * @brief shell按键功能定义
+ * 
+ */
+typedef struct
+{
+    unsigned char keyCode;                                      /**< shell按键键值 */
+    void (*keyFunction)(SHELL_TypeDef *);                       /**< 按键响应函数 */
+} SHELL_KeyFunctionDef;
+
+
 void shellInit(SHELL_TypeDef *shell);
 void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsigned short size);
+
+#if SHELL_USING_VAR == 1
+void shellSetVariableList(SHELL_TypeDef *shell, SHELL_VaribaleTypeDef *base, unsigned short size);
+int shellGetVariable(SHELL_TypeDef *shell, char *var);
+#endif /** SHELL_USING_VAR == 1 */
+
+void shellSetKeyFuncList(SHELL_TypeDef *shell, SHELL_KeyFunctionDef *base, unsigned short size);
 SHELL_TypeDef *shellGetCurrent(void);
 void shellPrint(SHELL_TypeDef *shell, char *fmt, ...);
 unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string);

@@ -23,6 +23,16 @@ static SHELL_TypeDef *shellList[SHELL_MAX_NUMBER] = {NULL};     /**< shell列表
 static void shellAdd(SHELL_TypeDef *shell);
 static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index);
 
+static void shellEnter(SHELL_TypeDef *shell);
+static void shellTab(SHELL_TypeDef *shell);
+static void shellBackspace(SHELL_TypeDef *shell);
+static void shellAnsiStart(SHELL_TypeDef *shell);
+
+#if SHELL_USING_VAR == 1
+static void shellDisplayVariable(SHELL_TypeDef *shell, char *var);
+void shellListVariables(void);
+#endif /** SHELL_USING_VAR == 1 */
+
 #if SHELL_USING_CMD_EXPORT != 1
 /**
  * @brief shell默认命令表
@@ -34,9 +44,38 @@ static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index);
 const SHELL_CommandTypeDef shellDefaultCommandList[] =
 {
     SHELL_CMD_ITEM_EX(help, shellHelp, command help, help [command] --show help info of command),
+#if SHELL_USING_VAR == 1
+    SHELL_CMD_ITEM(vars, shellListVariables, show vars),
+    SHELL_CMD_ITEM_EX(setVar, shellSetVariable, set var, setVar $[var] [value]),
+#endif /** SHELL_USING_VAR == 1 */
     SHELL_CMD_ITEM(cls, shellClear, clear command line),
 };
-#endif
+
+#if SHELL_USING_VAR == 1
+/**
+ * @brief shell默认变量表
+ * 
+ */
+const SHELL_VaribaleTypeDef shellDefaultVariableList[] = 
+{
+
+};
+#endif /** SHELL_USING_VAR == 1 */
+#endif /** SHELL_USING_CMD_EXPORT != 1 */
+
+/**
+ * @brief 默认按键响应映射函数表
+ * 
+ */
+const SHELL_KeyFunctionDef shellDefaultKeyFunctionList[] = 
+{
+    {SHELL_KEY_LF,          shellEnter},
+    {SHELL_KEY_CR,          shellEnter},
+    {SHELL_KEY_TAB,         shellTab},
+    {SHELL_KEY_BACKSPACE,   shellBackspace},
+    {SHELL_KEY_DELETE,      shellBackspace},
+    {SHELL_KEY_ESC,         shellAnsiStart},
+};
 
 
 /**
@@ -67,16 +106,31 @@ void shellInit(SHELL_TypeDef *shell)
     #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
         extern const unsigned int shellCommand$$Base;
         extern const unsigned int shellCommand$$Limit;
+        extern const unsigned int shellVariable$$Base;
+        extern const unsigned int shellVariable$$Limit;
 
         shell->commandBase = (SHELL_CommandTypeDef *)(&shellCommand$$Base);
         shell->commandNumber = ((unsigned int)(&shellCommand$$Limit)
                                 - (unsigned int)(&shellCommand$$Base))
                                 / sizeof(SHELL_CommandTypeDef);
+        #if SHELL_USING_VAR == 1
+            shell->variableBase = (SHELL_VaribaleTypeDef *)(&shellVariable$$Base);
+            shell->variableNumber = ((unsigned int)(&shellVariable$$Limit)
+                                    - (unsigned int)(&shellVariable$$Base))
+                                    / sizeof(SHELL_VaribaleTypeDef);
+        #endif /** SHELL_USING_VAR == 1 */
+
     #elif defined(__ICCARM__)
         shell->commandBase = (SHELL_CommandTypeDef *)(__section_begin("shellCommand"));
         shell->commandNumber = ((unsigned int)(__section_end("shellCommand"))
                                 - (unsigned int)(__section_begin("shellCommand")))
                                 / sizeof(SHELL_CommandTypeDef);
+        #if SHELL_USING_VAR == 1
+            shell->variableBase = (SHELL_VaribaleTypeDef *)(__section_begin("shellVariable"));
+            shell->variableNumber = ((unsigned int)(__section_end("shellVariable"))
+                                    - (unsigned int)(__section_begin("shellVariable")))
+                                    / sizeof(SHELL_VaribaleTypeDef);
+        #endif /** SHELL_USING_VAR == 1 */
     #elif defined(__GNUC__)
         extern const unsigned int _shell_command_start;
         extern const unsigned int _shell_command_end;
@@ -85,16 +139,29 @@ void shellInit(SHELL_TypeDef *shell)
         shell->commandNumber = ((unsigned int)(&_shell_command_end)
                                 - (unsigned int)(&_shell_command_start))
                                 / sizeof(SHELL_CommandTypeDef);
+        #if SHELL_USING_VAR == 1
+            extern const unsigned int _shell_variable_start;
+            extern const unsigned int _shell_variable_end;
+            shell->variableBase = (SHELL_VaribaleTypeDef *)(&_shell_variable_start);
+            shell->variableNumber = ((unsigned int)(&_shell_variable_end)
+                                    - (unsigned int)(&_shell_variable_start))
+                                    / sizeof(SHELL_VaribaleTypeDef);
+        #endif /** SHELL_USING_VAR == 1 */
     #else
         #error not supported compiler, please use command table mode
     #endif
 #else
     shell->commandBase = (SHELL_CommandTypeDef *)shellDefaultCommandList;
     shell->commandNumber = sizeof(shellDefaultCommandList) / sizeof(SHELL_CommandTypeDef);
+    #if SHELL_USING_VAR == 1
+        shell->variableBase = (SHELL_VaribaleTypeDef *)shellDefaultVariableList;
+        shell->variableNumber = sizeof(shellDefaultVariableList) / sizeof(SHELL_VaribaleTypeDef);
+    #endif /** SHELL_USING_VAR == 1 */
 #endif
 }
 
 
+#if SHELL_USING_CMD_EXPORT != 1
 /**
  * @brief shell设置命令表
  * 
@@ -109,6 +176,40 @@ void shellSetCommandList(SHELL_TypeDef *shell, SHELL_CommandTypeDef *base, unsig
 {
     shell->commandBase = base;
     shell->commandNumber = size;
+}
+
+
+#if SHELL_USING_VAR == 1
+/**
+ * @brief shell设置变量表
+ * 
+ * @param shell shell对象
+ * @param base 变量表基址
+ * @param size 变量数量
+ * 
+ * @note 此接口不可在shellInit之前调用
+ * @note 不调用此接口，则使用默认命令表或命令导出形成的命令表(取决于命令定义方式)
+ */
+void shellSetVariableList(SHELL_TypeDef *shell, SHELL_VaribaleTypeDef *base, unsigned short size)
+{
+    shell->variableBase = base;
+    shell->variableNumber = size;
+}
+#endif /** SHELL_USING_VAR == 1 */
+#endif /** SHELL_USING_CMD_EXPORT != 1 */
+
+
+/**
+ * @brief shell设置按键响应
+ * 
+ * @param shell shell对象
+ * @param base 按键响应表基址
+ * @param size 按键响应数量
+ */
+void shellSetKeyFuncList(SHELL_TypeDef *shell, SHELL_KeyFunctionDef *base, unsigned short size)
+{
+    shell->keyFuncBase = (int)base;
+    shell->keyFuncNumber = size;
 }
 
 
@@ -214,21 +315,19 @@ static void shellDisplayByte(SHELL_TypeDef *shell, char data)
 }
 
 
-#if SHELL_DISPLAY_RETURN == 1
 /**
- * @brief shell显示函数调用返回值
+ * @brief shell显示值
  * 
- * @param shell shel对象
+ * @param shell shell对象
  * @param value 值
  */
-static void shellDisplayReturn(SHELL_TypeDef *shell, int value)
+static void shellDisplayValue(SHELL_TypeDef *shell, int value)
 {
     char str[11] = "0000000000";
     unsigned int v = value;
     char i = 10;
     char tmp;
 
-    shellDisplay(shell, "Return: ");
     if (value < 0)
     {
         shellDisplay(shell, "-");
@@ -256,6 +355,20 @@ static void shellDisplayReturn(SHELL_TypeDef *shell, int value)
     shellDisplay(shell, ", 0x");
     shellDisplay(shell, str);
     shellDisplay(shell, "\r\n");
+}
+
+
+#if SHELL_DISPLAY_RETURN == 1
+/**
+ * @brief shell显示函数调用返回值
+ * 
+ * @param shell shel对象
+ * @param value 值
+ */
+static void shellDisplayReturn(SHELL_TypeDef *shell, int value)
+{
+    shellDisplay(shell, "Return: ");
+    shellDisplayValue(shell, value);
 }
 #endif /** SHELL_DISPLAY_RETURN == 1 */
 
@@ -486,6 +599,14 @@ static void shellEnter(SHELL_TypeDef *shell)
         shellDisplay(shell, shell->command);
         return;
     }
+#if SHELL_USING_VAR == 1
+    if (shell->param[0][0] == '$')
+    {
+        shellDisplayVariable(shell, shell->param[0]);
+        shellDisplay(shell, shell->command);
+        return;
+    }
+#endif /** SHELL_USING_VAR == 1 */
     for (unsigned char i = 0; i < shell->commandNumber; i++)
     {
         if (strcmp((const char *)shell->param[0], (base + i)->name) == 0)
@@ -691,6 +812,17 @@ static void shellNormal(SHELL_TypeDef *shell, char data)
 
 
 /**
+ * @brief shell开始ansi控制序列
+ * 
+ * @param shell shell对象
+ */
+static void shellAnsiStart(SHELL_TypeDef *shell)
+{
+    shell->status = SHELL_ANSI_ESC;
+}
+
+
+/**
  * @brief shell ansi控制序列处理
  * 
  * @param shell shell对象
@@ -760,29 +892,31 @@ void shellHandler(SHELL_TypeDef *shell, char data)
 {
     if (shell->status == SHELL_IN_NORMAL)
     {
-        switch (data)
+        char keyDefFind = 0;
+        SHELL_KeyFunctionDef *base = (SHELL_KeyFunctionDef *)shell->keyFuncBase;
+
+        for (short i = 0; i < shell->keyFuncNumber; i++)
         {
-        case '\r':  
-        case '\n':
-            shellEnter(shell);
-            break;
-
-        case '\b':
-        case 0x7F:
-            shellBackspace(shell);
-            break;
-
-        case '\t':
-            shellTab(shell);
-            break;
-
-        case 0x1B:
-            shell->status = SHELL_ANSI_ESC;
-            break;
-
-        default:
+            if (base[i].keyCode == data) {
+                base[i].keyFunction(shell);
+                keyDefFind = 1;
+            }
+        }
+        if (keyDefFind == 0)
+        {
+            for (short i = 0; 
+                i < sizeof(shellDefaultKeyFunctionList) / sizeof(SHELL_KeyFunctionDef);
+                i++)
+            {
+                if (shellDefaultKeyFunctionList[i].keyCode == data) {
+                    shellDefaultKeyFunctionList[i].keyFunction(shell);
+                    keyDefFind = 1;
+                }
+            }
+        }
+        if (keyDefFind == 0)
+        {
             shellNormal(shell, data);
-            break;
         }
     }
     else
@@ -826,6 +960,149 @@ void shellTask(void *param)
 }
 #endif
 
+
+#if SHELL_USING_VAR == 1
+/**
+ * @brief shell获取变量
+ * 
+ * @param shell shell对象
+ * @param var 参数
+ * @return int 变量值
+ */
+int shellGetVariable(SHELL_TypeDef *shell, char *var)
+{
+    SHELL_VaribaleTypeDef *base = shell->variableBase;
+    int value;
+
+    if (var[0] == '$')
+    {
+        var++;
+    }
+
+    for (short i = 0; i < shell->variableNumber; i++)
+    {
+        if (strcmp((const char *)var, (const char *)(base + i)->name) == 0)
+        {
+            switch ((base + i)->type)
+            {
+            case SHELL_VAR_INT:
+                value = *((int *)((base + i)->value));
+                break;
+            case SHELL_VAR_SHORT:
+                value = *((short *)((base + i)->value));
+                break;
+            case SHELL_VAR_CHAR:
+                value = *((char *)((base + i)->value));
+                break;
+            case SHELL_VAR_POINTER:
+                value = (int)((base + i)->value);
+            default:
+                break;
+            }
+        }
+    }
+    return value;
+}
+
+
+/**
+ * @brief shell设置变量值
+ * 
+ * @param var 变量
+ * @param value 值
+ */
+void shellSetVariable(char *var, int value)
+{
+    SHELL_TypeDef *shell = shellGetCurrent();
+    char isVarFind = 0;
+    if (!shell)
+    {
+        return;
+    }
+    SHELL_VaribaleTypeDef *base = shell->variableBase;
+
+    if (var[0] == '$')
+    {
+        var++;
+    }
+
+    for (short i = 0; i < shell->variableNumber; i++)
+    {
+        if (strcmp((const char *)var, (const char *)(base + i)->name) == 0)
+        {
+            switch ((base + i)->type)
+            {
+            case SHELL_VAR_INT:
+                *((int *)((base + i)->value)) = value;
+                break;
+            case SHELL_VAR_SHORT:
+                *((short *)((base + i)->value)) = value;
+                break;
+            case SHELL_VAR_CHAR:
+                *((char *)((base + i)->value)) = value;
+                break;
+            default:
+                break;
+            }
+            isVarFind = 1;
+        }
+    }
+    if (!isVarFind)
+    {
+        shellDisplay(shell, "var not found\r\n");
+    }
+    else 
+    {
+        shellDisplayVariable(shell, var);
+    }
+}
+SHELL_EXPORT_CMD_EX(setVar, shellSetVariable, set var, setVar $[var] [value]);
+
+
+/**
+ * @brief shell显示变量
+ * 
+ * @param shell shell对象
+ * @param var 变量
+ */
+static void shellDisplayVariable(SHELL_TypeDef *shell, char *var)
+{
+    shellDisplay(shell, var[0] == '$' ? var + 1 : var);
+    shellDisplay(shell, " = ");
+    shellDisplayValue(shell, shellGetVariable(shell, var));
+}
+
+
+/**
+ * @brief shell显示所有变量
+ * 
+ */
+void shellListVariables(void)
+{
+    SHELL_TypeDef *shell = shellGetCurrent();
+    if (!shell)
+    {
+        return;
+    }
+
+    SHELL_VaribaleTypeDef *base = shell->variableBase;
+
+    unsigned short spaceLength;
+
+    for (short i = 0; i <  shell->variableNumber; i++)
+    {
+        spaceLength = 22 - shellDisplay(shell, (base + i)->name);
+        spaceLength = (spaceLength > 0) ? spaceLength : 4;
+        do {
+            shellDisplay(shell, " ");
+        } while (--spaceLength);
+        shellDisplay(shell, "--");
+        shellDisplay(shell, (base + i)->desc);
+        shellDisplay(shell, "\r\n");
+    }
+}
+SHELL_EXPORT_CMD(vars, shellListVariables, show vars);
+#endif /** SHELL_USING_VAR == 1 */
 
 /**
  * @brief shell显示一条命令信息

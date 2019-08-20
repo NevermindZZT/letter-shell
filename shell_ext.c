@@ -9,6 +9,7 @@
  * 
  */
 
+#include "shell_cfg.h"
 #include "shell.h"
 #include "shell_ext.h"
 
@@ -246,6 +247,12 @@ unsigned int shellExtParsePara(char *string)
     {
         return (unsigned int)shellExtParseNumber(string);
     }
+#if SHELL_USING_VAR == 1
+    else if (*string == '$' && *(string + 1))
+    {
+        return (unsigned int )shellGetVariable(shellGetCurrent(), string);
+    }
+#endif /** SHELL_USING_VAR == 1 */
     else if (*string)
     {
         return (unsigned int)shellExtParseString(string);
@@ -303,6 +310,5 @@ int shellExtRun(shellFunction function, int argc, char *argv[])
         return -1;
         // break;
     }
-    return 0;
 }
 

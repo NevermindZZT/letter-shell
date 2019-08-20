@@ -1,7 +1,7 @@
 # letter shell
 
-![version](https://img.shields.io/badge/version-2.0.1-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2019.2.20-brightgreen.svg)
+![version](https://img.shields.io/badge/version-2.0.4-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2019.8.20-brightgreen.svg)
 
 一个体积极小的嵌入式shell
 
@@ -10,6 +10,8 @@
 - 命令自动补全，使用tab键补全命令
 - 命令长帮助，使用help [command]显示命令长帮助
 - 长帮助补全，输入命令后双击tab键补全命令长帮助指令
+- 快捷键，支持使用Ctrl + A~Z组合按键直接调用函数
+- shell变量，支持在shell中查看和修改变量值，支持变量作为命令参数
 
 ## 移植说明
 
@@ -165,6 +167,67 @@ const SHELL_CommandTypeDef shellDefaultCommandList[] =
 
 - 其中，带有EX的命令导出宏最后一个参数为命令的长帮助信息，在shell中使用help [command]可查看帮助信息，通过shell.h中的SHELL_LONG_HELP宏可设置是否使用此功能
 
+### 组合按键
+
+letter shell支持使用Ctrl键加任意字母键的组合按键一键执行操作，使用时，在任意文件定义按键命令表
+
+```C
+SHELL_KeyFunctionDef keyFuncList[] =
+{
+    {SHELL_KEY_CTRL_T,      switchUlog}
+};
+```
+
+然后使用`shellSetKeyFuncList`进行注册
+
+```C
+    shellSetKeyFuncList(&shell, keyFuncList, sizeof(keyFuncList) / sizeof(SHELL_KeyFunctionDef));
+```
+
+### shell变量
+
+letter shell支持shell变量，通过导出变量，将变量进行注册，可以在shell中读取，修改变量的值，可以将变量作为参数传递给shell命令
+
+使用时，在shell_cfg.h文件中将`SHELL_USING_VAR`修改为1
+
+执行`vars`命令查看所有变量
+
+#### 导出变量
+
+使用变量导出方式时，通过宏`SHELL_EXPORT_VAR_INT`,`SHELL_EXPORT_VAR_SHORT`,`SHELL_EXPORT_VAR_CHAR`,`SHELL_EXPORT_VAR_POINTER`导出变量，例如：
+
+```C
+SHELL_EXPORT_VAR_INT(testVar1, testVar1, var for test);
+```
+
+使用变量表方式时，定义一个命令表，并调用`shellSetVariableList`进行注册，参考命令导出
+
+#### 读取变量
+
+shell变量使用`$[var]`的方式读取，直接在命令行输入即可，例如：
+
+```
+letter>>$testVar1
+testVar1 = 100, 0x00000064
+```
+
+#### 修改变量
+
+使用`setVar`命令修改变量，例如：
+
+```
+letter>>setVar testVar1 200
+testVar1 = 200, 0x000000c8
+```
+
+#### 变量作为命令参数
+
+直接使用`$[var]`即可将变量的值作为参数传递给shell命令，例如：
+
+```
+letter>>getVar $testVar1
+```
+
 ### 建议终端软件
 
 - 对于基于串口移植，letter shell建议使用secureCRT软件，letter shell中的相关按键映射都是按照secureCRT进行设计的，使用其他串口软件可能会出现某些功能无法使用的情况
@@ -254,3 +317,8 @@ const SHELL_CommandTypeDef shellDefaultCommandList[] =
 ### 2019/08/16 2.0.3
 
 - 新增一个shell格式化输出函数
+
+### 2019/08/20 2.0.4
+
+- 新增组合按键功能自定义
+- 新增shell变量
