@@ -1,7 +1,7 @@
 # letter shell
 
-![version](https://img.shields.io/badge/version-2.0.4-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2019.8.20-brightgreen.svg)
+![version](https://img.shields.io/badge/version-2.0.5-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2019.8.21-brightgreen.svg)
 
 一个体积极小的嵌入式shell
 
@@ -322,3 +322,8 @@ letter>>getVar $testVar1
 
 - 新增组合按键功能自定义
 - 新增shell变量
+
+### 2019/08/21 2.0.5
+
+- 新增shell常量
+- 修复bug以及一些优化

@@ -14,8 +14,12 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "2.0.4"                 /**< 版本号 */
+#define     SHELL_VERSION               "2.0.5"                 /**< 版本号 */
 
+/**
+ * @brief shell键值定义
+ * 
+ */
 #define     SHELL_KEY_LF                0x0A
 #define     SHELL_KEY_CR                0x0D
 #define     SHELL_KEY_TAB               0x09
@@ -51,10 +55,15 @@
 #define     SHELL_KEY_CTRL_Y            0x19
 #define     SHELL_KEY_CTRL_Z            0x1A
 
+/**
+ * @brief shell变量类型定义
+ * 
+ */
 #define     SHELL_VAR_INT               0
 #define     SHELL_VAR_SHORT             1
 #define     SHELL_VAR_CHAR              2
 #define     SHELL_VAR_POINTER           3
+#define     SHELL_VAL                   4
 
 #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
     #define SECTION(x)                  __attribute__((section(x)))
@@ -69,8 +78,7 @@
 /**
  * @brief shell命令导出
  * 
- * @attention 命令导出方式目前仅支持 keil 所带的编译器，使用时需要在 keil 的
- *            Option for Target 中 Linker 选项卡的 Misc controls 中添加 --keep shellCommand*
+ * @attention 命令导出方式支持keil,iar的编译器以及gcc，具体参考readme
  */
 #if SHELL_USING_CMD_EXPORT == 1
 #if SHELL_LONG_HELP == 1
@@ -128,7 +136,7 @@
             shellVariable##var SECTION("shellVariable") =                   \
             {                                                               \
                 shellVar##var,                                              \
-                (int)(variable),                                           \
+                (void *)(variable),                                            \
                 shellDesc##var,                                             \
                 type                                                        \
             }
@@ -150,6 +158,8 @@
             SHELL_EXPORT_VAR(var, &variable, desc, SHELL_VAR_CHAR)
 #define     SHELL_EXPORT_VAR_POINTER(var, variable, desc)                   \
             SHELL_EXPORT_VAR(var, variable, desc, SHELL_VAR_POINTER)
+#define     SHELL_EXPORT_VAL(val, value, desc)                              \
+            SHELL_EXPORT_VAR(val, value, desc, SHELL_VAL)
 
 
 /**
@@ -258,12 +268,16 @@ typedef struct
 
 
 #if SHELL_USING_VAR == 1
+/**
+ * @brief shell 变量定义
+ * 
+ */
 typedef struct
 {
-    const char *name;
-    const int value;
-    const char *desc;
-    const int type;
+    const char *name;                                           /**< shell变量名称 */
+    const void *value;                                          /**< shell变量值 */
+    const char *desc;                                           /**< shell变量描述 */
+    const int type;                                             /**< shell变量类型 */
 } SHELL_VaribaleTypeDef;
 #endif /** SHELL_USING_VAR == 1 */
 

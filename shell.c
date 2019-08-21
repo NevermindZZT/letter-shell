@@ -537,6 +537,7 @@ static void shellEnter(SHELL_TypeDef *shell)
     SHELL_CommandTypeDef *base;
     unsigned char runFlag = 0;
     int returnValue;
+    (void) returnValue;
 
     if (shell->length == 0)
     {
@@ -995,6 +996,7 @@ int shellGetVariable(SHELL_TypeDef *shell, char *var)
                 value = *((char *)((base + i)->value));
                 break;
             case SHELL_VAR_POINTER:
+            case SHELL_VAL:
                 value = (int)((base + i)->value);
             default:
                 break;
@@ -1021,11 +1023,6 @@ void shellSetVariable(char *var, int value)
     }
     SHELL_VaribaleTypeDef *base = shell->variableBase;
 
-    if (var[0] == '$')
-    {
-        var++;
-    }
-
     for (short i = 0; i < shell->variableNumber; i++)
     {
         if (strcmp((const char *)var, (const char *)(base + i)->name) == 0)
@@ -1040,6 +1037,9 @@ void shellSetVariable(char *var, int value)
                 break;
             case SHELL_VAR_CHAR:
                 *((char *)((base + i)->value)) = value;
+                break;
+            case SHELL_VAL:
+                shellDisplay(shell, "can't set val\r\n");
                 break;
             default:
                 break;
@@ -1088,6 +1088,8 @@ void shellListVariables(void)
     SHELL_VaribaleTypeDef *base = shell->variableBase;
 
     unsigned short spaceLength;
+
+    shellDisplay(shell, "\r\nVARIABLE LIST:\r\n\r\n");   
 
     for (short i = 0; i <  shell->variableNumber; i++)
     {
