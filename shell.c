@@ -315,6 +315,7 @@ static void shellDisplayByte(SHELL_TypeDef *shell, char data)
 }
 
 
+#if SHELL_USING_VAR == 1 || SHELL_DISPLAY_RETURN == 1
 /**
  * @brief shell显示值
  * 
@@ -356,6 +357,7 @@ static void shellDisplayValue(SHELL_TypeDef *shell, int value)
     shellDisplay(shell, str);
     shellDisplay(shell, "\r\n");
 }
+#endif
 
 
 #if SHELL_DISPLAY_RETURN == 1
@@ -973,7 +975,7 @@ void shellTask(void *param)
 int shellGetVariable(SHELL_TypeDef *shell, char *var)
 {
     SHELL_VaribaleTypeDef *base = shell->variableBase;
-    int value;
+    int value = 0;
 
     if (var[0] == '$')
     {
