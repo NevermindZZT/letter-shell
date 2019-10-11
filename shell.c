@@ -904,7 +904,9 @@ void shellHandler(SHELL_TypeDef *shell, char data)
         for (short i = 0; i < shell->keyFuncNumber; i++)
         {
             if (base[i].keyCode == data) {
-                base[i].keyFunction(shell);
+                if (base[i].keyFunction) {
+                    base[i].keyFunction(shell);
+                }
                 keyDefFind = 1;
             }
         }
@@ -915,7 +917,9 @@ void shellHandler(SHELL_TypeDef *shell, char data)
                 i++)
             {
                 if (shellDefaultKeyFunctionList[i].keyCode == data) {
-                    shellDefaultKeyFunctionList[i].keyFunction(shell);
+                    if (shellDefaultKeyFunctionList[i].keyFunction) {
+                        shellDefaultKeyFunctionList[i].keyFunction(shell);
+                    }
                     keyDefFind = 1;
                 }
             }
