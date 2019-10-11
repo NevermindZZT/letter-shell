@@ -87,7 +87,7 @@ void shellInit(SHELL_TypeDef *shell)
 {
     shellDisplay(shell, "\r\n\r\n");
     shellDisplay(shell, "+=========================================================+\r\n");
-    shellDisplay(shell, "|                (C) COPYRIGHT 2018 Letter                |\r\n");
+    shellDisplay(shell, "|                (C) COPYRIGHT 2019 Letter                |\r\n");
     shellDisplay(shell, "|                   Letter shell v"SHELL_VERSION"                   |\r\n");
     shellDisplay(shell, "|               Build: "__DATE__" "__TIME__"               |\r\n");
     shellDisplay(shell, "+=========================================================+\r\n");
@@ -777,7 +777,10 @@ static void shellTab(SHELL_TypeDef *shell)
  */
 static void shellNormal(SHELL_TypeDef *shell, char data)
 {
-    
+    if (data == 0)
+    {
+        return;
+    }
     if (shell->length < SHELL_COMMAND_MAX_LENGTH - 1)
     {
         if (shell->length == shell->cursor)
