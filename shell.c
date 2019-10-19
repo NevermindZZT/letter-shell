@@ -457,6 +457,7 @@ static void shellClearLine(SHELL_TypeDef *shell)
  */
 static void shellHistoryAdd(SHELL_TypeDef *shell)
 {
+    shell->historyOffset = 0;
     if (strcmp(shell->history[shell->historyFlag - 1], shell->buffer) == 0)
     {
         return;
@@ -473,7 +474,6 @@ static void shellHistoryAdd(SHELL_TypeDef *shell)
     {
         shell->historyFlag = 0;
     }
-    shell->historyOffset = 0;
 }
 
 
