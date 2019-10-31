@@ -43,7 +43,7 @@ void shellListVariables(void);
  */
 const SHELL_CommandTypeDef shellDefaultCommandList[] =
 {
-    SHELL_CMD_ITEM_EX(help, shellHelp, command help, help [command] --show help info of command),
+    SHELL_CMD_ITEM_EX(help, shellHelp, 0, command help, help [command] --show help info of command),
 #if SHELL_USING_VAR == 1
     SHELL_CMD_ITEM(vars, shellListVariables, show vars),
     SHELL_CMD_ITEM_EX(setVar, shellSetVariable, set var, setVar $[var] [value]),
@@ -584,8 +584,8 @@ static void shellEnter(SHELL_TypeDef *shell)
             record = 1;
         }
     }
-    shell->length = 0;
-    shell->cursor = 0;
+    // shell->length = 0;
+    // shell->cursor = 0;
     if (paramCount == 0)
     {
         shellDisplay(shell, shell->command);
@@ -619,7 +619,19 @@ static void shellEnter(SHELL_TypeDef *shell)
         #if SHELL_AUTO_PRASE == 0
             returnValue = (base + i)->function(paramCount, shell->param);
         #else
-            returnValue = shellExtRun((base + i)->function, paramCount, shell->param);
+            if((base + i)->param_num+1 > paramCount)
+            {
+              // if parameter provided is less than required:
+              for(unsigned char k = paramCount; k < (base + i)->param_num+1; k++)
+                // point all missing parameter to the tail of the buffer, make sure it is '\0'
+                shell->param[paramCount++] = shell->buffer + shell->length - 1;
+              // and call function with required parameter number
+              returnValue = shellExtRun((base + i)->function, (base + i)->param_num+1, shell->param);
+            }
+            else
+            {
+              returnValue = shellExtRun((base + i)->function, paramCount, shell->param);
+            }
         #endif /** SHELL_AUTO_PRASE == 0 */
             shell->isActive = 0;
         #if SHELL_DISPLAY_RETURN == 1
@@ -632,6 +644,8 @@ static void shellEnter(SHELL_TypeDef *shell)
         shellDisplay(shell, "Command not found\r\n");
     }
     shellDisplay(shell, shell->command);
+    shell->length = 0;
+    shell->cursor = 0;
 }
 
 
@@ -1186,7 +1200,7 @@ void shellHelp(int argc, char *argv[])
     }
 #endif /** SHELL_LONG_HELP == 1 */
 }
-SHELL_EXPORT_CMD_EX(help, shellHelp, command help, help [command] --show help info of command);
+SHELL_EXPORT_CMD_EX(help, shellHelp, 0, command help, help [command] --show help info of command);
 
 
 /**

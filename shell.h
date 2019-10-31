@@ -90,10 +90,11 @@
             {                                                               \
                 shellCmd##cmd,                                              \
                 (int (*)())func,                                            \
+                0,                                                          \
                 shellDesc##cmd,                                             \
                 (void *)0                                                   \
             }
-#define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
+#define     SHELL_EXPORT_CMD_EX(cmd, func, param_num, desc, help)           \
             const char shellCmd##cmd[] = #cmd;                              \
             const char shellDesc##cmd[] = #desc;                            \
             const char shellHelp##cmd[] = #help;                            \
@@ -102,6 +103,7 @@
             {                                                               \
                 shellCmd##cmd,                                              \
                 (int (*)())func,                                            \
+                param_num,                                                  \
                 shellDesc##cmd,                                             \
                 shellHelp##cmd                                              \
             }
@@ -114,9 +116,10 @@
             {                                                               \
                 shellCmd##cmd                                               \
                 (int (*)())func,                                            \
+                0,                                                          \
                 shellDesc##cmd                                              \
             }
-#define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)                      \
+#define     SHELL_EXPORT_CMD_EX(cmd, func, param_num, desc, help)           \
             const char shellCmd##cmd[] = #cmd;                              \
             const char shellDesc##cmd[] = #desc;                            \
             const SHELL_CommandTypeDef                                      \
@@ -124,6 +127,7 @@
             {                                                               \
                 shellCmd##cmd,                                              \
                 (int (*)())func,                                            \
+                param_num,                                                  \
                 shellDesc##cmd                                              \
             }
 #endif /** SHELL_LONG_HELP == 1 */
@@ -136,7 +140,7 @@
             shellVariable##var SECTION("shellVariable") =                   \
             {                                                               \
                 shellVar##var,                                              \
-                (void *)(variable),                                            \
+                (void *)(variable),                                         \
                 shellDesc##var,                                             \
                 type                                                        \
             }
@@ -146,7 +150,7 @@
 
 #else
 #define     SHELL_EXPORT_CMD(cmd, func, desc)
-#define     SHELL_EXPORT_CMD_EX(cmd, func, desc, help)
+#define     SHELL_EXPORT_CMD_EX(cmd, func, param_num, desc, help)
 #define     SHELL_EXPORT_VAR(var, variable, desc, type) 
 #endif /** SHELL_USING_CMD_EXPORT == 1 */
 
@@ -173,13 +177,15 @@
             {                                                               \
                 #cmd,                                                       \
                 (int (*)())func,                                            \
+                0,                                                          \
                 #desc,                                                      \
                 (void *)0                                                   \
             }
-#define     SHELL_CMD_ITEM_EX(cmd, func, desc, help)                        \
+#define     SHELL_CMD_ITEM_EX(cmd, func, param_num, desc, help)             \
             {                                                               \
                 #cmd,                                                       \
                 (int (*)())func,                                            \
+                param_num,                                                  \
                 #desc,                                                      \
                 #help                                                       \
             }   
@@ -188,12 +194,14 @@
             {                                                               \
                 #cmd,                                                       \
                 (int (*)())func,                                            \
+                0,                                                          \
                 #desc                                                       \
             }
-#define     SHELL_CMD_ITEM_EX(cmd, func, desc, help)                        \
+#define     SHELL_CMD_ITEM_EX(cmd, func, param_num, desc, help)             \
             {                                                               \
                 #cmd,                                                       \
                 (int (*)())func,                                            \
+                param_num,                                                  \
                 #desc,                                                      \
             }  
 #endif /** SHELL_LONG_HELP == 1 */
@@ -260,6 +268,7 @@ typedef struct
 {
     const char *name;                                           /**< shell命令名称 */
     shellFunction function;                                     /**< shell命令函数 */
+    const int  param_num;                                       /**< shell命令参数数量, 0 表示 auto */
     const char *desc;                                           /**< shell命令描述 */
 #if SHELL_LONG_HELP == 1
     const char *help;                                           /**< shell长帮助信息 */
