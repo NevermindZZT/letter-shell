@@ -12,6 +12,7 @@
 - 长帮助补全，输入命令后双击tab键补全命令长帮助指令
 - 快捷键，支持使用Ctrl + A~Z组合按键直接调用函数
 - shell变量，支持在shell中查看和修改变量值，支持变量作为命令参数
+- 登录密码，支持在shell中使用登录密码
 
 ## 移植说明
 
@@ -80,6 +81,8 @@ shell.h文件中包含几个用于配置shell的宏，在使用前，需要根�
 | SHELL_GET_TICK()           | 获取系统时间(ms)               |
 | SHELL_DEFAULT_COMMAND      | shell默认提示符                |
 | SHELL_MAX_NUMBER           | 管理的最大shell数量            |
+| SHELL_USING_AUTH           | 是否使用密码功能               |
+| SHELL_USER_PASSWORD        | 用户密码                       |
 
 ## 使用方式
 

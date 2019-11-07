@@ -103,4 +103,16 @@
  */
 #define     SHELL_DEFAULT_COMMAND       "\r\nletter>>"
 
+
+/**
+ * @brief 是否使用密码功能
+ */
+#define     SHELL_USING_AUTH             0
+
+
+/**
+ * @brief shell用户密码
+ */
+#define     SHELL_USER_PASSWORD         "letter"
+
 #endif

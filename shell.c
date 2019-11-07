@@ -102,6 +102,11 @@ void shellInit(SHELL_TypeDef *shell)
     shellAdd(shell);
     shellDisplay(shell, shell->command);
     
+#if SHELL_USING_AUTH == 1
+    shell->isPasswordConfirm = 0;
+    shellDisplay(shell, "Please input password:\r\n");
+#endif     
+    
 #if SHELL_USING_CMD_EXPORT == 1
     #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
         extern const unsigned int shellCommand$$Base;
@@ -541,6 +546,28 @@ static void shellEnter(SHELL_TypeDef *shell)
     int returnValue;
     (void) returnValue;
 
+#if SHELL_USING_AUTH == 1
+    if(0 == shell->isPasswordConfirm)
+    {
+        if((shell->length != strlen(SHELL_USER_PASSWORD)) 
+         ||(strncmp( shell->buffer, SHELL_USER_PASSWORD, strlen(SHELL_USER_PASSWORD)) != 0))
+        {
+            shellDisplay(shell, "\r\npassword confirm failed.\r\n");
+            shellDisplay(shell, "please input password:\r\n");
+        }
+        else
+        {
+            shell->isPasswordConfirm = 1;
+            shellDisplay(shell, "\r\npassword confirm success.\r\n");
+            shellDisplay(shell, shell->command);
+        }
+
+        shell->length = 0; 
+        shell->cursor = 0;
+        return;
+    }
+#endif
+    
     if (shell->length == 0)
     {
         shellDisplay(shell, shell->command);
@@ -548,7 +575,6 @@ static void shellEnter(SHELL_TypeDef *shell)
     }
     
     *(shell->buffer + shell->length++) = 0;
-
     shellHistoryAdd(shell);
 
     for (unsigned short i = 0; i < shell->length; i++)
@@ -933,7 +959,61 @@ void shellHandler(SHELL_TypeDef *shell, char data)
     {
         shellAnsi(shell, data);
     }
-    
+}
+
+#if SHELL_USING_AUTH == 1
+/**
+ * @brief shell密码校验
+ * 
+ * @param shell shell对象
+ * @param data 输入数据
+ */
+static void shellCheck(SHELL_TypeDef *shell, char data)
+{
+    char keyDefFind = 0;
+
+    if (keyDefFind == 0)
+    {
+        for (short i = 0; 
+            i < sizeof(shellDefaultKeyFunctionList) / sizeof(SHELL_KeyFunctionDef);
+            i++)
+        {
+            if (shellDefaultKeyFunctionList[i].keyCode == data) {
+                if ((shellDefaultKeyFunctionList[i].keyFunction == shellEnter) 
+                   ||(shellDefaultKeyFunctionList[i].keyFunction == shellBackspace)){
+                    shellDefaultKeyFunctionList[i].keyFunction(shell);
+                }
+                keyDefFind = 1;
+            }
+        }
+    }
+    if (keyDefFind == 0)
+    {
+        shellNormal(shell, data);
+    }   
+}
+#endif
+
+/**
+ * @brief shell输入
+ * 
+ * @param shell shell对象
+ * @param data 输入数据
+ */
+void shellInput(SHELL_TypeDef *shell, char data)
+{
+#if SHELL_USING_AUTH == 1
+    if(1 == shell->isPasswordConfirm)
+    {
+        shellHandler(shell,data);
+    }
+    else
+    {
+        shellCheck(shell, data);
+    }
+#else
+    shellHandler(shell,data);
+#endif    
 }
 
 
@@ -962,7 +1042,7 @@ void shellTask(void *param)
 #endif
         if (shell->read(&data) == 0)
         {
-            shellHandler(shell, data);
+            shellInput(shell, data);
         }
 #if SHELL_TASK_WHILE == 1
     }

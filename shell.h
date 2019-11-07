@@ -14,6 +14,12 @@
 
 #include "shell_cfg.h"
 
+#if SHELL_USING_AUTH == 1
+    #if !defined(SHELL_USER_PASSWORD)
+        #error "please config shell user password (int shell_cfg.h) "
+    #endif  
+#endif      
+
 #define     SHELL_VERSION               "2.0.5"                 /**< 版本号 */
 
 /**
@@ -309,6 +315,9 @@ typedef struct
     unsigned char isActive;                                     /**< 是否是当前活动shell */
     shellRead read;                                             /**< shell读字符 */
     shellWrite write;                                           /**< shell写字符 */
+#if SHELL_USING_AUTH == 1
+    char isPasswordConfirm;                                     /**< shell密码标志 */
+#endif 
 }SHELL_TypeDef;
 
 
@@ -335,7 +344,7 @@ void shellSetKeyFuncList(SHELL_TypeDef *shell, SHELL_KeyFunctionDef *base, unsig
 SHELL_TypeDef *shellGetCurrent(void);
 void shellPrint(SHELL_TypeDef *shell, char *fmt, ...);
 unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string);
-void shellHandler(SHELL_TypeDef *shell, char data);
+void shellInput(SHELL_TypeDef *shell, char data);
 
 
 void shellHelp(int argc, char *argv[]);
