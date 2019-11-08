@@ -28,6 +28,9 @@ static void shellTab(SHELL_TypeDef *shell);
 static void shellBackspace(SHELL_TypeDef *shell);
 static void shellAnsiStart(SHELL_TypeDef *shell);
 
+static void shellHandler(SHELL_TypeDef *shell, char data);
+static void shellCheck(SHELL_TypeDef *shell, char data);
+
 #if SHELL_USING_VAR == 1
 static void shellDisplayVariable(SHELL_TypeDef *shell, char *var);
 void shellListVariables(void);
@@ -920,7 +923,7 @@ void shellAnsi(SHELL_TypeDef *shell, char data)
  * @param shell shell对象
  * @param data 输入数据
  */
-void shellHandler(SHELL_TypeDef *shell, char data)
+static void shellHandler(SHELL_TypeDef *shell, char data)
 {
     if (shell->status == SHELL_IN_NORMAL)
     {
