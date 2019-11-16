@@ -20,7 +20,7 @@
     #endif  
 #endif      
 
-#define     SHELL_VERSION               "2.0.5"                 /**< 版本号 */
+#define     SHELL_VERSION               "2.0.6"                 /**< 版本号 */
 
 /**
  * @brief shell键值定义
@@ -344,8 +344,8 @@ void shellSetKeyFuncList(SHELL_TypeDef *shell, SHELL_KeyFunctionDef *base, unsig
 SHELL_TypeDef *shellGetCurrent(void);
 void shellPrint(SHELL_TypeDef *shell, char *fmt, ...);
 unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string);
-void shellInput(SHELL_TypeDef *shell, char data);
-
+void shellHandler(SHELL_TypeDef *shell, char data);
+#define     shellInput      shellHandler
 
 void shellHelp(int argc, char *argv[]);
 void shellClear(void);

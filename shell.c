@@ -18,6 +18,44 @@
 #include "shell_ext.h"
 #endif
 
+/**
+ * @brief shell提示信息文本索引
+ */
+enum
+{
+    TEXT_INFO,
+    TEXT_PWD_HINT,
+    TEXT_PWD_RIGHT,
+    TEXT_PWD_ERROR,
+    TEXT_FUN_LIST,
+    TEXT_VAR_LIST,
+    TEXT_CMD_NONE,
+    TEXT_CMD_TOO_LONG,
+    TEXT_READ_NOT_DEF,
+};
+
+/**
+ * @brief shell提示信息文本
+ */
+static const char *shellText[] = 
+{
+    [TEXT_INFO]      = "\r\n\r\n"
+                       "+=========================================================+\r\n"
+                       "|                (C) COPYRIGHT 2019 Letter                |\r\n"
+                       "|                   Letter shell v"SHELL_VERSION"                   |\r\n"
+                       "|               Build: "__DATE__" "__TIME__"               |\r\n"
+                       "+=========================================================+\r\n",
+    [TEXT_PWD_HINT]  = "\r\nPlease input password:",
+    [TEXT_PWD_RIGHT] = "\r\npassword confirm success.\r\n",
+    [TEXT_PWD_ERROR] = "\r\npassword confirm failed.\r\n",
+    [TEXT_FUN_LIST]  = "\r\nCOMMAND LIST:\r\n\r\n",
+    [TEXT_VAR_LIST]  = "\r\nVARIABLE LIST:\r\n\r\n",
+    [TEXT_CMD_NONE]  = "Command not found\r\n",
+    [TEXT_CMD_TOO_LONG] = "\r\nWarnig: Command is too long\r\n",
+    [TEXT_READ_NOT_DEF] = "error: shell.read must be defined\r\n",
+};
+
+
 static SHELL_TypeDef *shellList[SHELL_MAX_NUMBER] = {NULL};     /**< shell列表 */
 
 static void shellAdd(SHELL_TypeDef *shell);
@@ -85,12 +123,6 @@ const SHELL_KeyFunctionDef shellDefaultKeyFunctionList[] =
  */
 void shellInit(SHELL_TypeDef *shell)
 {
-    shellDisplay(shell, "\r\n\r\n");
-    shellDisplay(shell, "+=========================================================+\r\n");
-    shellDisplay(shell, "|                (C) COPYRIGHT 2019 Letter                |\r\n");
-    shellDisplay(shell, "|                   Letter shell v"SHELL_VERSION"                   |\r\n");
-    shellDisplay(shell, "|               Build: "__DATE__" "__TIME__"               |\r\n");
-    shellDisplay(shell, "+=========================================================+\r\n");
     shell->length = 0;
     shell->cursor = 0;
     shell->historyCount = 0;
@@ -100,11 +132,13 @@ void shellInit(SHELL_TypeDef *shell)
     shell->command = SHELL_DEFAULT_COMMAND;
     shell->isActive = 0;
     shellAdd(shell);
-    shellDisplay(shell, shell->command);
     
 #if SHELL_USING_AUTH == 1
     shell->isPasswordConfirm = 0;
-    shellDisplay(shell, "Please input password:\r\n");
+    shellDisplay(shell, shellText[TEXT_PWD_HINT]);
+#else
+    shellDisplay(shell, shellText[TEXT_INFO]);
+    shellDisplay(shell, shell->command);
 #endif     
     
 #if SHELL_USING_CMD_EXPORT == 1
@@ -550,15 +584,16 @@ static void shellEnter(SHELL_TypeDef *shell)
     if(0 == shell->isPasswordConfirm)
     {
         if((shell->length != strlen(SHELL_USER_PASSWORD)) 
-         ||(strncmp( shell->buffer, SHELL_USER_PASSWORD, strlen(SHELL_USER_PASSWORD)) != 0))
+            ||(strncmp(shell->buffer, SHELL_USER_PASSWORD, strlen(SHELL_USER_PASSWORD)) != 0))
         {
-            shellDisplay(shell, "\r\npassword confirm failed.\r\n");
-            shellDisplay(shell, "please input password:\r\n");
+            shellDisplay(shell, shellText[TEXT_PWD_ERROR]);
+            shellDisplay(shell, shellText[TEXT_PWD_HINT]);
         }
         else
         {
             shell->isPasswordConfirm = 1;
-            shellDisplay(shell, "\r\npassword confirm success.\r\n");
+            shellDisplay(shell, shellText[TEXT_PWD_RIGHT]);
+            shellDisplay(shell, shellText[TEXT_INFO]);
             shellDisplay(shell, shell->command);
         }
 
@@ -651,11 +686,12 @@ static void shellEnter(SHELL_TypeDef *shell)
         #if SHELL_DISPLAY_RETURN == 1
             shellDisplayReturn(shell, returnValue);
         #endif /** SHELL_DISPLAY_RETURN == 1 */
+            break;
         }
     }
     if (runFlag == 0)
     {
-        shellDisplay(shell, "Command not found\r\n");
+        shellDisplay(shell, shellText[TEXT_CMD_NONE]);
     }
     shellDisplay(shell, shell->command);
 }
@@ -835,7 +871,7 @@ static void shellNormal(SHELL_TypeDef *shell, char data)
     }
     else
     {
-        shellDisplay(shell, "\r\nWarnig: Command is too long\r\n");
+        shellDisplay(shell, shellText[TEXT_CMD_TOO_LONG]);
         shellDisplay(shell, shell->command);
         shellDisplay(shell, shell->buffer);
         shell->cursor = shell->length;
@@ -927,15 +963,22 @@ void shellHandler(SHELL_TypeDef *shell, char data)
         char keyDefFind = 0;
         SHELL_KeyFunctionDef *base = (SHELL_KeyFunctionDef *)shell->keyFuncBase;
 
-        for (short i = 0; i < shell->keyFuncNumber; i++)
+    #if SHELL_USING_AUTH == 1
+        if (shell->isPasswordConfirm == 1)
         {
-            if (base[i].keyCode == data) {
-                if (base[i].keyFunction) {
-                    base[i].keyFunction(shell);
+    #endif
+            for (short i = 0; i < shell->keyFuncNumber; i++)
+            {
+                if (base[i].keyCode == data) {
+                    if (base[i].keyFunction) {
+                        base[i].keyFunction(shell);
+                    }
+                    keyDefFind = 1;
                 }
-                keyDefFind = 1;
             }
+    #if SHELL_USING_AUTH == 1
         }
+    #endif
         if (keyDefFind == 0)
         {
             for (short i = 0; 
@@ -961,61 +1004,6 @@ void shellHandler(SHELL_TypeDef *shell, char data)
     }
 }
 
-#if SHELL_USING_AUTH == 1
-/**
- * @brief shell密码校验
- * 
- * @param shell shell对象
- * @param data 输入数据
- */
-static void shellCheck(SHELL_TypeDef *shell, char data)
-{
-    char keyDefFind = 0;
-
-    if (keyDefFind == 0)
-    {
-        for (short i = 0; 
-            i < sizeof(shellDefaultKeyFunctionList) / sizeof(SHELL_KeyFunctionDef);
-            i++)
-        {
-            if (shellDefaultKeyFunctionList[i].keyCode == data) {
-                if ((shellDefaultKeyFunctionList[i].keyFunction == shellEnter) 
-                   ||(shellDefaultKeyFunctionList[i].keyFunction == shellBackspace)){
-                    shellDefaultKeyFunctionList[i].keyFunction(shell);
-                }
-                keyDefFind = 1;
-            }
-        }
-    }
-    if (keyDefFind == 0)
-    {
-        shellNormal(shell, data);
-    }   
-}
-#endif
-
-/**
- * @brief shell输入
- * 
- * @param shell shell对象
- * @param data 输入数据
- */
-void shellInput(SHELL_TypeDef *shell, char data)
-{
-#if SHELL_USING_AUTH == 1
-    if(1 == shell->isPasswordConfirm)
-    {
-        shellHandler(shell,data);
-    }
-    else
-    {
-        shellCheck(shell, data);
-    }
-#else
-    shellHandler(shell,data);
-#endif    
-}
-
 
 #if SHELL_USING_TASK == 1
 /**
@@ -1033,7 +1021,7 @@ void shellTask(void *param)
     char data;
     if (shell->read == NULL)
     {
-        shellDisplay(shell, "error: shell.read must be defined\r\n");
+        shellDisplay(shell, shellText[TEXT_READ_NOT_DEF]);
         while (1) ;
     }
 #if SHELL_TASK_WHILE == 1
@@ -1178,7 +1166,7 @@ void shellListVariables(void)
 
     unsigned short spaceLength;
 
-    shellDisplay(shell, "\r\nVARIABLE LIST:\r\n\r\n");   
+    shellDisplay(shell, shellText[TEXT_VAR_LIST]);   
 
     for (short i = 0; i <  shell->variableNumber; i++)
     {
@@ -1235,7 +1223,7 @@ void shellHelp(int argc, char *argv[])
     if (argc == 1)
     {
 #endif /** SHELL_LONG_HELP == 1 */
-        shellDisplay(shell, "\r\nCOMMAND LIST:\r\n\r\n");       
+        shellDisplay(shell, shellText[TEXT_FUN_LIST]);       
         for(unsigned short i = 0; i < shell->commandNumber; i++)
         {
             shellDisplayItem(shell, i);
@@ -1262,7 +1250,7 @@ void shellHelp(int argc, char *argv[])
                 return;
             }
         }
-        shellDisplay(shell, "command not found\r\n");
+        shellDisplay(shell, shellText[TEXT_CMD_NONE]);
     }
 #endif /** SHELL_LONG_HELP == 1 */
 }
