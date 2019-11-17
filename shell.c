@@ -751,6 +751,13 @@ static void shellTab(SHELL_TypeDef *shell)
     unsigned short length;
     SHELL_CommandTypeDef *base = shell->commandBase;
 
+#if SHELL_USING_AUTH == 1
+    if (!shell->isPasswordConfirm)
+    {
+        return;
+    }
+#endif
+
     if (shell->length != 0)
     {
         shell->buffer[shell->length] = 0;
