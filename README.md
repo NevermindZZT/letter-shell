@@ -73,20 +73,30 @@
     shellInit(&shell);
     ```
 
-4. 说明
+4. 调用(建立)shell任务
 
-   - 对于中断方式使用shell，不用定义shell->read，但需要在中断中调用shellInput
+    对于运行在操作系统的情况，建立`shellTask`任务(确保sell_cfg.h中的配置无误)，任务参数为shell对象
+
+    ```C
+    OsTaskCreate(shellTask, &shell, ...);
+    ```
+
+    对于裸机环境，在主循环中调用`shellTask`，或者在接收到数据时，调用`shellInput`
+
+5. 说明
+
+   - 对于中断方式使用shell，不用定义`shell->read`，但需要在中断中调用`shellInput`
    - 对于在无操作系统环境下，可以使用查询的方式，使能```SHELL_UISNG_TASK```，然后在循环中不断调用shellTask
    - 对于使用操作系统的情况，使能```SHELL_USING_TASK```和```SHEHLL_TASK_WHILE```宏，然后创建shellTask任务
    - 打印函数返回值，使能```SHELL_DISPLAY_RETURN```宏，返回值均作为整型数据打印
 
-5. 其他配置
+6. 其他配置
 
    - 定义宏```SHELL_GET_TICK()```为获取系统tick函数，使能tab双击操作，用户长帮助补全
 
-6. 配置宏
+7. 配置宏
 
-    shell.h文件中包含几个用于配置shell的宏，在使用前，需要根据需要进行配置
+    shell_cfg.h文件中包含了所有用于配置shell的宏，在使用前，需要根据需要进行配置
 
     | 宏                         | 意义                           |
     | -------------------------- | ------------------------------ |
