@@ -20,7 +20,7 @@
     #endif  
 #endif      
 
-#define     SHELL_VERSION               "2.0.6"                 /**< 版本号 */
+#define     SHELL_VERSION               "2.0.7"                 /**< 版本号 */
 
 /**
  * @brief shell键值定义
@@ -311,13 +311,18 @@ typedef struct
 #endif
     int keyFuncBase;                                            /**< 按键响应表基址 */
     unsigned short keyFuncNumber;                               /**< 按键响应数量 */
-    SHELL_InputMode status;                                     /**< 输入状态 */
+    struct
+    {
+        char inputMode : 2;                                     /**< 输入模式 */
+        char tabFlag : 1;                                       /**< tab标志 */
+        char authFlag : 1;                                      /**< 密码标志 */
+    } status;                                                   /**< shell状态 */
     unsigned char isActive;                                     /**< 是否是当前活动shell */
     shellRead read;                                             /**< shell读字符 */
     shellWrite write;                                           /**< shell写字符 */
-#if SHELL_USING_AUTH == 1
-    char isPasswordConfirm;                                     /**< shell密码标志 */
-#endif 
+#if SHELL_LONG_HELP == 1 || (SHELL_USING_AUTH && SHELL_LOCK_TIMEOUT > 0)
+    int activeTime;                                             /**< shell激活时间戳 */
+#endif
 }SHELL_TypeDef;
 
 

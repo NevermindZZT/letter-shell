@@ -1,7 +1,8 @@
 # letter shell
 
-![version](https://img.shields.io/badge/version-2.0.6-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2019.11.16-brightgreen.svg)
+![version](https://img.shields.io/badge/version-2.0.7-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2019.11.30-brightgreen.svg)
+![build](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个体积极小的嵌入式shell
 
@@ -22,6 +23,7 @@
       - [读取变量](#%e8%af%bb%e5%8f%96%e5%8f%98%e9%87%8f)
       - [修改变量](#%e4%bf%ae%e6%94%b9%e5%8f%98%e9%87%8f)
       - [变量作为命令参数](#%e5%8f%98%e9%87%8f%e4%bd%9c%e4%b8%ba%e5%91%bd%e4%bb%a4%e5%8f%82%e6%95%b0)
+    - [shell密码](#shell%e5%af%86%e7%a0%81)
     - [建议终端软件](#%e5%bb%ba%e8%ae%ae%e7%bb%88%e7%ab%af%e8%bd%af%e4%bb%b6)
   - [更新日志](#%e6%9b%b4%e6%96%b0%e6%97%a5%e5%bf%97)
 
@@ -32,7 +34,7 @@
 - 长帮助补全，输入命令后双击tab键补全命令长帮助指令
 - 快捷键，支持使用Ctrl + A~Z组合按键直接调用函数
 - shell变量，支持在shell中查看和修改变量值，支持变量作为命令参数
-- 登录密码，支持在shell中使用登录密码
+- 登录密码，支持在shell中使用登录密码，支持超时自动锁定
 
 ## 移植说明
 
@@ -103,6 +105,7 @@
     | SHELL_MAX_NUMBER           | 管理的最大shell数量            |
     | SHELL_USING_AUTH           | 是否使用密码功能               |
     | SHELL_USER_PASSWORD        | 用户密码                       |
+    | SHELL_LOCK_TIMEOUT         | shell自动锁定超时              |
 
 ## 使用方式
 
@@ -251,6 +254,14 @@ testVar1 = 200, 0x000000c8
 letter>>getVar $testVar1
 ```
 
+### shell密码
+
+letter shell支持shell密码，支持在一定时间shell无操作时自动锁定
+
+使能宏`SHELL_USING_AUTH`开启shell密码功能，同时修改宏`SHELL_USER_PASSWORD`定义shell密码
+
+在使用密码，并且宏`SHELL_GET_TICK()`有有效定义后，可以使用shell超时自动锁定，通过宏`SHELL_LOCK_TIMEOUT`设置超时时长，当此宏设为0时，禁用超时自动锁定功能
+
 ### 建议终端软件
 
 - 对于基于串口移植，letter shell建议使用secureCRT软件，letter shell中的相关按键映射都是按照secureCRT进行设计的，使用其他串口软件可能会出现某些功能无法使用的情况
@@ -355,3 +366,10 @@ letter>>getVar $testVar1
   - 修复历史命令概率性异常的问题
   - 新增shell密码
   - 一些细节优化
+
+- 2019/11/30 2.0.7
+
+  - 新增shell超时自动锁定
+  - 修复未验证密码的情况下，仍能查看历史命令，使用tab查看命令表的问题
+  - 修复双击tab补全，可能在使用多shell的时候有冲突的问题
+  - 细节优化

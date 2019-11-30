@@ -93,8 +93,8 @@
 
 /**
  * @brief 获取系统时间(ms)
- *        定义此宏为获取系统Tick，如`HAL_GetTick()`，此宏不定义时无法使用双击tab补全
- *        命令help
+ *        定义此宏为获取系统Tick，如`HAL_GetTick()`
+ * @note 此宏不定义时无法使用双击tab补全命令help，无法使用shell超时锁定
  */
 #define     SHELL_GET_TICK()            0
 
@@ -103,16 +103,22 @@
  */
 #define     SHELL_DEFAULT_COMMAND       "\r\nletter>>"
 
-
 /**
  * @brief 是否使用密码功能
  */
 #define     SHELL_USING_AUTH             0
 
-
 /**
  * @brief shell用户密码
  */
 #define     SHELL_USER_PASSWORD         "letter"
+
+/**
+ * @brief shell自动锁定超时
+ *        使能`SHELL_USING_AUTH`的情况下生效，超时后会自动重新锁定shell
+ *        设置为0时关闭自动锁定功能，时间单位为`SHELL_GET_TICK()`单位
+ * @note 使用超时锁定必须保证`SHELL_GET_TICK()`有效
+ */
+#define     SHELL_LOCK_TIMEOUT          5 * 60 * 1000
 
 #endif

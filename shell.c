@@ -128,13 +128,14 @@ void shellInit(SHELL_TypeDef *shell)
     shell->historyCount = 0;
     shell->historyFlag = 0;
     shell->historyOffset = 0;
-    shell->status = SHELL_IN_NORMAL;
+    shell->status.inputMode = SHELL_IN_NORMAL;
+    shell->status.tabFlag = 0;
     shell->command = SHELL_DEFAULT_COMMAND;
     shell->isActive = 0;
     shellAdd(shell);
     
 #if SHELL_USING_AUTH == 1
-    shell->isPasswordConfirm = 0;
+    shell->status.authFlag = 0;
     shellDisplay(shell, shellText[TEXT_PWD_HINT]);
 #else
     shellDisplay(shell, shellText[TEXT_INFO]);
@@ -524,6 +525,12 @@ static void shellHistoryAdd(SHELL_TypeDef *shell)
  */
 static void shellHistory(SHELL_TypeDef *shell, unsigned char dir)
 {
+#if SHELL_USING_AUTH == 1
+    if (!shell->status.authFlag)
+    {
+        return;
+    }
+#endif
     if (dir == 0)
     {
         if (shell->historyOffset--
@@ -581,7 +588,7 @@ static void shellEnter(SHELL_TypeDef *shell)
     (void) returnValue;
 
 #if SHELL_USING_AUTH == 1
-    if(0 == shell->isPasswordConfirm)
+    if(shell->status.authFlag == 0)
     {
         if((shell->length != strlen(SHELL_USER_PASSWORD)) 
             ||(strncmp(shell->buffer, SHELL_USER_PASSWORD, strlen(SHELL_USER_PASSWORD)) != 0))
@@ -591,7 +598,7 @@ static void shellEnter(SHELL_TypeDef *shell)
         }
         else
         {
-            shell->isPasswordConfirm = 1;
+            shell->status.authFlag = 1;
             shellDisplay(shell, shellText[TEXT_PWD_RIGHT]);
             shellDisplay(shell, shellText[TEXT_INFO]);
             shellDisplay(shell, shell->command);
@@ -752,7 +759,7 @@ static void shellTab(SHELL_TypeDef *shell)
     SHELL_CommandTypeDef *base = shell->commandBase;
 
 #if SHELL_USING_AUTH == 1
-    if (!shell->isPasswordConfirm)
+    if (!shell->status.authFlag)
     {
         return;
     }
@@ -815,11 +822,11 @@ static void shellTab(SHELL_TypeDef *shell)
     }
 
 #if SHELL_LONG_HELP == 1
-    static int time = 0;
-    
     if (SHELL_GET_TICK())
     {
-        if (matchNum == 1 && SHELL_GET_TICK() - time < SHELL_DOUBLE_CLICK_TIME)
+        if (matchNum == 1
+            && shell->status.tabFlag == 1
+            && SHELL_GET_TICK() - shell->activeTime < SHELL_DOUBLE_CLICK_TIME)
         {
             shellClearLine(shell);
             for (short i = shell->length; i >= 0; i--)
@@ -832,7 +839,6 @@ static void shellTab(SHELL_TypeDef *shell)
             shell->cursor = shell->length;
             shellDisplay(shell, shell->buffer);
         }
-        time = SHELL_GET_TICK();
     }
 #endif /** SHELL_LONG_HELP == 1 */
 }
@@ -893,7 +899,7 @@ static void shellNormal(SHELL_TypeDef *shell, char data)
  */
 static void shellAnsiStart(SHELL_TypeDef *shell)
 {
-    shell->status = SHELL_ANSI_ESC;
+    shell->status.inputMode = SHELL_ANSI_ESC;
 }
 
 
@@ -905,7 +911,7 @@ static void shellAnsiStart(SHELL_TypeDef *shell)
  */
 void shellAnsi(SHELL_TypeDef *shell, char data)
 {
-    switch ((unsigned char)(shell->status))
+    switch ((unsigned char)(shell->status.inputMode))
     {
     case SHELL_ANSI_CSI:
         switch (data)
@@ -937,17 +943,17 @@ void shellAnsi(SHELL_TypeDef *shell, char data)
         default:
             break;
         }
-        shell->status = SHELL_IN_NORMAL;
+        shell->status.inputMode = SHELL_IN_NORMAL;
         break;
 
     case SHELL_ANSI_ESC:
         if (data == 0x5B)
         {
-            shell->status = SHELL_ANSI_CSI;
+            shell->status.inputMode = SHELL_ANSI_CSI;
         }
         else
         {
-            shell->status = SHELL_IN_NORMAL;
+            shell->status.inputMode = SHELL_IN_NORMAL;
         }
         break;
 
@@ -965,13 +971,22 @@ void shellAnsi(SHELL_TypeDef *shell, char data)
  */
 void shellHandler(SHELL_TypeDef *shell, char data)
 {
-    if (shell->status == SHELL_IN_NORMAL)
+#if SHELL_USING_AUTH == 1 && SHELL_LOCK_TIMEOUT > 0
+    if (SHELL_GET_TICK())
+    {
+        if (SHELL_GET_TICK() - shell->activeTime > SHELL_LOCK_TIMEOUT)
+        {
+            shell->status.authFlag = 0;
+        }
+    }
+#endif
+    if (shell->status.inputMode == SHELL_IN_NORMAL)
     {
         char keyDefFind = 0;
         SHELL_KeyFunctionDef *base = (SHELL_KeyFunctionDef *)shell->keyFuncBase;
 
     #if SHELL_USING_AUTH == 1
-        if (shell->isPasswordConfirm == 1)
+        if (shell->status.authFlag == 1)
         {
     #endif
             for (short i = 0; i < shell->keyFuncNumber; i++)
@@ -1009,6 +1024,15 @@ void shellHandler(SHELL_TypeDef *shell, char data)
     {
         shellAnsi(shell, data);
     }
+#if SHELL_LONG_HELP == 1 || (SHELL_USING_AUTH && SHELL_LOCK_TIMEOUT > 0)
+    if (SHELL_GET_TICK())
+    {
+        shell->activeTime = SHELL_GET_TICK();
+    }
+#endif
+#if SHELL_LONG_HELP == 1
+    shell->status.tabFlag = data == '\t' ? 1 : 0;
+#endif
 }
 
 
