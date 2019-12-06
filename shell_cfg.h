@@ -1,6 +1,6 @@
 /**
  * @file shell_cfg.h
- * @author Letter (nevermindzzt@gmail.com)
+ * @author Letter (NevermindZZT@gmail.com)
  * @brief shell config
  * @version 0.1
  * @date 2019-04-11

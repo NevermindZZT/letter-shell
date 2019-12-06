@@ -1,6 +1,6 @@
 /**
  * @file shell.h
- * @author Letter (NevermindZZT@gmail.cn)
+ * @author Letter (NevermindZZT@gmail.com)
  * @brief letter shell
  * @version 2.0.0
  * @date 2018-12-29
