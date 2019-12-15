@@ -1222,7 +1222,7 @@ SHELL_EXPORT_CMD(vars, shellListVariables, show vars);
  */
 static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index)
 {
-    unsigned short spaceLength;
+    short spaceLength;
     SHELL_CommandTypeDef *base = shell->commandBase;
     
     spaceLength = 22 - shellDisplay(shell, (base + index)->name);
