@@ -118,7 +118,7 @@
             const SHELL_CommandTypeDef                                      \
             shellCommand##cmd SECTION("shellCommand") =                     \
             {                                                               \
-                shellCmd##cmd                                               \
+                shellCmd##cmd,                                              \
                 (int (*)())func,                                            \
                 shellDesc##cmd                                              \
             }
@@ -142,7 +142,7 @@
             shellVariable##var SECTION("shellVariable") =                   \
             {                                                               \
                 shellVar##var,                                              \
-                (void *)(variable),                                            \
+                (void *)(variable),                                         \
                 shellDesc##var,                                             \
                 type                                                        \
             }
@@ -314,10 +314,10 @@ typedef struct
     struct
     {
         char inputMode : 2;                                     /**< 输入模式 */
+        char isActive: 1;                                       /**< 是否是当前活动shell */
         char tabFlag : 1;                                       /**< tab标志 */
         char authFlag : 1;                                      /**< 密码标志 */
     } status;                                                   /**< shell状态 */
-    unsigned char isActive;                                     /**< 是否是当前活动shell */
     shellRead read;                                             /**< shell读字符 */
     shellWrite write;                                           /**< shell写字符 */
 #if SHELL_LONG_HELP == 1 || (SHELL_USING_AUTH && SHELL_LOCK_TIMEOUT > 0)

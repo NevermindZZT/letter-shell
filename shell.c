@@ -129,9 +129,9 @@ void shellInit(SHELL_TypeDef *shell)
     shell->historyFlag = 0;
     shell->historyOffset = 0;
     shell->status.inputMode = SHELL_IN_NORMAL;
+    shell->status.isActive = 0;
     shell->status.tabFlag = 0;
     shell->command = SHELL_DEFAULT_COMMAND;
-    shell->isActive = 0;
     shellAdd(shell);
     
 #if SHELL_USING_AUTH == 1
@@ -280,7 +280,7 @@ SHELL_TypeDef *shellGetCurrent(void)
 {
     for (short i = 0; i < SHELL_MAX_NUMBER; i++)
     {
-        if (shellList[i] != NULL && shellList[i]->isActive == 1)
+        if (shellList[i] != NULL && shellList[i]->status.isActive == 1)
         {
             return shellList[i];
         }
@@ -664,9 +664,9 @@ static void shellEnter(SHELL_TypeDef *shell)
     base = shell->commandBase;
     if (strcmp((const char *)shell->param[0], "help") == 0)
     {
-        shell->isActive = 1;
+        shell->status.isActive = 1;
         shellHelp(paramCount, shell->param);
-        shell->isActive = 0;
+        shell->status.isActive = 0;
         shellDisplay(shell, shell->command);
         return;
     }
@@ -683,13 +683,13 @@ static void shellEnter(SHELL_TypeDef *shell)
         if (strcmp((const char *)shell->param[0], (base + i)->name) == 0)
         {
             runFlag = 1;
-            shell->isActive = 1;
+            shell->status.isActive = 1;
         #if SHELL_AUTO_PRASE == 0
             returnValue = (base + i)->function(paramCount, shell->param);
         #else
             returnValue = shellExtRun((base + i)->function, paramCount, shell->param);
         #endif /** SHELL_AUTO_PRASE == 0 */
-            shell->isActive = 0;
+            shell->status.isActive = 0;
         #if SHELL_DISPLAY_RETURN == 1
             shellDisplayReturn(shell, returnValue);
         #endif /** SHELL_DISPLAY_RETURN == 1 */
@@ -815,9 +815,9 @@ static void shellTab(SHELL_TypeDef *shell)
     }
     else
     {
-        shell->isActive = 1;
+        shell->status.isActive = 1;
         shellHelp(1, (void *)0);
-        shell->isActive = 0;
+        shell->status.isActive = 0;
         shellDisplay(shell, shell->command);
     }
 
@@ -1222,7 +1222,7 @@ SHELL_EXPORT_CMD(vars, shellListVariables, show vars);
  */
 static void shellDisplayItem(SHELL_TypeDef *shell, unsigned short index)
 {
-    unsigned short spaceLength;
+    short spaceLength;
     SHELL_CommandTypeDef *base = shell->commandBase;
     
     spaceLength = 22 - shellDisplay(shell, (base + index)->name);
