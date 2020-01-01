@@ -313,10 +313,10 @@ typedef struct
     unsigned short keyFuncNumber;                               /**< 按键响应数量 */
     struct
     {
-        char inputMode : 2;                                     /**< 输入模式 */
-        char isActive: 1;                                       /**< 是否是当前活动shell */
-        char tabFlag : 1;                                       /**< tab标志 */
-        char authFlag : 1;                                      /**< 密码标志 */
+        unsigned char inputMode : 2;                            /**< 输入模式 */
+        unsigned char isActive: 1;                              /**< 是否是当前活动shell */
+        unsigned char tabFlag : 1;                              /**< tab标志 */
+        unsigned char authFlag : 1;                             /**< 密码标志 */
     } status;                                                   /**< shell状态 */
     shellRead read;                                             /**< shell读字符 */
     shellWrite write;                                           /**< shell写字符 */
