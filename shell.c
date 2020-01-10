@@ -1040,16 +1040,22 @@ void shellHandler(SHELL_TypeDef *shell, char data)
 /**
  * @brief shell 任务
  * 
- * @param param shell对象
+ * @param None
  * 
  * @note 使用操作系统时，定义的shell read函数必须是阻塞式的
  * @note 不使用操作系统时，可以通过不断查询的方式使用shell，修改宏SHELL_TASK_WHILE
  *       为0，然后在主循环中不断调用此函数
  */
-void shellTask(void *param)
+void shellTask(void)
 {
-    SHELL_TypeDef *shell = (SHELL_TypeDef *)param;
+    SHELL_TypeDef *shell = get_default_shell();
     char data;
+	
+	if (shell == NULL)
+	{
+		return ;
+	}
+	
     if (shell->read == NULL)
     {
         shellDisplay(shell, shellText[TEXT_READ_NOT_DEF]);

@@ -14,6 +14,7 @@
 
 #include "shell_cfg.h"
 
+
 #if SHELL_USING_AUTH == 1
     #if !defined(SHELL_USER_PASSWORD)
         #error "please config shell user password (int shell_cfg.h) "
@@ -326,6 +327,8 @@ typedef struct
 }SHELL_TypeDef;
 
 
+#include "shell_port.h"
+
 /**
  * @brief shell按键功能定义
  * 
@@ -356,7 +359,7 @@ void shellHelp(int argc, char *argv[]);
 void shellClear(void);
 
 #if SHELL_USING_TASK == 1
-void shellTask(void *param);
+void shellTask(void);
 #endif
 
 #endif
