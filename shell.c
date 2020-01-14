@@ -641,7 +641,7 @@ static void shellEnter(SHELL_TypeDef *shell)
                 record = 0;
             }
             if (*(shell->buffer + i) == '\\' &&
-                *(shell->buffer + i) != 0)
+                *(shell->buffer + i + 1) != 0)
             {
                 i++;
             }
@@ -678,7 +678,7 @@ static void shellEnter(SHELL_TypeDef *shell)
         return;
     }
 #endif /** SHELL_USING_VAR == 1 */
-    for (unsigned char i = 0; i < shell->commandNumber; i++)
+    for (unsigned short i = 0; i < shell->commandNumber; i++)
     {
         if (strcmp((const char *)shell->param[0], (base + i)->name) == 0)
         {

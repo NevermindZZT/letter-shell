@@ -20,7 +20,7 @@
     #endif  
 #endif      
 
-#define     SHELL_VERSION               "2.0.7"                 /**< 版本号 */
+#define     SHELL_VERSION               "2.0.8"                 /**< 版本号 */
 
 /**
  * @brief shell键值定义
