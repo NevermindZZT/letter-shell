@@ -1,7 +1,7 @@
 # letter shell
 
-![version](https://img.shields.io/badge/version-2.0.7-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2019.11.30-brightgreen.svg)
+![version](https://img.shields.io/badge/version-2.0.8-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2020.01.14-brightgreen.svg)
 ![build](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个体积极小的嵌入式shell
