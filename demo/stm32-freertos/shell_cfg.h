@@ -1,9 +1,9 @@
 /**
  * @file shell_cfg.h
- * @author Letter (NevermindZZT@gmail.com)
+ * @author Letter (nevermindzzt@gmail.com)
  * @brief shell config
- * @version 0.1
- * @date 2019-04-11
+ * @version 3.0.0
+ * @date 2019-12-31
  * 
  * @copyright (c) 2019 Letter
  * 
@@ -12,11 +12,8 @@
 #ifndef __SHELL_CFG_H__
 #define __SHELL_CFG_H__
 
-/**
- * @brief 是否使用默认shell任务
- *        使能之后可以使用`shellTask()`建立shell任务，或者使用`shellTask()`进行轮询
- */
-#define     SHELL_USING_TASK            0
+#include "stm32f4xx_hal.h"
+
 
 /**
  * @brief 是否使用默认shell任务while循环，使能宏`SHELL_USING_TASK`后此宏有意义
@@ -27,41 +24,43 @@
 
 /**
  * @brief 是否使用命令导出方式
- *        使能此宏后，可以使用`SHELL_EXPORT_CMD()`或者`SHELL_EXPORT_CMD_EX()`
+ *        使能此宏后，可以使用`SHELL_EXPORT_CMD()`等导出命令
  *        定义shell命令，关闭此宏的情况下，需要使用命令表的方式
  */
 #define     SHELL_USING_CMD_EXPORT      1
 
 /**
- * @brief 是否使用变量功能
- * 
+ * @brief 是否在输入命令列表中列出用户
  */
-#define     SHELL_USING_VAR             0
+#define     SHELL_HELP_LIST_USER        0
 
 /**
- * @brief 是否显示命令调用函数返回值
- *        使能此宏，则每次调用shell命令之后会以整形和十六进制的方式打印函数的返回值
+ * @brief 是否在输入命令列表中列出变量
  */
-#define     SHELL_DISPLAY_RETURN        1
+#define     SHELL_HELP_LIST_VAR         0
 
 /**
- * @brief 是否使用shell参数自动解析
- *        使能此宏以支持常规C函数形式的命令，shell会自动转换参数
- *        关闭此宏则支持main函数形式的命令，需要自行在函数中处理参数
+ * @brief 是否在输入命令列表中列出按键
  */
-#define     SHELL_AUTO_PRASE            1
+#define     SHELL_HELP_LIST_KEY         0
 
 /**
- * @brief 是否使用shell长帮助
- *        使能此宏以支持命令的长帮助信息
+ * @brief 使用LF作为命令行回车触发
+ *        可以和SHELL_ENTER_CR同时开启
  */
-#define     SHELL_LONG_HELP             1
+#define     SHELL_ENTER_LF              0
 
 /**
- * @brief shell命令最大长度
- *        命令行可输入的最大字符长度
+ * @brief 使用CR作为命令行回车触发
+ *        可以和SHELL_ENTER_LF同时开启
  */
-#define     SHELL_COMMAND_MAX_LENGTH    50
+#define     SHELL_ENTER_CR              0
+
+/**
+ * @brief 使用CRLF作为命令行回车触发
+ *        不可以和SHELL_ENTER_LF或SHELL_ENTER_CR同时开启
+ */
+#define     SHELL_ENTER_CRLF            1
 
 /**
  * @brief shell命令参数最大数量
@@ -96,22 +95,18 @@
  *        定义此宏为获取系统Tick，如`HAL_GetTick()`
  * @note 此宏不定义时无法使用双击tab补全命令help，无法使用shell超时锁定
  */
-#define     SHELL_GET_TICK()            0
+#define     SHELL_GET_TICK()            HAL_GetTick()
 
 /**
- * @brief shell默认提示符
+ * @brief shell默认用户
  */
-#define     SHELL_DEFAULT_COMMAND       "\r\nletter>>"
+#define     SHELL_DEFAULT_USER          "letter"
 
 /**
- * @brief 是否使用密码功能
+ * @brief shell默认用户密码
+ *        若默认用户不需要密码，设为""
  */
-#define     SHELL_USING_AUTH             0
-
-/**
- * @brief shell用户密码
- */
-#define     SHELL_USER_PASSWORD         "letter"
+#define     SHELL_DEFAULT_USER_PASSWORD ""
 
 /**
  * @brief shell自动锁定超时
@@ -119,6 +114,6 @@
  *        设置为0时关闭自动锁定功能，时间单位为`SHELL_GET_TICK()`单位
  * @note 使用超时锁定必须保证`SHELL_GET_TICK()`有效
  */
-#define     SHELL_LOCK_TIMEOUT          5 * 60 * 1000
+#define     SHELL_LOCK_TIMEOUT          0 * 60 * 1000
 
 #endif
