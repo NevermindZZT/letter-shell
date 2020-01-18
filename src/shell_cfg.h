@@ -28,19 +28,24 @@
 #define     SHELL_USING_CMD_EXPORT      1
 
 /**
- * @brief 是否在输入命令列表中列出用户
+ * @brief 是否在输出命令列表中列出用户
  */
 #define     SHELL_HELP_LIST_USER        0
 
 /**
- * @brief 是否在输入命令列表中列出变量
+ * @brief 是否在输出命令列表中列出变量
  */
 #define     SHELL_HELP_LIST_VAR         0
 
 /**
- * @brief 是否在输入命令列表中列出按键
+ * @brief 是否在输出命令列表中列出按键
  */
 #define     SHELL_HELP_LIST_KEY         0
+
+/**
+ * @brief 是否在输出命令列表中展示命令权限
+ */
+#define     SHELL_HELP_SHOW_PERMISSION  1
 
 /**
  * @brief 使用LF作为命令行回车触发
