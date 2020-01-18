@@ -1,8 +1,8 @@
 /**
  * @file shell_cmd_list.c
- * @author Letter (zhengkeqiang@ut.cn)
+ * @author Letter (NevermindZZT@gmail.com)
  * @brief shell cmd list
- * @version 0.1
+ * @version 3.0.0
  * @date 2020-01-17
  * 
  * @copyright (c) 2020 Unicook
