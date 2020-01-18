@@ -318,6 +318,30 @@ static void shellWriteCommandLine(Shell *shell)
 }
 
 
+#if SHELL_PRINT_BUFFER > 0
+/**
+ * @brief shell格式化输出
+ * 
+ * @param shell shell对象
+ * @param fmt 格式化字符串
+ * @param ... 参数
+ */
+void shellPrint(Shell *shell, char *fmt, ...)
+{
+    char buffer[SHELL_PRINT_BUFFER];
+    va_list vargs;
+
+    SHELL_ASSERT(shell, return);
+
+    va_start(vargs, fmt);
+    vsnprintf(buffer, SHELL_PRINT_BUFFER - 1, fmt, vargs);
+    va_end(vargs);
+    
+    shellWriteString(shell, buffer);
+}
+#endif
+
+
 /**
  * @brief shell 检查命令权限
  * 
@@ -531,7 +555,14 @@ void shellListItem(Shell *shell, ShellCommand *item)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_TYPE_NONE]);
     }
-    shellWriteString(shell, "  --");
+#if SHELL_HELP_SHOW_PERMISSION == 1
+    shellWriteString(shell, "  ");
+    for (signed char i = 7; i >= 0; i--)
+    {
+        shellWriteByte(shell, item->attr.attrs.permission & (1 << i) ? 'x' : '-');
+    }
+#endif
+    shellWriteString(shell, "  ");
     shellWriteCommandDesc(shell, shellGetCommandDesc(item));
     shellWriteString(shell, "\r\n");
 }
@@ -1073,7 +1104,10 @@ static void shellSetUser(Shell *shell, const ShellCommand *user)
 {
     shell->info.user = user;
     shell->status.isChecked = 
-        (user->data.user.password && strlen(user->data.user.password) != 0) ? 0 : 1;
+        ((user->data.user.password && strlen(user->data.user.password) != 0)
+            && (shell->parser.paramCount == 1
+                || strcmp(user->data.user.password, shell->parser.param[1]) != 0))
+         ? 0 : 1;
         
     shellWriteString(shell, shellText[SHELL_TEXT_CLEAR_CONSOLE]);
     if (shell->status.isChecked)
