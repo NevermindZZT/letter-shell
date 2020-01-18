@@ -2,8 +2,8 @@
  * @file shell_ext.h
  * @author Letter (NevermindZZT@gmail.com)
  * @brief shell extensions
- * @version 1.0.0
- * @date 2019-01-05
+ * @version 3.0.0
+ * @date 2019-12-31
  * 
  * @Copyright (c) 2019 Letter
  * 
@@ -27,7 +27,7 @@ typedef enum
     NUM_TYPE_FLOAT                                          /**< 浮点型 */
 } NUM_Type;
 
-unsigned int shellExtParsePara(char *string);
-int shellExtRun(shellFunction function, int argc, char *argv[]);
+unsigned int shellExtParsePara(Shell *shell, char *string);
+int shellExtRun(Shell *shell, int (*function)(), int argc, char *argv[]);
 
 #endif
