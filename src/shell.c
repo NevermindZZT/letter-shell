@@ -126,7 +126,6 @@ static Shell *shellList[SHELL_MAX_NUMBER] = {NULL};
 
 
 static void shellAdd(Shell *shell);
-static unsigned short shellWriteString(Shell *shell, const char *string);
 static void shellWriteCommandLine(Shell *shell);
 static void shellWirteReturnValue(Shell *shell, int value);
 static void shellShowVar(Shell *shell, ShellCommand *command);
@@ -148,6 +147,8 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
     shell->history.offset = 0;
     shell->history.number = 0;
     shell->history.record = 0;
+    shell->info.user = NULL;
+    shell->status.isChecked = 1;
 
     shell->parser.buffer = buffer;
     shell->parser.bufferSize = size / (SHELL_HISTORY_MAX_NUMBER + 1);
@@ -253,7 +254,7 @@ static void shellWriteByte(Shell *shell, const char data)
  * 
  * @return unsigned short 写入字符的数量
  */
-static unsigned short shellWriteString(Shell *shell, const char *string)
+unsigned short shellWriteString(Shell *shell, const char *string)
 {
     unsigned short count = 0;
     SHELL_ASSERT(shell->write, return 0);
@@ -329,6 +330,7 @@ static void shellWriteCommandLine(Shell *shell)
 signed char shellCheckPermission(Shell *shell, ShellCommand *command)
 {
     return ((!command->attr.attrs.permission
+                || command->attr.attrs.type == SHELL_TYPE_USER
                 || (command->attr.attrs.permission 
                     & shell->info.user->attr.attrs.permission))
             && (shell->status.isChecked
@@ -345,7 +347,7 @@ signed char shellCheckPermission(Shell *shell, ShellCommand *command)
  * 
  * @return signed char 转换后有效数据长度
  */
-signed char shellToHex(int value, char *buffer)
+signed char shellToHex(unsigned int value, char *buffer)
 {
     char byte;
     char i = 8;
@@ -370,13 +372,13 @@ signed char shellToHex(int value, char *buffer)
  */
 signed char shellToDec(int value, char *buffer)
 {
-    char i = 10;
+    char i = 11;
     int v = value;
     if (value < 0)
     {
         v = -value;
     }
-    buffer[10] = 0;
+    buffer[11] = 0;
     while (v)
     {
         buffer[--i] = v % 10 + 48;
@@ -386,7 +388,7 @@ signed char shellToDec(int value, char *buffer)
     {
         buffer[--i] = '-';
     }
-    return 10 - i;
+    return 11 - i;
 }
 
 
@@ -588,7 +590,8 @@ void shellListUser(Shell *shell)
     for (short i = 0; i < shell->commandList.count; i++)
     {
         if (base[i].attr.attrs.type > SHELL_TYPE_VAL
-            && base[i].attr.attrs.type <= SHELL_TYPE_USER)
+            && base[i].attr.attrs.type <= SHELL_TYPE_USER
+            && shellCheckPermission(shell, &base[i]) == 0)
         {
             shellListItem(shell, &base[i]);
         }
@@ -843,7 +846,8 @@ ShellCommand* shellSeekCommand(Shell *shell,
         ((int)base - (int)shell->commandList.base) / sizeof(ShellCommand);
     for (unsigned short i = 0; i < count; i++)
     {
-        if (base[i].attr.attrs.type == SHELL_TYPE_KEY)
+        if (base[i].attr.attrs.type == SHELL_TYPE_KEY
+            || shellCheckPermission(shell, &base[i]) != 0)
         {
             continue;
         }
@@ -940,12 +944,11 @@ void shellSetVarValue(Shell *shell, ShellCommand *command, int value)
  */
 static void shellShowVar(Shell *shell, ShellCommand *command)
 {
-    char buffer[11] = "0000000000";
+    char buffer[12] = "00000000000";
     int value = shellGetVarValue(shell, command);
     shellWriteString(shell, command->data.var.name);
     shellWriteString(shell, " = ");
-    shellToDec(value, buffer);
-    shellWriteString(shell, buffer);
+    shellWriteString(shell, &buffer[11 - shellToDec(value, buffer)]);
     shellWriteString(shell, ", 0x");
     for (short i = 0; i < 11; i++)
     {
@@ -990,7 +993,8 @@ int shellSetVar(char *name, int value)
     shellSetVarValue(shell, command, value);
     return shellGetVarValue(shell, command);
 }
-SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+SHELL_EXPORT_CMD(
+SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
 setVar, shellSetVar, set var);
 
 
@@ -1087,10 +1091,9 @@ static void shellSetUser(Shell *shell, const ShellCommand *user)
  */
 static void shellWirteReturnValue(Shell *shell, int value)
 {
-    char buffer[11] = "0000000000";
+    char buffer[12] = "00000000000";
     shellWriteString(shell, "Return: ");
-    shellToDec(value, buffer);
-    shellWriteString(shell, buffer);
+    shellWriteString(shell, &buffer[11 - shellToDec(value, buffer)]);
     shellWriteString(shell, ", 0x");
     for (short i = 0; i < 11; i++)
     {
@@ -1276,9 +1279,10 @@ void shellTab(Shell *shell)
         ShellCommand *base = (ShellCommand *)shell->commandList.base;
         for (short i = 0; i < shell->commandList.count; i++)
         {
-            if (shellStringCompare(shell->parser.buffer,
+            if (shellCheckPermission(shell, &base[i]) == 0
+                && shellStringCompare(shell->parser.buffer,
                                    (char *)shellGetCommandName(&base[i]))
-                    == shell->parser.length)
+                        == shell->parser.length)
             {
                 if (matchNum != 0)
                 {

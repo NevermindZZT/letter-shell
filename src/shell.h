@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.0.0-beta1"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.0.0-beta2"                 /**< 版本号 */
 
 
 /**
@@ -320,6 +320,8 @@ typedef struct shell_command
 
 
 void shellInit(Shell *shell, char *buffer, unsigned short size);
+unsigned short shellWriteString(Shell *shell, const char *string);
+Shell* shellGetCurrent(void);
 void shellHandler(Shell *shell, char data);
 void shellTask(void *param);
 

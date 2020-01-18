@@ -1,7 +1,7 @@
 # letter shell 3.0
 
-![version](https://img.shields.io/badge/version-3.0.0_beta1-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2020.01.17-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.0.0_beta2-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2020.01.18-brightgreen.svg)
 ![build](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -31,6 +31,8 @@
 相对2.x版本，letter shell 3.0增加了用户管理，权限管理，后续会增加对文件系统的支持
 
 此外3.0版本修改了命令格式和定义，2.x版本的工程需要经过简单的修改才能完成迁移
+
+若只需要使用基础功能，可以使用[letter shell 2.x](https://github.com/NevermindZZT/letter-shell/tree/shell2.x)版本
 
 ## 功能
 
