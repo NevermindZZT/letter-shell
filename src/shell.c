@@ -412,6 +412,9 @@ signed char shellToDec(int value, char *buffer)
     {
         buffer[--i] = '-';
     }
+    if (value == 0) {
+        buffer[--i] = '0';
+    }
     return 11 - i;
 }
 
