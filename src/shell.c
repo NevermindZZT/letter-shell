@@ -374,7 +374,7 @@ signed char shellCheckPermission(Shell *shell, ShellCommand *command)
 signed char shellToHex(unsigned int value, char *buffer)
 {
     char byte;
-    char i = 8;
+    unsigned char i = 8;
     buffer[8] = 0;
     while (value)
     {
@@ -396,7 +396,7 @@ signed char shellToHex(unsigned int value, char *buffer)
  */
 signed char shellToDec(int value, char *buffer)
 {
-    char i = 11;
+    unsigned char i = 11;
     int v = value;
     if (value < 0)
     {
@@ -473,7 +473,7 @@ static unsigned short shellStringCompare(char* dest, char *src)
 static const char* shellGetCommandName(ShellCommand *command)
 {
     static char buffer[9];
-    for (char i = 0; i < 9; i++)
+    for (unsigned char i = 0; i < 9; i++)
     {
         buffer[i] = '0';
     }
@@ -914,7 +914,7 @@ ShellCommand* shellSeekCommand(Shell *shell,
  */
 int shellGetVarValue(Shell *shell, ShellCommand *command)
 {
-    int value;
+    int value = 0;
     switch (command->attr.attrs.type)
     {
     case SHELL_TYPE_VAR_INT:
@@ -1563,7 +1563,7 @@ void shellHandler(Shell *shell, char data)
                 shell->parser.keyValue |= data << keyByteOffset;
                 data = 0x00;
                 if (keyByteOffset == 0 
-                    || (base[i].data.key.value & (0xFF << keyByteOffset - 8))
+                    || (base[i].data.key.value & (0xFF << (keyByteOffset - 8)))
                         == 0x00000000)
                 {
                     if (base[i].data.key.function)
