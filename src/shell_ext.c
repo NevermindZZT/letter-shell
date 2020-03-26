@@ -294,47 +294,54 @@ unsigned int shellExtParsePara(Shell *shell, char *string)
  * @brief 执行命令
  * 
  * @param shell shell对象
- * @param function 执行命令的函数
+ * @param command 命令
  * @param argc 参数个数
  * @param argv 参数
  * @return int 返回值
  */
-int shellExtRun(Shell *shell, int (*function)(), int argc, char *argv[])
+int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 {
-    switch (argc)
+    unsigned int params[8] = {0};
+    int paramNum = command->attr.attrs.paramNum > (argc - 1) ? 
+        command->attr.attrs.paramNum : (argc - 1);
+    for (int i = 0; i < argc - 1; i++)
     {
+        params[i] = shellExtParsePara(shell, argv[i + 1]);
+    }
+    switch (paramNum)
+    {
+    case 0:
+        return command->data.cmd.function();
+        // break;
     case 1:
-        return function();
+        return command->data.cmd.function(params[0]);
         // break;
     case 2:
-        return function(shellExtParsePara(shell, argv[1]));
+        return command->data.cmd.function(params[0], params[1]);
         // break;
     case 3:
-        return function(shellExtParsePara(shell, argv[1]), shellExtParsePara(shell, argv[2]));
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2]);
         // break;
     case 4:
-        return function(shellExtParsePara(shell, argv[1]), shellExtParsePara(shell, argv[2]),
-                        shellExtParsePara(shell, argv[3]));
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3]);
         // break;
     case 5:
-        return function(shellExtParsePara(shell, argv[1]), shellExtParsePara(shell, argv[2]),
-                        shellExtParsePara(shell, argv[3]), shellExtParsePara(shell, argv[4]));
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4]);
         // break;
     case 6:
-        return function(shellExtParsePara(shell, argv[1]), shellExtParsePara(shell, argv[2]),
-                        shellExtParsePara(shell, argv[3]), shellExtParsePara(shell, argv[4]),
-                        shellExtParsePara(shell, argv[5]));
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5]);
         // break;
     case 7:
-        return function(shellExtParsePara(shell, argv[1]), shellExtParsePara(shell, argv[2]),
-                        shellExtParsePara(shell, argv[3]), shellExtParsePara(shell, argv[4]),
-                        shellExtParsePara(shell, argv[5]), shellExtParsePara(shell, argv[6]));
-        // break;
-    case 8:
-        return function(shellExtParsePara(shell, argv[1]), shellExtParsePara(shell, argv[2]),
-                        shellExtParsePara(shell, argv[3]), shellExtParsePara(shell, argv[4]),
-                        shellExtParsePara(shell, argv[5]), shellExtParsePara(shell, argv[6]),
-                        shellExtParsePara(shell, argv[7]));
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6]);
         // break;
     default:
         return -1;

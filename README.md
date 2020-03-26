@@ -1,7 +1,7 @@
 # letter shell 3.0
 
-![version](https://img.shields.io/badge/version-3.0.0_beta2-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2020.01.18-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.0.0-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2020.03.26-brightgreen.svg)
 ![build](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -343,12 +343,14 @@ union
         ShellCommandType type : 4;                          /**< command类型 */
         unsigned char enableUnchecked : 1;                  /**< 在未校验密码的情况下可用 */
         unsigned char disableReturn : 1;                    /**< 禁用返回值输出 */
+        unsigned char reserve : 2;                          /**< 保留 */
+        unsigned char paramNum : 4;                         /**< 参数数量 */
     } attrs;
     int value;
 } attr;
 ```
 
-在定义命令时，需要给定这些值，可以通过宏`SHELL_CMD_PERMISSION(permission)`, `SHELL_CMD_TYPE(type)`, `SHELL_CMD_ENABLE_UNCHECKED`, `SHELL_CMD_DISABLE_RETURN`快速声明
+在定义命令时，需要给定这些值，可以通过宏`SHELL_CMD_PERMISSION(permission)`, `SHELL_CMD_TYPE(type)`, `SHELL_CMD_ENABLE_UNCHECKED`, `SHELL_CMD_DISABLE_RETURN`, `SHELL_CMD_PARAM_NUM(num)`快速声明
 
 ### 权限系统说明
 

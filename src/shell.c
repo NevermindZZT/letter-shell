@@ -1055,7 +1055,7 @@ static void shellRunCommand(Shell *shell, ShellCommand *command)
     else if (command->attr.attrs.type == SHELL_TYPE_CMD_FUNC)
     {
         returnValue = shellExtRun(shell,
-                                  command->data.cmd.function,
+                                  command,
                                   shell->parser.paramCount,
                                   shell->parser.param);
         if (!command->attr.attrs.disableReturn)

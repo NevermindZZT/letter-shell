@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.0.0-beta2"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.0.0"                 /**< 版本号 */
 
 
 /**
@@ -44,21 +44,34 @@
 #define     SHELL_CMD_TYPE(type) \
             ((type & 0x0000000F) << 8)
 
+/**
+ * @brief 使能命令在未校验密码的情况下使用
+ */
 #define     SHELL_CMD_ENABLE_UNCHECKED \
             (1 << 12)
 
+/**
+ * @brief 禁用返回值打印
+ */
 #define     SHELL_CMD_DISABLE_RETURN \
             (1 << 13)
 
+/**
+ * @brief 命令参数数量
+ */
+#define     SHELL_CMD_PARAM_NUM(num) \
+            ((num & 0x0000000F)) << 16
 
-#if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
-    #define SECTION(x)                  __attribute__((section(x)))
-#elif defined(__ICCARM__)
-    #define SECTION(x)                  @ x
-#elif defined(__GNUC__)
-    #define SECTION(x)                  __attribute__((section(x)))
-#else
-    #define SECTION(x)
+#ifndef SECTION
+    #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
+        #define SECTION(x)                  __attribute__((section(x)))
+    #elif defined(__ICCARM__)
+        #define SECTION(x)                  @ x
+    #elif defined(__GNUC__)
+        #define SECTION(x)                  __attribute__((section(x)))
+    #else
+        #define SECTION(x)
+    #endif
 #endif
 
 #if SHELL_USING_CMD_EXPORT == 1
@@ -286,6 +299,8 @@ typedef struct shell_command
             ShellCommandType type : 4;                          /**< command类型 */
             unsigned char enableUnchecked : 1;                  /**< 在未校验密码的情况下可用 */
             unsigned char disableReturn : 1;                    /**< 禁用返回值输出 */
+            unsigned char reserve : 2;                          /**< 保留 */
+            unsigned char paramNum : 4;                         /**< 参数数量 */
         } attrs;
         int value;
     } attr;                                                     /**< 属性 */
