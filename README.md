@@ -1,8 +1,9 @@
 # letter shell 3.0
 
-![version](https://img.shields.io/badge/version-3.0.0-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2020.03.26-brightgreen.svg)
-![build](https://img.shields.io/badge/license-MIT-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.0.1-brightgreen.svg)
+![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2020.04.16-brightgreen.svg)
+![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
 
@@ -21,7 +22,8 @@
     - [定义方式](#定义方式)
     - [定义宏说明](#定义宏说明)
     - [命令属性字段说明](#命令属性字段说明)
-    - [权限系统说明](#权限系统说明)
+  - [代理函数和代理参数解析](#代理函数和代理参数解析)
+  - [权限系统说明](#权限系统说明)
   - [建议终端软件](#建议终端软件)
 
 ## 简介
@@ -43,6 +45,7 @@
 - 命令权限管理
 - 用户管理
 - 变量支持
+- 代理函数和参数代理解析
 
 ## 移植说明
 
@@ -162,7 +165,7 @@ hello world
 
 #### 普通C函数形式
 
-使用此方式，shell会自动对参数进行转化处理，目前支持二进制，八进制，十进制，十六进制整形，字符，字符串的自动处理，如果需要其他类型的参数，请使用字符串的方式作为参数，自行进行处理，例子如下：
+使用此方式，shell会自动对参数进行转化处理，目前支持二进制，八进制，十进制，十六进制整形，字符，字符串的自动处理，如果需要其他类型的参数，请使用代理参数解析的方式(参考[代理函数和代理参数解析](#代理函数和代理参数解析))，或者使用字符串的方式作为参数，自行进行处理，例子如下：
 
 ```C
 int func(int i, char ch, char *str)
@@ -352,7 +355,27 @@ union
 
 在定义命令时，需要给定这些值，可以通过宏`SHELL_CMD_PERMISSION(permission)`, `SHELL_CMD_TYPE(type)`, `SHELL_CMD_ENABLE_UNCHECKED`, `SHELL_CMD_DISABLE_RETURN`, `SHELL_CMD_PARAM_NUM(num)`快速声明
 
-### 权限系统说明
+## 代理函数和代理参数解析
+
+letter shell 3.0原生支持将整数，字符，字符串参数，以及在某些情况下的浮点参数直接传递给执行命令的函数，一般情况下，这几种参数类型完全可以满足调试需要，然而在某些情况下，用户确实需要传递其他类型的参数，此时，可以选择将命令定义成main函数形式，使用字符串传递参数，然后自行对参数进行解析，除此之外，letter shell还提供了代理函数的机制，可以对任意类型的参数进行自定义解析
+
+使用代理函数，用户需要自定义代理参数解析器，即一个将基本参数(整数，字符，字符串参数)转换成目标类型参数的函数或者宏，letter shell默认实现了浮点类型的参数解析器`SHELL_PARAM_FLOAT(x)`
+
+然后，使用代理函数命令导出宏定义命令，比如需要需要传递多个浮点参数的函数，如下
+
+```C
+void test(int a, float b, int c, float d)
+{
+    printf("%d, %f, %d, %f \r\n", a, b, c, d);
+}
+SHELL_EXPORT_CMD_AGENCY(SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+test, test, test,
+p1, SHELL_PARAM_FLOAT(p2), p3, SHELL_PARAM_FLOAT(p4));
+```
+
+相比常规的命令导出，代理函数命令导出前4个参数和常规形式的命令导出一致，之后的参数即传递至目标函数的参数，letter shell默认实现的代理函数定义支持最多7个参数，p1~p7，对于不需要代理参数解析的参数，只需要对应写入`px(x为1~7)`即可，比如上方示例的`p1`和`p3`，而需要代理参数解析的参数，则需要使用对应的参数解析器，比如上方示例的`p2`和`p4`
+
+## 权限系统说明
 
 letter shell 3.0的权限管理同用户定义紧密相关，letter shell 3.0使用8个bit位表示命令权限，当用户和命令的权限按位与为真，或者命令权限为0时，表示该用户拥有此命令的权限，可以调用改命令
 

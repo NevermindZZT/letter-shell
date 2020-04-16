@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.0.0"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.0.1"                 /**< 版本号 */
 
 
 /**
@@ -74,6 +74,26 @@
     #endif
 #endif
 
+/**
+ * @brief shell float型参数转换
+ */
+#define     SHELL_PARAM_FLOAT(x)            (*(float *)(&x))
+
+/**
+ * @brief shell 代理函数名
+ */
+#define     SHELL_AGENCY_FUNC_NAME(_func)   agency##_func
+
+/**
+ * @brief shell代理函数定义
+ * 
+ * @param _func 被代理的函数
+ * @param ... 代理参数
+ */
+#define     SHELL_AGENCY_FUNC(_func, ...) \
+            void SHELL_AGENCY_FUNC_NAME(_func)(int p1, int p2, int p3, int p4, int p5, int p6, int p7) \
+            { _func(__VA_ARGS__); }
+
 #if SHELL_USING_CMD_EXPORT == 1
 
     /**
@@ -95,6 +115,19 @@
                 .data.cmd.function = (int (*)())_func, \
                 .data.cmd.desc = shellDesc##_name \
             }
+
+    /**
+     * @brief shell 代理命令定义
+     * 
+     * @param _attr 命令属性
+     * @param _name 命令名
+     * @param _func 命令函数
+     * @param _desc 命令描述
+     * @param ... 代理参数
+     */
+    #define SHELL_EXPORT_CMD_AGENCY(_attr, _name, _func, _desc, ...) \
+            SHELL_AGENCY_FUNC(_func, ##__VA_ARGS__) \
+            SHELL_EXPORT_CMD(_attr, _name, SHELL_AGENCY_FUNC_NAME(_func), _desc)
 
     /**
      * @brief shell 变量定义
