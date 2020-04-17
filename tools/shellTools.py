@@ -19,7 +19,7 @@ import sys
 import re
 
 FILE_PATTERN = r"^.*?\.(c|h)$"
-SHELL_EXPORT_PATTERN = r"^\s*SHELL_EXPORT_(CMD|VAR|USER|KEY)\s*\(\s*\S+\s*,\s*(\S+)\s*,.*$"
+SHELL_EXPORT_PATTERN = r"^\s*SHELL_EXPORT_(CMD|CMD_AGENCY|VAR|USER|KEY)\s*\(\s*\S+\s*,\s*(\S+)\s*,.*$"
 
 def isCodeFile(name):
     return re.match(FILE_PATTERN, name) != None

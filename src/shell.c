@@ -816,6 +816,10 @@ static void shellParserParam(Shell *shell)
             || (shell->parser.buffer[i] != ' '
                 && shell->parser.buffer[i] != 0))
         {
+            if (shell->parser.buffer[i] == '\"')
+            {
+                quotes = quotes ? 0 : 1;
+            }
             if (record == 1)
             {
                 shell->parser.param[shell->parser.paramCount ++] = 
