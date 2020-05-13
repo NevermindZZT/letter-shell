@@ -291,8 +291,8 @@ typedef struct
         unsigned short length;                                  /**< 输入数据长度 */
         unsigned short cursor;                                  /**< 当前光标位置 */
         char *buffer;                                           /**< 输入缓冲 */
-        unsigned short bufferSize;                              /**< 输入缓冲大小 */
         char *param[SHELL_PARAMETER_MAX_NUMBER];                /**< 参数 */
+        unsigned short bufferSize;                              /**< 输入缓冲大小 */
         unsigned short paramCount;                              /**< 参数数量 */
         int keyValue;                                           /**< 输入按键键值 */
     } parser;
