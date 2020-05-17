@@ -65,7 +65,7 @@
 #ifndef SECTION
     #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
         #define SECTION(x)                  __attribute__((section(x)))
-    #elif defined(__ICCARM__)
+    #elif defined(__ICCARM__) || defined(__ICCRX__)
         #define SECTION(x)                  @ x
     #elif defined(__GNUC__)
         #define SECTION(x)                  __attribute__((section(x)))

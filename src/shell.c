@@ -31,7 +31,17 @@ const ShellCommand shellUserDefault SECTION("shellCommand") =
 };
 #endif
 
-#if SHELL_USING_CMD_EXPORT != 1
+#if SHELL_USING_CMD_EXPORT == 1
+    #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
+        extern const unsigned int shellCommand$$Base;
+        extern const unsigned int shellCommand$$Limit;
+    #elif defined(__ICCARM__) || defined(__ICCRX__)
+        #pragma section="shellCommand"
+    #elif defined(__GNUC__)
+        extern const unsigned int _shell_command_start;
+        extern const unsigned int _shell_command_end;
+    #endif
+#else
     extern const ShellCommand shellCommandList[];
     extern const unsigned short shellCommandCount;
 #endif
@@ -159,23 +169,17 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
 
 #if SHELL_USING_CMD_EXPORT == 1
     #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
-        extern const unsigned int shellCommand$$Base;
-        extern const unsigned int shellCommand$$Limit;
-
         shell->commandList.base = (ShellCommand *)(&shellCommand$$Base);
         shell->commandList.count = ((unsigned int)(&shellCommand$$Limit)
                                 - (unsigned int)(&shellCommand$$Base))
                                 / sizeof(ShellCommand);
 
-    #elif defined(__ICCARM__)
+    #elif defined(__ICCARM__) || defined(__ICCRX__)
         shell->commandList.base = (ShellCommand *)(__section_begin("shellCommand"));
         shell->commandList.count = ((unsigned int)(__section_end("shellCommand"))
                                 - (unsigned int)(__section_begin("shellCommand")))
                                 / sizeof(ShellCommand);
     #elif defined(__GNUC__)
-        extern const unsigned int _shell_command_start;
-        extern const unsigned int _shell_command_end;
-        
         shell->commandList.base = (ShellCommand *)(&_shell_command_start);
         shell->commandList.count = ((unsigned int)(&_shell_command_end)
                                 - (unsigned int)(&_shell_command_start))
