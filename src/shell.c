@@ -77,6 +77,7 @@ enum
 
 static const char *shellText[] =
 {
+#if SHELL_SHOW_INFO == 1
     [SHELL_TEXT_INFO] =
         "\r\n"
         " _         _   _                  _          _ _ \r\n"
@@ -88,6 +89,7 @@ static const char *shellText[] =
         "Build:       "__DATE__" "__TIME__"\r\n"
         "Version:     "SHELL_VERSION"\r\n"
         "Copyright:   (c) 2020 Letter\r\n",
+#endif
     [SHELL_TEXT_CMD_TOO_LONG] = 
         "\r\nWarning: Command is too long\r\n",
     [SHELL_TEXT_CMD_LIST] = 
@@ -1094,7 +1096,9 @@ static void shellCheckPassword(Shell *shell)
     if (strcmp(shell->parser.buffer, shell->info.user->data.user.password) == 0)
     {
         shell->status.isChecked = 1;
+    #if SHELL_SHOW_INFO == 1
         shellWriteString(shell, shellText[SHELL_TEXT_INFO]);
+    #endif
     }
     else
     {
@@ -1121,10 +1125,12 @@ static void shellSetUser(Shell *shell, const ShellCommand *user)
          ? 0 : 1;
         
     shellWriteString(shell, shellText[SHELL_TEXT_CLEAR_CONSOLE]);
+#if SHELL_SHOW_INFO == 1
     if (shell->status.isChecked)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_INFO]);
     }
+#endif
 }
 
 

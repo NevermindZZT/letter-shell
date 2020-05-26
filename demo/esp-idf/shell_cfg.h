@@ -103,6 +103,11 @@
 #define     SHELL_GET_TICK()            xTaskGetTickCount()
 
 /**
+ * @brief 是否显示shell信息
+ */
+#define     SHELL_SHOW_INFO             1
+
+/**
  * @brief shell默认用户
  */
 #define     SHELL_DEFAULT_USER          "letter"
