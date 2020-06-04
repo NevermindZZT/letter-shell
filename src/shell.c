@@ -1124,7 +1124,9 @@ static void shellSetUser(Shell *shell, const ShellCommand *user)
                 || strcmp(user->data.user.password, shell->parser.param[1]) != 0))
          ? 0 : 1;
         
+#if SHELL_CLS_WHEN_LOGIN == 1
     shellWriteString(shell, shellText[SHELL_TEXT_CLEAR_CONSOLE]);
+#endif
 #if SHELL_SHOW_INFO == 1
     if (shell->status.isChecked)
     {

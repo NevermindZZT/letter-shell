@@ -131,6 +131,7 @@
     | SHELL_MAX_NUMBER            | 管理的最大shell数量            |
     | SHELL_GET_TICK()            | 获取系统时间(ms)               |
     | SHELL_SHOW_INFO             | 是否显示shell信息              |
+    | SHELL_CLS_WHEN_LOGIN        | 是否在登录后清除命令行         |
     | SHELL_DEFAULT_USER          | shell默认用户                  |
     | SHELL_DEFAULT_USER_PASSWORD | 默认用户密码                   |
     | SHELL_LOCK_TIMEOUT          | shell自动锁定超时              |

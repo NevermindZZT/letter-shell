@@ -106,6 +106,11 @@
 #define     SHELL_SHOW_INFO             1
 
 /**
+ * @brief 是否在登录后清除命令行
+ */
+#define     SHELL_CLS_WHEN_LOGIN        1
+
+/**
  * @brief shell默认用户
  */
 #define     SHELL_DEFAULT_USER          "letter"
