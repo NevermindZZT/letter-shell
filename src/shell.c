@@ -21,7 +21,7 @@
  */
 const char shellCmdDefaultUser[] = SHELL_DEFAULT_USER;
 const char shellPasswordDefaultUser[] = SHELL_DEFAULT_USER_PASSWORD;
-const char shellDesDefaultUser[] = "defalut user";
+const char shellDesDefaultUser[] = "default user";
 const ShellCommand shellUserDefault SECTION("shellCommand") =
 {
     .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_USER),
@@ -115,7 +115,7 @@ static const char *shellText[] =
     [SHELL_TEXT_PASSWORD_HINT] = 
         "\r\nPlease input password:",
     [SHELL_TEXT_PASSWORD_ERROR] = 
-        "\r\npasswrod error\r\n",
+        "\r\npassword error\r\n",
     [SHELL_TEXT_CLEAR_CONSOLE] = 
         "\033[2J\033[1H",
     [SHELL_TEXT_TYPE_CMD] = 
@@ -139,7 +139,7 @@ static Shell *shellList[SHELL_MAX_NUMBER] = {NULL};
 
 static void shellAdd(Shell *shell);
 static void shellWriteCommandLine(Shell *shell);
-static void shellWirteReturnValue(Shell *shell, int value);
+static void shellWriteReturnValue(Shell *shell, int value);
 static void shellShowVar(Shell *shell, ShellCommand *command);
 static void shellSetUser(Shell *shell, const ShellCommand *user);
 ShellCommand* shellSeekCommand(Shell *shell,
@@ -1059,7 +1059,7 @@ static void shellRunCommand(Shell *shell, ShellCommand *command)
                                                  shell->parser.param);
         if (!command->attr.attrs.disableReturn)
         {
-            shellWirteReturnValue(shell, returnValue);
+            shellWriteReturnValue(shell, returnValue);
         }
     }
     else if (command->attr.attrs.type == SHELL_TYPE_CMD_FUNC)
@@ -1070,7 +1070,7 @@ static void shellRunCommand(Shell *shell, ShellCommand *command)
                                   shell->parser.param);
         if (!command->attr.attrs.disableReturn)
         {
-            shellWirteReturnValue(shell, returnValue);
+            shellWriteReturnValue(shell, returnValue);
         }
     }
     else if (command->attr.attrs.type >= SHELL_TYPE_VAR_INT
@@ -1142,7 +1142,7 @@ static void shellSetUser(Shell *shell, const ShellCommand *user)
  * @param shell shell对象
  * @param value 返回值
  */
-static void shellWirteReturnValue(Shell *shell, int value)
+static void shellWriteReturnValue(Shell *shell, int value)
 {
     char buffer[12] = "00000000000";
     shellWriteString(shell, "Return: ");
