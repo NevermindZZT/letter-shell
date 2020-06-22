@@ -66,6 +66,13 @@
 #define     SHELL_ENTER_CRLF            0
 
 /**
+ * @brief 使用执行未导出函数的功能
+ *        启用后，可以通过`exec [addr] [args]`直接执行对应地址的函数
+ * @attention 如果地址错误，可能会直接引起程序崩溃
+ */
+#define     SHELL_EXEC_UNDEF_FUNC       0
+
+/**
  * @brief shell命令参数最大数量
  *        包含命令名在内，超过8个参数并且使用了参数自动转换的情况下，需要修改源码
  */

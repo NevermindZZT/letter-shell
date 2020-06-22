@@ -1,8 +1,8 @@
 # letter shell 3.0
 
-![version](https://img.shields.io/badge/version-3.0.1-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.0.2-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2020.04.16-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2020.06.22-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -17,7 +17,8 @@
     - [函数定义](#函数定义)
       - [main函数形式](#main函数形式)
       - [普通C函数形式](#普通c函数形式)
-      - [在函数中获取当前shell对象](#在函数中获取当前shell对象)
+    - [在函数中获取当前shell对象](#在函数中获取当前shell对象)
+    - [执行未导出函数](#执行未导出函数)
   - [命令定义](#命令定义)
     - [定义方式](#定义方式)
     - [定义宏说明](#定义宏说明)
@@ -124,6 +125,7 @@
     | SHELL_ENTER_LF              | 使用LF作为命令行回车触发       |
     | SHELL_ENTER_CR              | 使用CR作为命令行回车触发       |
     | SHELL_ENTER_CRLF            | 使用CRLF作为命令行回车触发     |
+    | SHELL_EXEC_UNDEF_FUNC       | 使用执行未导出函数的功能       |
     | SHELL_COMMAND_MAX_LENGTH    | shell命令最大长度              |
     | SHELL_PARAMETER_MAX_NUMBER  | shell命令参数最大数量          |
     | SHELL_HISTORY_MAX_NUMBER    | 历史命令记录数量               |
@@ -185,9 +187,17 @@ letter:/$ func 666 'A' "hello world"
 input int: 666, char: A, string: hello world
 ```
 
-#### 在函数中获取当前shell对象
+### 在函数中获取当前shell对象
 
-shell采取一个静态数组对定义的多个shell进行管理，shell数量可以修改宏`SHELL_MAX_NUMBER`定义(为了不使用动态内存分配，此处通过数据进行管理)，从而，在shell执行的函数中，可以调用`shellGetCurrent()`获得当前活动的shell对象，从而可以实现某一个函数在不同的shell对象中发生不同的行为，也可以通过这种方式获得shell对象后，调用`shellWriteString(shell, string)`进行shell的输出
+letter shell采取一个静态数组对定义的多个shell进行管理，shell数量可以修改宏`SHELL_MAX_NUMBER`定义(为了不使用动态内存分配，此处通过数据进行管理)，从而，在shell执行的函数中，可以调用`shellGetCurrent()`获得当前活动的shell对象，从而可以实现某一个函数在不同的shell对象中发生不同的行为，也可以通过这种方式获得shell对象后，调用`shellWriteString(shell, string)`进行shell的输出
+
+### 执行未导出函数
+
+letter shell支持通过函数地址直接执行函数，可以方便执行那些没有导出，但是有临时需要使用的函数，使用命令`exec [addr] [args]`执行，使用此功能需要开启`SHELL_EXEC_UNDEF_FUNC`宏，注意，由于直接操作函数地址执行，如果给进的地址有误，可能引起程序崩溃
+
+函数的地址可以通过编译生成的文件查找，比如说对于keil，可以在`.map`文件中查找到每个函数的地址，对于keil，`.map`文件中的地址需要偏移一个字节，才可以成功执行，比如说`shellClear`函数地址为`0x08028620`，则通过`exec`执行应为`exec 0x08028621`
+
+其他编译器查找函数地址的方式和地址偏移的处理，请参考各编译器手册
 
 ## 命令定义
 

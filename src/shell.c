@@ -1708,3 +1708,36 @@ SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
 clear, shellClear, clear console);
 
+
+#if SHELL_EXEC_UNDEF_FUNC == 1
+/**
+ * @brief shell执行未定义函数
+ * 
+ * @param argc 参数个数
+ * @param argv 参数
+ * @return int 返回值
+ */
+int shellExecute(int argc, char *argv[])
+{
+    Shell *shell = shellGetCurrent();
+    if (shell && argc >= 2)
+    {
+        int (*func)() = (int (*)())shellExtParsePara(shell, argv[1]);
+        shellPrint(shell, "%08x\r\n", func);
+        ShellCommand command = {
+            .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)
+                          |SHELL_CMD_DISABLE_RETURN,
+            .data.cmd.function = func,
+        };
+        return shellExtRun(shell, &command, argc - 1, &argv[1]);
+    }
+    else
+    {
+        shellPrint(shell, "%08x\r\n", shellClear);
+    }
+    return 0;
+}
+SHELL_EXPORT_CMD(
+SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RETURN,
+exec, shellExecute, execute function undefined);
+#endif
