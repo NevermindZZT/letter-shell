@@ -4,7 +4,7 @@
  * @version 3.0.0
  * @date 2019-12-30
  * 
- * @Copyright (c) 2020 Letter
+ * @copyright (c) 2020 Letter
  * 
  */
 
@@ -52,7 +52,9 @@ const ShellCommand shellUserDefault SECTION("shellCommand") =
  */
 enum
 {
+#if SHELL_SHOW_INFO == 1
     SHELL_TEXT_INFO,                                    /**< shell信息 */
+#endif
     SHELL_TEXT_CMD_TOO_LONG,                            /**< 命令过长 */
     SHELL_TEXT_CMD_LIST,                                /**< 可执行命令列表标题 */
     SHELL_TEXT_VAR_LIST,                                /**< 变量列表标题 */
@@ -72,6 +74,9 @@ enum
     SHELL_TEXT_TYPE_USER,                               /**< 用户类型 */
     SHELL_TEXT_TYPE_KEY,                                /**< 按键类型 */
     SHELL_TEXT_TYPE_NONE,                               /**< 非法类型 */
+#if SHELL_EXEC_UNDEF_FUNC == 1
+    SHELL_TEXT_PARAM_ERROR,                             /**< 参数错误 */
+#endif
 };
 
 
@@ -128,6 +133,10 @@ static const char *shellText[] =
         "KEY ",
     [SHELL_TEXT_TYPE_NONE] = 
         "NONE",
+#if SHELL_EXEC_UNDEF_FUNC == 1
+    [SHELL_TEXT_PARAM_ERROR] = 
+        "Parameter error\r\n",
+#endif
 };
 
 
@@ -1253,6 +1262,54 @@ void shellNormalInput(Shell *shell, char data)
 
 
 /**
+ * @brief shell运行命令
+ * 
+ * @param shell shell对象
+ */
+void shellExec(Shell *shell)
+{
+    
+    if (shell->parser.length == 0)
+    {
+        shellWriteCommandLine(shell);
+        return;
+    }
+
+    shell->parser.buffer[shell->parser.length] = 0;
+
+    if (shell->status.isChecked)
+    {
+        shellHistoryAdd(shell);
+        shellParserParam(shell);
+        shell->parser.length = shell->parser.cursor = 0;
+        if (shell->parser.paramCount == 0)
+        {
+            shellWriteCommandLine(shell);
+            return;
+        }
+        shellWriteString(shell, "\r\n");
+
+        ShellCommand *command = shellSeekCommand(shell,
+                                                 shell->parser.param[0],
+                                                 shell->commandList.base,
+                                                 0);
+        if (command != NULL)
+        {
+            shellRunCommand(shell, command);
+        }
+        else
+        {
+            shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
+        }
+    }
+    else
+    {
+        shellCheckPassword(shell);
+    }
+}
+
+
+/**
  * @brief shell上方向键输入
  * 
  * @param shell shell对象
@@ -1431,6 +1488,7 @@ SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
 SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
 0x1B5B337E, shellDelete, delete);
 
+
 /**
  * @brief shell 回车处理
  * 
@@ -1438,43 +1496,7 @@ SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
  */
 void shellEnter(Shell *shell)
 {
-    if (shell->parser.length == 0)
-    {
-        shellWriteCommandLine(shell);
-        return;
-    }
-
-    shell->parser.buffer[shell->parser.length] = 0;
-
-    if (shell->status.isChecked)
-    {
-        shellHistoryAdd(shell);
-        shellParserParam(shell);
-        shell->parser.length = shell->parser.cursor = 0;
-        if (shell->parser.paramCount == 0)
-        {
-            shellWriteCommandLine(shell);
-            return;
-        }
-        shellWriteString(shell, "\r\n");
-
-        ShellCommand *command = shellSeekCommand(shell,
-                                                 shell->parser.param[0],
-                                                 shell->commandList.base,
-                                                 0);
-        if (command != NULL)
-        {
-            shellRunCommand(shell, command);
-        }
-        else
-        {
-            shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
-        }
-    }
-    else
-    {
-        shellCheckPassword(shell);
-    }
+    shellExec(shell);
     shellWriteCommandLine(shell);
 }
 #if SHELL_ENTER_LF == 1
@@ -1709,6 +1731,33 @@ SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RE
 clear, shellClear, clear console);
 
 
+/**
+ * @brief shell执行命令
+ * 
+ * @param shell shell对象
+ * @param cmd 命令字符串
+ * @return int 返回值
+ */
+int shellRun(Shell *shell, const char *cmd)
+{
+    SHELL_ASSERT(shell, return -1);
+    if (strlen(cmd) > shell->parser.bufferSize - 1)
+    {
+        shellWriteString(shell, shellText[SHELL_TEXT_CMD_TOO_LONG]);
+        return -1;
+    }
+    else
+    {
+        shell->parser.length = shellStringCopy(shell->parser.buffer, cmd);
+        shellExec(shell);
+        return 0;
+    }
+}
+SHELL_EXPORT_CMD_AGENCY(
+SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+sh, shellRun, run command directly, shellGetCurrent(), p1);
+
+
 #if SHELL_EXEC_UNDEF_FUNC == 1
 /**
  * @brief shell执行未定义函数
@@ -1733,9 +1782,9 @@ int shellExecute(int argc, char *argv[])
     }
     else
     {
-        shellPrint(shell, "%08x\r\n", shellClear);
+        shellWriteString(shell, shellText[SHELL_TEXT_PARAM_ERROR]);
+        return -1;
     }
-    return 0;
 }
 SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RETURN,

@@ -5,7 +5,7 @@
  * @version 3.0.0
  * @date 2019-12-30
  * 
- * @Copyright (c) 2020 Letter
+ * @copyright (c) 2020 Letter
  * 
  */
 
@@ -188,6 +188,19 @@
                 .data.key.function = (void (*)(Shell *))_func, \
                 .data.key.desc = shellDesc##_value \
             }
+
+    /**
+     * @brief shell 代理按键定义
+     * 
+     * @param _attr 按键属性
+     * @param _value 按键键值
+     * @param _func 按键函数
+     * @param _desc 按键描述
+     * @param ... 代理参数
+     */
+    #define SHELL_EXPORT_KEY_AGENCY(_attr, _value, _func, _desc, ...) \
+            SHELL_AGENCY_FUNC(_func, ##__VA_ARGS__) \
+            SHELL_EXPORT_KEY(_attr, _value, SHELL_AGENCY_FUNC_NAME(_func), _desc)
 #else
     /**
      * @brief shell 命令item定义
@@ -373,6 +386,7 @@ void shellPrint(Shell *shell, char *fmt, ...);
 Shell* shellGetCurrent(void);
 void shellHandler(Shell *shell, char data);
 void shellTask(void *param);
+int shellRun(Shell *shell, const char *cmd);
 
 #endif
 

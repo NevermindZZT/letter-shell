@@ -5,7 +5,7 @@
  * @version 3.0.0
  * @date 2019-12-31
  * 
- * @Copyright (c) 2019 Letter
+ * @copyright (c) 2019 Letter
  * 
  */
 
