@@ -1748,14 +1748,14 @@ int shellRun(Shell *shell, const char *cmd)
     }
     else
     {
-        shell->parser.length = shellStringCopy(shell->parser.buffer, cmd);
+        shell->parser.length = shellStringCopy(shell->parser.buffer, (char *)cmd);
         shellExec(shell);
         return 0;
     }
 }
 SHELL_EXPORT_CMD_AGENCY(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
-sh, shellRun, run command directly, shellGetCurrent(), p1);
+sh, shellRun, run command directly, shellGetCurrent(), (const char *)p1);
 
 
 #if SHELL_EXEC_UNDEF_FUNC == 1
