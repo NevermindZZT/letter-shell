@@ -1486,7 +1486,7 @@ void shellDelete(Shell *shell)
     shellDeleteByte(shell, -1);
 }
 SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
-0x7F000000, shellDelete, delete);
+0x1B5B337E, shellDelete, delete);
 
 
 /**
