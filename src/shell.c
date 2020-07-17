@@ -1740,7 +1740,7 @@ clear, shellClear, clear console);
  */
 int shellRun(Shell *shell, const char *cmd)
 {
-    SHELL_ASSERT(shell, return -1);
+    SHELL_ASSERT(shell && cmd, return -1);
     if (strlen(cmd) > shell->parser.bufferSize - 1)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_CMD_TOO_LONG]);
