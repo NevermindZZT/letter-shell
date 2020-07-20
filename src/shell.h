@@ -267,9 +267,11 @@
             }
 
     #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc)
+    #define SHELL_EXPORT_CMD_AGENCY(_attr, _name, _func, _desc, ...)
     #define SHELL_EXPORT_VAR(_attr, _name, _value, _desc)
     #define SHELL_EXPORT_USER(_attr, _name, _password, _desc)
     #define SHELL_EXPORT_KEY(_attr, _value, _func, _desc)
+    #define SHELL_EXPORT_KEY_AGENCY(_attr, _name, _func, _desc, ...)
 #endif /** SHELL_USING_CMD_EXPORT == 1 */
 
 /**
