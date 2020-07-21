@@ -824,6 +824,11 @@ static void shellParserParam(Shell *shell)
     unsigned char quotes = 0;
     unsigned char record = 1;
 
+    for (short i = 0; i < SHELL_PARAMETER_MAX_NUMBER; i++)
+    {
+        shell->parser.param[i] = NULL;
+    }
+
     shell->parser.paramCount = 0;
     for (unsigned short i = 0; i < shell->parser.length; i++)
     {

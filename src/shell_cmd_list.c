@@ -28,6 +28,11 @@ extern void shellCmds(void);
 extern void shellVars(void);
 extern void shellKeys(void);
 extern void shellClear(void);
+#if SHELL_EXEC_UNDEF_FUNC == 1
+extern int shellExecute(int argc, char *argv[]);
+#endif
+
+SHELL_AGENCY_FUNC(shellRun, shellGetCurrent(), (const char *)p1);
 
 
 /**
@@ -67,24 +72,24 @@ const ShellCommand shellCommandList[] =
     SHELL_KEY_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
                    0x0D0A0000, shellEnter, enter),
 #endif
-    SHELL_CMD_ITEM(
-                   SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RETURN,
+    SHELL_CMD_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RETURN,
                    help, shellHelp, show command info\r\nhelp [cmd]),
-    SHELL_CMD_ITEM(
-                   SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+    SHELL_CMD_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
                    users, shellUsers, list all user),
-    SHELL_CMD_ITEM(
-                   SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+    SHELL_CMD_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
                    cmds, shellCmds, list all cmd),
-    SHELL_CMD_ITEM(
-                   SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+    SHELL_CMD_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
                    vars, shellVars, list all var),
-    SHELL_CMD_ITEM(
-                   SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+    SHELL_CMD_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
                    keys, shellKeys, list all key),
-    SHELL_CMD_ITEM(
-                   SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+    SHELL_CMD_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
                    clear, shellClear, clear console),
+    SHELL_CMD_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+                   sh, SHELL_AGENCY_FUNC_NAME(shellRun), run command directly),
+#if SHELL_EXEC_UNDEF_FUNC == 1
+    SHELL_CMD_ITEM(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RETURN,
+                   exec, shellExecute, execute function undefined),
+#endif
 };
 
 
