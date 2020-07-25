@@ -14,7 +14,11 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.0.2"                 /**< 版本号 */
+#if SHELL_USING_COMPANION == 1
+#include "shell_companion.h"
+#endif
+
+#define     SHELL_VERSION               "3.0.3"                 /**< 版本号 */
 
 
 /**
@@ -294,12 +298,16 @@ typedef enum
 /**
  * @brief Shell定义
  */
-typedef struct
+typedef struct shell_def
 {
     struct
     {
         const struct shell_command *user;                       /**< 当前用户 */
         int activeTime;                                         /**< shell激活时间 */
+        char *path;                                             /**< 当前shell路径 */
+    #if SHELL_USING_COMPANION == 1
+        struct shell_companion_object *companions;              /**< 伴生对象 */
+    #endif
     } info;
     struct
     {
@@ -381,6 +389,8 @@ typedef struct shell_command
     } data; 
 } ShellCommand;
 
+#define shellSetPath(_shell, _path)     (_shell)->info.path = _path
+#define shellGetPath(_shell)            ((_shell)->info.path)
 
 void shellInit(Shell *shell, char *buffer, unsigned short size);
 unsigned short shellWriteString(Shell *shell, const char *string);

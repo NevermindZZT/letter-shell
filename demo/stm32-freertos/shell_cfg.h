@@ -30,6 +30,12 @@
 #define     SHELL_USING_CMD_EXPORT      1
 
 /**
+ * @brief 是否使用shell伴生对象
+ *        一些扩展的组件(文件系统支持，日志工具等)需要使用伴生对象
+ */
+#define     SHELL_USING_COMPANION       0
+
+/**
  * @brief 是否在输出命令列表中列出用户
  */
 #define     SHELL_HELP_LIST_USER        0
@@ -108,6 +114,18 @@
  * @note 此宏不定义时无法使用双击tab补全命令help，无法使用shell超时锁定
  */
 #define     SHELL_GET_TICK()            HAL_GetTick()
+
+/**
+ * @brief shell内存分配
+ *        shell本身不需要此接口，若使用shell伴生对象，需要进行定义
+ */
+#define     SHELL_MALLOC(size)          0
+
+/**
+ * @brief shell内存释放
+ *        shell本身不需要此接口，若使用shell伴生对象，需要进行定义
+ */
+#define     SHELL_FREE(obj)             0
 
 /**
  * @brief 是否显示shell信息

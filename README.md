@@ -1,8 +1,8 @@
 # letter shell 3.0
 
-![version](https://img.shields.io/badge/version-3.0.2-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.0.3-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2020.06.22-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2020.07.25-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -25,6 +25,7 @@
     - [命令属性字段说明](#命令属性字段说明)
   - [代理函数和代理参数解析](#代理函数和代理参数解析)
   - [权限系统说明](#权限系统说明)
+  - [伴生对象](#伴生对象)
   - [建议终端软件](#建议终端软件)
   - [命令遍历工具](#命令遍历工具)
 
@@ -119,6 +120,7 @@
     | --------------------------- | ------------------------------ |
     | SHELL_TASK_WHILE            | 是否使用默认shell任务while循环 |
     | SHELL_USING_CMD_EXPORT      | 是否使用命令导出方式           |
+    | SHELL_USING_COMPANION       | 是否使用shell伴生对象功能      |
     | SHELL_HELP_LIST_USER        | 是否在输入命令列表中列出用户   |
     | SHELL_HELP_LIST_VAR         | 是否在输入命令列表中列出变量   |
     | SHELL_HELP_LIST_KEY         | 是否在输入命令列表中列出按键   |
@@ -132,6 +134,8 @@
     | SHELL_DOUBLE_CLICK_TIME     | 双击间隔(ms)                   |
     | SHELL_MAX_NUMBER            | 管理的最大shell数量            |
     | SHELL_GET_TICK()            | 获取系统时间(ms)               |
+    | SHELL_MALLOC(size)          | 内存分配函数(shell本身不需要)  |
+    | SHELL_FREE(obj)             | 内存释放函数(shell本身不需要)  |
     | SHELL_SHOW_INFO             | 是否显示shell信息              |
     | SHELL_CLS_WHEN_LOGIN        | 是否在登录后清除命令行         |
     | SHELL_DEFAULT_USER          | shell默认用户                  |
@@ -393,6 +397,12 @@ p1, SHELL_PARAM_FLOAT(p2), p3, SHELL_PARAM_FLOAT(p4));
 ## 权限系统说明
 
 letter shell 3.0的权限管理同用户定义紧密相关，letter shell 3.0使用8个bit位表示命令权限，当用户和命令的权限按位与为真，或者命令权限为0时，表示该用户拥有此命令的权限，可以调用改命令
+
+## 伴生对象
+
+letter shell 3.0.3版本引入了伴生对象的概念，通过宏`SHELL_USING_COMPANION`开启或者关闭，若使用伴生对象的功能，需要同时将shell_companion.c文件加入到工程中，伴生对象可以用于需要将某个对象同shell关联的场景，比如说，通过快捷键控制shell终端对应的日志打印对象
+
+一般情况下，使用`shellCompanionAdd`将伴生对象同shell对象进行关联，之后，可以在shell操作中，通过`shellCompanionGet`获取相应的伴生对象，以达到在不同的shell中，操作不同对象的目的
 
 ## 建议终端软件
 

@@ -324,7 +324,9 @@ static void shellWriteCommandLine(Shell *shell)
     {
         shellWriteString(shell, "\r\n");
         shellWriteString(shell, shell->info.user->data.user.name);
-        shellWriteString(shell, ":/$ ");
+        shellWriteString(shell, ":");
+        shellWriteString(shell, shell->info.path ? shell->info.path : "/");
+        shellWriteString(shell, "$ ");
     }
     else
     {
@@ -1758,9 +1760,6 @@ int shellRun(Shell *shell, const char *cmd)
         return 0;
     }
 }
-SHELL_EXPORT_CMD_AGENCY(
-SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
-sh, shellRun, run command directly, shellGetCurrent(), (const char *)p1);
 
 
 #if SHELL_EXEC_UNDEF_FUNC == 1
