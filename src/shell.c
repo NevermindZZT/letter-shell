@@ -1136,7 +1136,7 @@ static void shellSetUser(Shell *shell, const ShellCommand *user)
     shell->info.user = user;
     shell->status.isChecked = 
         ((user->data.user.password && strlen(user->data.user.password) != 0)
-            && (shell->parser.paramCount == 1
+            && (shell->parser.paramCount < 2
                 || strcmp(user->data.user.password, shell->parser.param[1]) != 0))
          ? 0 : 1;
         
