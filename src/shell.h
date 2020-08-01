@@ -14,10 +14,6 @@
 
 #include "shell_cfg.h"
 
-#if SHELL_USING_COMPANION == 1
-#include "shell_companion.h"
-#endif
-
 #define     SHELL_VERSION               "3.0.3"                 /**< 版本号 */
 
 
@@ -399,6 +395,25 @@ Shell* shellGetCurrent(void);
 void shellHandler(Shell *shell, char data);
 void shellTask(void *param);
 int shellRun(Shell *shell, const char *cmd);
+
+
+
+#if SHELL_USING_COMPANION == 1
+/**
+ * @brief shell伴生对象定义
+ */
+typedef struct shell_companion_object
+{
+    int id;                                                     /**< 伴生对象ID */
+    void *obj;                                                  /**< 伴生对象 */
+    struct shell_companion_object *next;                        /**< 下一个伴生对象 */
+} ShellCompanionObj;
+
+
+signed char shellCompanionAdd(Shell *shell, int id, void *object);
+signed char shellCompanionDel(Shell *shell, int id);
+void *shellCompanionGet(Shell *shell, int id);
+#endif
 
 #endif
 

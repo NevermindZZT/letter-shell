@@ -8,10 +8,9 @@
  * @copyright (c) 2020 Letter
  * 
  */
- #include "shell_companion.h"
  #include "shell.h"
  
-
+#if SHELL_USING_COMPANION == 1
 /**
  * @brief shell添加伴生对象
  * 
@@ -20,7 +19,7 @@
  * @param object 伴生对象
  * @return signed char 0 添加成功 -1 添加失败
  */
-signed char shellCompanionAdd(struct shell_def *shell, int id, void *object)
+signed char shellCompanionAdd(Shell *shell, int id, void *object)
 {
     ShellCompanionObj *companions = shell->info.companions;
     ShellCompanionObj *node = SHELL_MALLOC(sizeof(ShellCompanionObj));
@@ -39,7 +38,7 @@ signed char shellCompanionAdd(struct shell_def *shell, int id, void *object)
  * @param id 伴生对象ID
  * @return signed char 0 删除成功 -1 无匹配对象
  */
-signed char shellCompanionDel(struct shell_def *shell, int id)
+signed char shellCompanionDel(Shell *shell, int id)
 {
     ShellCompanionObj *companions = shell->info.companions;
     ShellCompanionObj *front = companions;
@@ -71,7 +70,7 @@ signed char shellCompanionDel(struct shell_def *shell, int id)
  * @param id 伴生对象ID
  * @return void* 伴生对象，无匹配对象时返回NULL
  */
-void *shellCompanionGet(struct shell_def *shell, int id)
+void *shellCompanionGet(Shell *shell, int id)
 {
     SHELL_ASSERT(shell, return (void *)0);
     ShellCompanionObj *companions = shell->info.companions;
@@ -85,3 +84,4 @@ void *shellCompanionGet(struct shell_def *shell, int id)
     }
     return (void *)0;
 }
+#endif /** SHELL_USING_COMPANION == 1 */
