@@ -36,6 +36,11 @@
 #define     SHELL_USING_COMPANION       0
 
 /**
+ * @brief 支持shell尾行模式
+ */
+#define     SHELL_SUPPORT_END_LINE      0
+
+/**
  * @brief 是否在输出命令列表中列出用户
  */
 #define     SHELL_HELP_LIST_USER        0
