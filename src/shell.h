@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.0.3"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.0.4"                 /**< 版本号 */
 
 
 /**
@@ -393,6 +393,7 @@ unsigned short shellWriteString(Shell *shell, const char *string);
 void shellPrint(Shell *shell, char *fmt, ...);
 Shell* shellGetCurrent(void);
 void shellHandler(Shell *shell, char data);
+void shellWriteEndLine(Shell *shell, char *buffer, int len);
 void shellTask(void *param);
 int shellRun(Shell *shell, const char *cmd);
 

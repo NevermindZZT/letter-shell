@@ -69,6 +69,7 @@ enum
     SHELL_TEXT_PASSWORD_HINT,                           /**< 密码输入提示 */
     SHELL_TEXT_PASSWORD_ERROR,                          /**< 密码错误 */
     SHELL_TEXT_CLEAR_CONSOLE,                           /**< 清空控制台 */
+    SHELL_TEXT_CLEAR_LINE,                              /**< 清空当前行 */
     SHELL_TEXT_TYPE_CMD,                                /**< 命令类型 */
     SHELL_TEXT_TYPE_VAR,                                /**< 变量类型 */
     SHELL_TEXT_TYPE_USER,                               /**< 用户类型 */
@@ -123,6 +124,8 @@ static const char *shellText[] =
         "\r\npassword error\r\n",
     [SHELL_TEXT_CLEAR_CONSOLE] = 
         "\033[2J\033[1H",
+    [SHELL_TEXT_CLEAR_LINE] = 
+        "\033[2K\r",
     [SHELL_TEXT_TYPE_CMD] = 
         "CMD ",
     [SHELL_TEXT_TYPE_VAR] = 
@@ -1632,6 +1635,27 @@ void shellHandler(Shell *shell, char data)
         shell->info.activeTime = SHELL_GET_TICK();
     }
 }
+
+
+#if SHELL_SUPPORT_END_LINE == 1
+void shellWriteEndLine(Shell *shell, char *buffer, int len)
+{
+    shellWriteString(shell, shellText[SHELL_TEXT_CLEAR_LINE]);
+    while (len --)
+    {
+        shell->write(*buffer++);
+    }
+    shellWriteCommandLine(shell);
+    if (shell->parser.length > 0)
+    {
+        shellWriteString(shell, shell->parser.buffer);
+        for (short i = 0; i < shell->parser.length - shell->parser.cursor; i++)
+        {
+            shell->write('\b');
+        }
+    }
+}
+#endif /** SHELL_SUPPORT_END_LINE == 1 */
 
 
 /**
