@@ -410,7 +410,7 @@ letter shell 3.0.3版本引入了伴生对象的概念，通过宏`SHELL_USING_C
 
 letter shell 3.0.4版本新增了尾行模式，适用于需要在shell所使用的交互终端同时输入其他信息(比如说日志)时，防止其他信息的输出，导致shell交互体验极差的情况，使用时，使能宏`SHELL_SUPPORT_END_LINE`，然后对于其他需要使用终端输入信息的地方，调用`shellWriteEndLine`接口将信息输入，此时，调用`shellWriteEndLine`进行输入的内容将会插入到命令行上方，终端会一直保持shell命令行位于最后一行
 
-使用letter shell尾行模式结合log日志输入的效果如下：
+使用letter shell尾行模式结合[log](./extensions/log/readme.md)日志输出的效果如下：
 
 ![end lin mode](doc/img/shell_end_line_mode.gif)
 
