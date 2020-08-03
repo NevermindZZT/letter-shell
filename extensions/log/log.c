@@ -24,7 +24,7 @@
 #endif
 
 Log *logList[LOG_MAX_NUMBER] = {0};
-
+static char logBuffer[LOG_BUFFER_SIZE];
 
 /**
  * @brief 注册log对象
@@ -85,6 +85,34 @@ logSetLevel, logSetLevel, set log level);
 
 
 /**
+ * @brief log写buffer
+ * 
+ * @param log log对象
+ * @param level 日志级别
+ * @param buffer buffer
+ * @param len buffer长度
+ */
+void logWriteBuffer(Log *log, LogLevel level, char *buffer, short len)
+{
+    if (log == LOG_ALL_OBJ)
+    {
+        for (short i = 0; i < LOG_MAX_NUMBER; i++)
+        {
+            if (logList[i] 
+                && logList[i]->active
+                && logList[i]->level >= level)
+            {
+                logList[i]->write(logBuffer, len);
+            }
+        }
+    }
+    else if (log && log->active && log->level >= level)
+    {
+        log->write(logBuffer, len);
+    }
+}
+
+/**
  * @brief log格式化写入数据
  * 
  * @param log log对象
@@ -94,30 +122,14 @@ logSetLevel, logSetLevel, set log level);
  */
 void logWrite(Log *log, LogLevel level, char *fmt, ...)
 {
-    char buffer[LOG_BUFFER_SIZE];
     va_list vargs;
     short len;
 
     va_start(vargs, fmt);
-    len = vsnprintf(buffer, LOG_BUFFER_SIZE - 1, fmt, vargs);
+    len = vsnprintf(logBuffer, LOG_BUFFER_SIZE - 1, fmt, vargs);
     va_end(vargs);
 
-    if (log == LOG_ALL_OBJ)
-    {
-        for (short i = 0; i < LOG_MAX_NUMBER; i++)
-        {
-            if (logList[i] 
-                && logList[i]->active
-                && logList[i]->level >= level)
-            {
-                logList[i]->write(buffer, len);
-            }
-        }
-    }
-    else if (log && log->active && log->level >= level)
-    {
-        log->write(buffer, len);
-    }
+    logWriteBuffer(log, level, logBuffer, len);
 }
 
 
@@ -132,6 +144,7 @@ void logHexDump(Log *log, void *base, unsigned int length)
 {
     unsigned char *address;
     unsigned int len = length;
+    unsigned int printLen = 0;
 
     if (length == 0)
     {
@@ -148,40 +161,46 @@ void logHexDump(Log *log, void *base, unsigned int length)
 
     while (length)
     {
-        logWrite(log, LOG_NONE, memPrintAddr, (unsigned int)address);
+        printLen += sprintf(logBuffer + printLen, memPrintAddr, (unsigned int)address);
         for (int i = 0; i < 16; i++)
         {
             if ((unsigned int)(address + i) < (unsigned int)base
                 || (unsigned int)(address + i) >= (unsigned int)base + len)
             {
-                logWrite(log, LOG_NONE, "   ");
+                logBuffer[printLen ++] = ' ';
+                logBuffer[printLen ++] = ' ';
+                logBuffer[printLen ++] = ' ';
             }
             else
             {
-                logWrite(log, LOG_NONE, "%02x ", *(address + i));
+                printLen += sprintf(logBuffer + printLen, "%02x ", *(address + i));
             }
         }
-        logWrite(log, LOG_NONE, "| ");
+        logBuffer[printLen ++] = '|';
+        logBuffer[printLen ++] = ' ';
         for (int i = 0; i < 16; i++)
         {
             if ((unsigned int)(address + i) < (unsigned int)base
                 || (unsigned int)(address + i) >= (unsigned int)base + len)
             {
-                logWrite(log, LOG_NONE, " ");
+                logBuffer[printLen ++] = ' ';
             }
             else
             {
                 if (*(address + i) >= 32 && *(address + i) <= 126)
                 {
-                    logWrite(log, LOG_NONE, "%c", *(address + i));
+                    printLen += sprintf(logBuffer + printLen, "%c", *(address + i));
                 }
                 else
                 {
-                    logWrite(log, LOG_NONE, ".");
+                    logBuffer[printLen ++] = '.';
                 }
             }
         }
-        logWrite(log, LOG_NONE, " |\r\n");
+        logBuffer[printLen ++] = '|';
+        logBuffer[printLen ++] = '\r';
+        logBuffer[printLen ++] = '\n';
+        logWriteBuffer(log, LOG_NONE, logBuffer, printLen);
         address += 16;
         length -= 16;
     }
