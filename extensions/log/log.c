@@ -203,6 +203,7 @@ void logHexDump(Log *log, void *base, unsigned int length)
         logWriteBuffer(log, LOG_NONE, logBuffer, printLen);
         address += 16;
         length -= 16;
+        printLen = 0;
     }
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
