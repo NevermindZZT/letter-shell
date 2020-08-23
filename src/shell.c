@@ -62,7 +62,7 @@ enum
     SHELL_TEXT_KEY_LIST,                                /**< 按键列表标题 */
     SHELL_TEXT_CMD_NOT_FOUND,                           /**< 命令未找到 */
     SHELL_TEXT_POINT_CANNOT_MODIFY,                     /**< 指针变量不允许修改 */
-    SHELL_TEXT_VAL_CANNOT_MODIFY,                       /**< 常量不允许修改 */
+    SHELL_TEXT_VAR_READ_ONLY_CANNOT_MODIFY,             /**< 只读变量不允许修改 */
     SHELL_TEXT_NOT_VAR,                                 /**< 命令不是变量 */
     SHELL_TEXT_VAR_NOT_FOUND,                           /**< 变量未找到 */
     SHELL_TEXT_HELP_HEADER,                             /**< help头 */
@@ -110,8 +110,8 @@ static const char *shellText[] =
         "Command not Found\r\n",
     [SHELL_TEXT_POINT_CANNOT_MODIFY] = 
         "can't set pointer\r\n",
-    [SHELL_TEXT_VAL_CANNOT_MODIFY] = 
-        "can't set val\r\n",
+    [SHELL_TEXT_VAR_READ_ONLY_CANNOT_MODIFY] = 
+        "can't set read only var\r\n",
     [SHELL_TEXT_NOT_VAR] =
         " is not a var\r\n",
     [SHELL_TEXT_VAR_NOT_FOUND] = 
@@ -505,7 +505,7 @@ static const char* shellGetCommandName(ShellCommand *command)
     {
         return command->data.cmd.name;
     }
-    else if (command->attr.attrs.type <= SHELL_TYPE_VAL)
+    else if (command->attr.attrs.type <= SHELL_TYPE_VAR_POINT)
     {
         return command->data.var.name;
     }
@@ -533,7 +533,7 @@ static const char* shellGetCommandDesc(ShellCommand *command)
     {
         return command->data.cmd.desc;
     }
-    else if (command->attr.attrs.type <= SHELL_TYPE_VAL)
+    else if (command->attr.attrs.type <= SHELL_TYPE_VAR_POINT)
     {
         return command->data.var.desc;
     }
@@ -566,7 +566,7 @@ void shellListItem(Shell *shell, ShellCommand *item)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_TYPE_CMD]);
     }
-    else if (item->attr.attrs.type <= SHELL_TYPE_VAL)
+    else if (item->attr.attrs.type <= SHELL_TYPE_VAR_POINT)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_TYPE_VAR]);
     }
@@ -627,7 +627,7 @@ void shellListVar(Shell *shell)
     for (short i = 0; i < shell->commandList.count; i++)
     {
         if (base[i].attr.attrs.type > SHELL_TYPE_CMD_FUNC
-            && base[i].attr.attrs.type <= SHELL_TYPE_VAL
+            && base[i].attr.attrs.type <= SHELL_TYPE_VAR_POINT
             && shellCheckPermission(shell, &base[i]) == 0)
         {
             shellListItem(shell, &base[i]);
@@ -647,7 +647,7 @@ void shellListUser(Shell *shell)
     shellWriteString(shell, shellText[SHELL_TEXT_USER_LIST]);
     for (short i = 0; i < shell->commandList.count; i++)
     {
-        if (base[i].attr.attrs.type > SHELL_TYPE_VAL
+        if (base[i].attr.attrs.type > SHELL_TYPE_VAR_POINT
             && base[i].attr.attrs.type <= SHELL_TYPE_USER
             && shellCheckPermission(shell, &base[i]) == 0)
         {
@@ -959,8 +959,8 @@ int shellGetVarValue(Shell *shell, ShellCommand *command)
     case SHELL_TYPE_VAR_CHAR:
         value = *((char *)(command->data.var.value));
         break;
+    case SHELL_TYPE_VAR_STRING:
     case SHELL_TYPE_VAR_POINT:
-    case SHELL_TYPE_VAL:
         value = (int)(command->data.var.value);
         break;
     default:
@@ -979,25 +979,32 @@ int shellGetVarValue(Shell *shell, ShellCommand *command)
  */
 void shellSetVarValue(Shell *shell, ShellCommand *command, int value)
 {
-    switch (command->attr.attrs.type)
+    if (command->attr.attrs.readOnly)
     {
-    case SHELL_TYPE_VAR_INT:
-        *((int *)(command->data.var.value)) = value;
-        break;
-    case SHELL_TYPE_VAR_SHORT:
-        *((short *)(command->data.var.value)) = value;
-        break;
-    case SHELL_TYPE_VAR_CHAR:
-        *((char *)(command->data.var.value)) = value;
-        break;
-    case SHELL_TYPE_VAR_POINT:
-        shellWriteString(shell, shellText[SHELL_TEXT_POINT_CANNOT_MODIFY]);
-        break;
-    case SHELL_TYPE_VAL:
-        shellWriteString(shell, shellText[SHELL_TEXT_VAL_CANNOT_MODIFY]);
-        break;
-    default:
-        break;
+        shellWriteString(shell, shellText[SHELL_TEXT_VAR_READ_ONLY_CANNOT_MODIFY]);
+    }
+    else
+    {
+        switch (command->attr.attrs.type)
+        {
+        case SHELL_TYPE_VAR_INT:
+            *((int *)(command->data.var.value)) = value;
+            break;
+        case SHELL_TYPE_VAR_SHORT:
+            *((short *)(command->data.var.value)) = value;
+            break;
+        case SHELL_TYPE_VAR_CHAR:
+            *((char *)(command->data.var.value)) = value;
+            break;
+        case SHELL_TYPE_VAR_STRING:
+            shellStringCopy(((char *)(command->data.var.value)), (char *)value);
+            break;
+        case SHELL_TYPE_VAR_POINT:
+            shellWriteString(shell, shellText[SHELL_TEXT_POINT_CANNOT_MODIFY]);
+            break;
+        default:
+            break;
+        }
     }
     shellShowVar(shell, command);
 }
@@ -1013,16 +1020,34 @@ static void shellShowVar(Shell *shell, ShellCommand *command)
 {
     char buffer[12] = "00000000000";
     int value = shellGetVarValue(shell, command);
+    
     shellWriteString(shell, command->data.var.name);
     shellWriteString(shell, " = ");
-    shellWriteString(shell, &buffer[11 - shellToDec(value, buffer)]);
-    shellWriteString(shell, ", 0x");
-    for (short i = 0; i < 11; i++)
+
+    switch (command->attr.attrs.type)
     {
-        buffer[i] = '0';
+    case SHELL_TYPE_VAR_INT:
+    case SHELL_TYPE_VAR_SHORT:
+    case SHELL_TYPE_VAR_CHAR:
+    case SHELL_TYPE_VAR_POINT:
+        shellWriteString(shell, &buffer[11 - shellToDec(value, buffer)]);
+        shellWriteString(shell, ", 0x");
+        for (short i = 0; i < 11; i++)
+        {
+            buffer[i] = '0';
+        }
+        shellToHex(value, buffer);
+        shellWriteString(shell, buffer);
+        break;
+    case SHELL_TYPE_VAR_STRING:
+        shellWriteString(shell, "\"");
+        shellWriteString(shell, (char *)value);
+        shellWriteString(shell, "\"");
+        break;
+    default:
+        break;
     }
-    shellToHex(value, buffer);
-    shellWriteString(shell, buffer);
+
     shellWriteString(shell, "\r\n");
 }
 
@@ -1051,7 +1076,7 @@ int shellSetVar(char *name, int value)
         return 0;
     }
     if (command->attr.attrs.type < SHELL_TYPE_VAR_INT
-        || command->attr.attrs.type > SHELL_TYPE_VAL)
+        || command->attr.attrs.type > SHELL_TYPE_VAR_POINT)
     {
         shellWriteString(shell, name);
         shellWriteString(shell, shellText[SHELL_TEXT_NOT_VAR]);
@@ -1097,7 +1122,7 @@ static void shellRunCommand(Shell *shell, ShellCommand *command)
         }
     }
     else if (command->attr.attrs.type >= SHELL_TYPE_VAR_INT
-        && command->attr.attrs.type <= SHELL_TYPE_VAL)
+        && command->attr.attrs.type <= SHELL_TYPE_VAR_POINT)
     {
         shellShowVar(shell, command);
     }

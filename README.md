@@ -1,8 +1,8 @@
 # letter shell 3.0
 
-![version](https://img.shields.io/badge/version-3.0.4-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.0.5-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2020.08.01-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2020.08.23-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -298,6 +298,8 @@ letter shell 3.0对可执行命令，按键，用户以及变量分别提供了�
             }
     ```
 
+    变量定义时，`_value`应该是变量的引用，如果变量不允许修改，则需要在增加`SHELL_CMD_READ_ONLY`属性
+
 3. 用户定义
 
     使用宏`SHELL_EXPORT_USER`定义用户，定义如下
@@ -364,15 +366,15 @@ union
         unsigned char permission : 8;                       /**< command权限 */
         ShellCommandType type : 4;                          /**< command类型 */
         unsigned char enableUnchecked : 1;                  /**< 在未校验密码的情况下可用 */
-        unsigned char disableReturn : 1;                    /**< 禁用返回值输出 */
-        unsigned char reserve : 2;                          /**< 保留 */
+        unsigned char  readOnly : 1;                        /**< 只读 */
+        unsigned char reserve : 1;                          /**< 保留 */
         unsigned char paramNum : 4;                         /**< 参数数量 */
     } attrs;
     int value;
 } attr;
 ```
 
-在定义命令时，需要给定这些值，可以通过宏`SHELL_CMD_PERMISSION(permission)`, `SHELL_CMD_TYPE(type)`, `SHELL_CMD_ENABLE_UNCHECKED`, `SHELL_CMD_DISABLE_RETURN`, `SHELL_CMD_PARAM_NUM(num)`快速声明
+在定义命令时，需要给定这些值，可以通过宏`SHELL_CMD_PERMISSION(permission)`, `SHELL_CMD_TYPE(type)`, `SHELL_CMD_ENABLE_UNCHECKED`, `SHELL_CMD_DISABLE_RETURN`, `SHELL_CMD_READ_ONLY`, `SHELL_CMD_PARAM_NUM(num)`快速声明
 
 ## 代理函数和代理参数解析
 

@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.0.4"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.0.5"                 /**< 版本号 */
 
 
 /**
@@ -55,6 +55,12 @@
  */
 #define     SHELL_CMD_DISABLE_RETURN \
             (1 << 13)
+
+/**
+ * @brief 只读属性(仅对变量生效)
+ */
+#define     SHELL_CMD_READ_ONLY \
+            (1 << 14)
 
 /**
  * @brief 命令参数数量
@@ -284,8 +290,8 @@ typedef enum
     SHELL_TYPE_VAR_INT,                                         /**< int型变量 */
     SHELL_TYPE_VAR_SHORT,                                       /**< short型变量 */
     SHELL_TYPE_VAR_CHAR,                                        /**< char型变量 */
+    SHELL_TYPE_VAR_STRING,                                      /**< string型变量 */
     SHELL_TYPE_VAR_POINT,                                       /**< 指针型变量 */
-    SHELL_TYPE_VAL,                                             /**< 常量 */
     SHELL_TYPE_USER,                                            /**< 用户 */
     SHELL_TYPE_KEY,                                             /**< 按键 */
 } ShellCommandType;
@@ -351,7 +357,8 @@ typedef struct shell_command
             ShellCommandType type : 4;                          /**< command类型 */
             unsigned char enableUnchecked : 1;                  /**< 在未校验密码的情况下可用 */
             unsigned char disableReturn : 1;                    /**< 禁用返回值输出 */
-            unsigned char reserve : 2;                          /**< 保留 */
+            unsigned char  readOnly : 1;                        /**< 只读 */
+            unsigned char reserve : 1;                          /**< 保留 */
             unsigned char paramNum : 4;                         /**< 参数数量 */
         } attrs;
         int value;

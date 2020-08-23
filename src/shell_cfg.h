@@ -153,7 +153,7 @@
 
 /**
  * @brief shell自动锁定超时
- *        使能`SHELL_USING_AUTH`的情况下生效，超时后会自动重新锁定shell
+ *        shell当前用户密码有效的时候生效，超时后会自动重新锁定shell
  *        设置为0时关闭自动锁定功能，时间单位为`SHELL_GET_TICK()`单位
  * @note 使用超时锁定必须保证`SHELL_GET_TICK()`有效
  */
