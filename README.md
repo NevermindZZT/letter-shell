@@ -17,6 +17,7 @@
     - [函数定义](#函数定义)
       - [main函数形式](#main函数形式)
       - [普通C函数形式](#普通c函数形式)
+    - [变量使用](#变量使用)
     - [在函数中获取当前shell对象](#在函数中获取当前shell对象)
     - [执行未导出函数](#执行未导出函数)
   - [命令定义](#命令定义)
@@ -192,6 +193,58 @@ SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC), fu
 letter:/$ func 666 'A' "hello world"
 input int: 666, char: A, string: hello world
 ```
+
+### 变量使用
+
+letter shell 3.0支持导出变量，通过命令行查看，设置以及使用变量的值
+
+- 导出变量
+
+    变量导出使用`SHELL_EXPORT_VAR`宏，支持整形(char, short, int)，字符串，指针以及节点变量，变量导出需要使用引用的方式，如果不允许对变量进行修改，在属性中添加`SHELL_CMD_READ_ONLY`
+
+    ```C
+    int varInt = 0;
+    SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_INT), varInt, &varInt, test);
+
+    char str[] = "test string";
+    SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_STRING), varStr, str, test);
+
+    Log log;
+    SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_POINT), log, &log, test);
+    ```
+
+- 查看变量
+
+    在命令行直接输入导出的变量名即可查看变量当前的值
+
+    ```sh
+    letter:/$ varInt
+    varInt = 0, 0x00000000
+
+    letter:/$ varStr
+    varStr = "test string"
+    ```
+
+- 修改变量
+
+    使用`setVar`命令修改变量的值，对于字符串型变量，请确认字符串有分配足够的空间，指针类型的变量不可修改
+
+    ```sh
+    letter:/$ setVar varInt 45678
+    varInt = 45678, 0x0000b26e
+
+    letter:/$ setVar varStr "hello"
+    varStr = "hello"
+    ```
+
+- 使用变量
+
+    letter shell 3.0的变量可以在命令中作为参数传递，对于需要传递结构体引用到命令中的场景特别适用，使用`$`+变量名的方式传递
+
+    ```sh
+    letter:/$ shellPrint $shell "hello world\r\n"
+    hello world
+    ```
 
 ### 在函数中获取当前shell对象
 
