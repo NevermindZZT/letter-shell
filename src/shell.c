@@ -1310,7 +1310,6 @@ void shellExec(Shell *shell)
     
     if (shell->parser.length == 0)
     {
-        shellWriteCommandLine(shell, 1);
         return;
     }
 
@@ -1323,7 +1322,6 @@ void shellExec(Shell *shell)
         shell->parser.length = shell->parser.cursor = 0;
         if (shell->parser.paramCount == 0)
         {
-            shellWriteCommandLine(shell, 1);
             return;
         }
         shellWriteString(shell, "\r\n");
