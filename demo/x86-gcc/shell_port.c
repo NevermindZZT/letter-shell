@@ -89,3 +89,64 @@ void userShellInit(void)
     shellInit(&shell, shellBuffer, 512);
     shellCompanionAdd(&shell, SHELL_COMPANION_ID_FS, &shellFs);
 }
+
+
+int varInt = 0;
+SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_INT), varInt, &varInt, int var test);
+
+char str[] = "test string";
+SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_STRING), varStr, str, string var test);
+
+SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_POINT), shell, &shell, pointer var test);
+
+int dumpInfo(void)
+{
+    printf("hello world\r\n");
+    return 0;
+}
+
+int sysInfoSet(int value)
+{
+    printf("sys info: %d\r\n", value);
+    return value;
+}
+
+ShellNodeVarAttr sysInfo = {
+    .get = dumpInfo,
+    .set = sysInfoSet,
+};
+SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_NODE), sysInfo, &sysInfo, node var test);
+
+int shellInfoGet(Shell *shell)
+{
+    printf("user name: %s\r\n", shell->info.user->data.user.name);
+    printf("path: %s\r\n", shell->info.path);
+    return (int)shell;
+}
+
+ShellNodeVarAttr shellInfo = {
+    .var = &shell,
+    .get = shellInfoGet,
+};
+SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_NODE)|SHELL_CMD_READ_ONLY,
+shellInfo, &shellInfo, node var test);
+
+void shellKeyTest(void)
+{
+    char data;
+    Shell *shell = shellGetCurrent();
+    SHELL_ASSERT(shell && shell->read, return);
+    while (1)
+    {
+        if (shell->read(&data) == 0)
+        {
+            if (data == '\n' || data == '\r')
+            {
+                return;
+            }
+            shellPrint(shell, "%02x ", data);
+        }
+    }
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+keyTest, shellKeyTest, key test);

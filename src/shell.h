@@ -292,6 +292,7 @@ typedef enum
     SHELL_TYPE_VAR_CHAR,                                        /**< char型变量 */
     SHELL_TYPE_VAR_STRING,                                      /**< string型变量 */
     SHELL_TYPE_VAR_POINT,                                       /**< 指针型变量 */
+    SHELL_TYPE_VAR_NODE,                                        /**< 节点变量 */
     SHELL_TYPE_USER,                                            /**< 用户 */
     SHELL_TYPE_KEY,                                             /**< 按键 */
 } ShellCommandType;
@@ -391,6 +392,17 @@ typedef struct shell_command
         } key;                                                  /**< 按键定义 */
     } data; 
 } ShellCommand;
+
+/**
+ * @brief shell节点变量属性
+ */
+typedef struct
+{
+    void *var;                                                  /**< 变量引用 */
+    int (*get)();                                               /**< 变量get方法 */
+    int (*set)();                                               /**< 变量set方法 */
+} ShellNodeVarAttr;
+
 
 #define shellSetPath(_shell, _path)     (_shell)->info.path = _path
 #define shellGetPath(_shell)            ((_shell)->info.path)

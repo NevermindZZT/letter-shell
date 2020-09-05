@@ -152,7 +152,7 @@ static Shell *shellList[SHELL_MAX_NUMBER] = {NULL};
 static void shellAdd(Shell *shell);
 static void shellWriteCommandLine(Shell *shell, unsigned char newline);
 static void shellWriteReturnValue(Shell *shell, int value);
-static void shellShowVar(Shell *shell, ShellCommand *command);
+static int shellShowVar(Shell *shell, ShellCommand *command);
 static void shellSetUser(Shell *shell, const ShellCommand *user);
 ShellCommand* shellSeekCommand(Shell *shell,
                                const char *cmd,
@@ -505,7 +505,7 @@ static const char* shellGetCommandName(ShellCommand *command)
     {
         return command->data.cmd.name;
     }
-    else if (command->attr.attrs.type <= SHELL_TYPE_VAR_POINT)
+    else if (command->attr.attrs.type <= SHELL_TYPE_VAR_NODE)
     {
         return command->data.var.name;
     }
@@ -533,7 +533,7 @@ static const char* shellGetCommandDesc(ShellCommand *command)
     {
         return command->data.cmd.desc;
     }
-    else if (command->attr.attrs.type <= SHELL_TYPE_VAR_POINT)
+    else if (command->attr.attrs.type <= SHELL_TYPE_VAR_NODE)
     {
         return command->data.var.desc;
     }
@@ -566,7 +566,7 @@ void shellListItem(Shell *shell, ShellCommand *item)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_TYPE_CMD]);
     }
-    else if (item->attr.attrs.type <= SHELL_TYPE_VAR_POINT)
+    else if (item->attr.attrs.type <= SHELL_TYPE_VAR_NODE)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_TYPE_VAR]);
     }
@@ -627,7 +627,7 @@ void shellListVar(Shell *shell)
     for (short i = 0; i < shell->commandList.count; i++)
     {
         if (base[i].attr.attrs.type > SHELL_TYPE_CMD_FUNC
-            && base[i].attr.attrs.type <= SHELL_TYPE_VAR_POINT
+            && base[i].attr.attrs.type <= SHELL_TYPE_VAR_NODE
             && shellCheckPermission(shell, &base[i]) == 0)
         {
             shellListItem(shell, &base[i]);
@@ -647,7 +647,7 @@ void shellListUser(Shell *shell)
     shellWriteString(shell, shellText[SHELL_TEXT_USER_LIST]);
     for (short i = 0; i < shell->commandList.count; i++)
     {
-        if (base[i].attr.attrs.type > SHELL_TYPE_VAR_POINT
+        if (base[i].attr.attrs.type > SHELL_TYPE_VAR_NODE
             && base[i].attr.attrs.type <= SHELL_TYPE_USER
             && shellCheckPermission(shell, &base[i]) == 0)
         {
@@ -963,6 +963,11 @@ int shellGetVarValue(Shell *shell, ShellCommand *command)
     case SHELL_TYPE_VAR_POINT:
         value = (int)(command->data.var.value);
         break;
+    case SHELL_TYPE_VAR_NODE:
+        value = ((ShellNodeVarAttr *)command->data.var.value)->get ?
+                    ((ShellNodeVarAttr *)command->data.var.value)
+                        ->get(((ShellNodeVarAttr *)command->data.var.value)->var) : 0;
+        break;
     default:
         break;
     }
@@ -976,8 +981,9 @@ int shellGetVarValue(Shell *shell, ShellCommand *command)
  * @param shell shell对象
  * @param command 命令
  * @param value 值
+ * @return int 返回变量值
  */
-void shellSetVarValue(Shell *shell, ShellCommand *command, int value)
+int shellSetVarValue(Shell *shell, ShellCommand *command, int value)
 {
     if (command->attr.attrs.readOnly)
     {
@@ -1002,11 +1008,25 @@ void shellSetVarValue(Shell *shell, ShellCommand *command, int value)
         case SHELL_TYPE_VAR_POINT:
             shellWriteString(shell, shellText[SHELL_TEXT_POINT_CANNOT_MODIFY]);
             break;
+        case SHELL_TYPE_VAR_NODE:
+            if (((ShellNodeVarAttr *)command->data.var.value)->set)
+            {
+                if (((ShellNodeVarAttr *)command->data.var.value)->var)
+                {
+                    ((ShellNodeVarAttr *)command->data.var.value)
+                        ->set(((ShellNodeVarAttr *)command->data.var.value)->var, value);
+                }
+                else
+                {
+                    ((ShellNodeVarAttr *)command->data.var.value)->set(value);
+                }
+            }
+            break;
         default:
             break;
         }
     }
-    shellShowVar(shell, command);
+    return shellShowVar(shell, command);
 }
 
 
@@ -1015,8 +1035,9 @@ void shellSetVarValue(Shell *shell, ShellCommand *command, int value)
  * 
  * @param shell shell对象
  * @param command 命令
+ * @return int 返回变量值
  */
-static void shellShowVar(Shell *shell, ShellCommand *command)
+static int shellShowVar(Shell *shell, ShellCommand *command)
 {
     char buffer[12] = "00000000000";
     int value = shellGetVarValue(shell, command);
@@ -1026,10 +1047,16 @@ static void shellShowVar(Shell *shell, ShellCommand *command)
 
     switch (command->attr.attrs.type)
     {
-    case SHELL_TYPE_VAR_INT:
-    case SHELL_TYPE_VAR_SHORT:
-    case SHELL_TYPE_VAR_CHAR:
-    case SHELL_TYPE_VAR_POINT:
+    case SHELL_TYPE_VAR_STRING:
+        shellWriteString(shell, "\"");
+        shellWriteString(shell, (char *)value);
+        shellWriteString(shell, "\"");
+        break;
+    // case SHELL_TYPE_VAR_INT:
+    // case SHELL_TYPE_VAR_SHORT:
+    // case SHELL_TYPE_VAR_CHAR:
+    // case SHELL_TYPE_VAR_POINT:
+    default:
         shellWriteString(shell, &buffer[11 - shellToDec(value, buffer)]);
         shellWriteString(shell, ", 0x");
         for (short i = 0; i < 11; i++)
@@ -1039,16 +1066,10 @@ static void shellShowVar(Shell *shell, ShellCommand *command)
         shellToHex(value, buffer);
         shellWriteString(shell, buffer);
         break;
-    case SHELL_TYPE_VAR_STRING:
-        shellWriteString(shell, "\"");
-        shellWriteString(shell, (char *)value);
-        shellWriteString(shell, "\"");
-        break;
-    default:
-        break;
     }
 
     shellWriteString(shell, "\r\n");
+    return value;
 }
 
 
@@ -1076,14 +1097,13 @@ int shellSetVar(char *name, int value)
         return 0;
     }
     if (command->attr.attrs.type < SHELL_TYPE_VAR_INT
-        || command->attr.attrs.type > SHELL_TYPE_VAR_POINT)
+        || command->attr.attrs.type > SHELL_TYPE_VAR_NODE)
     {
         shellWriteString(shell, name);
         shellWriteString(shell, shellText[SHELL_TEXT_NOT_VAR]);
         return 0;
     }
-    shellSetVarValue(shell, command, value);
-    return shellGetVarValue(shell, command);
+    return shellSetVarValue(shell, command, value);
 }
 SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
@@ -1122,7 +1142,7 @@ static void shellRunCommand(Shell *shell, ShellCommand *command)
         }
     }
     else if (command->attr.attrs.type >= SHELL_TYPE_VAR_INT
-        && command->attr.attrs.type <= SHELL_TYPE_VAR_POINT)
+        && command->attr.attrs.type <= SHELL_TYPE_VAR_NODE)
     {
         shellShowVar(shell, command);
     }
@@ -1310,7 +1330,6 @@ void shellExec(Shell *shell)
     
     if (shell->parser.length == 0)
     {
-        shellWriteCommandLine(shell, 1);
         return;
     }
 
@@ -1323,7 +1342,6 @@ void shellExec(Shell *shell)
         shell->parser.length = shell->parser.cursor = 0;
         if (shell->parser.paramCount == 0)
         {
-            shellWriteCommandLine(shell, 1);
             return;
         }
         shellWriteString(shell, "\r\n");

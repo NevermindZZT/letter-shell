@@ -37,7 +37,7 @@
 /**
  * @brief 支持shell尾行模式
  */
-#define     SHELL_SUPPORT_END_LINE      0
+#define     SHELL_SUPPORT_END_LINE      1
 
 /**
  * @brief 是否在输出命令列表中列出用户
