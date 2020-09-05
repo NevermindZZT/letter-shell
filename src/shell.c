@@ -1674,6 +1674,7 @@ void shellHandler(Shell *shell, char data)
 
     if (data != 0x00)
     {
+        shell->parser.keyValue = 0x00000000;
         shellNormalInput(shell, data);
     }
 
