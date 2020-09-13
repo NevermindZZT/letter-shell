@@ -1820,6 +1820,7 @@ clear, shellClear, clear console);
 int shellRun(Shell *shell, const char *cmd)
 {
     SHELL_ASSERT(shell && cmd, return -1);
+    char active = shell->status.isActive;
     if (strlen(cmd) > shell->parser.bufferSize - 1)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_CMD_TOO_LONG]);
@@ -1829,6 +1830,7 @@ int shellRun(Shell *shell, const char *cmd)
     {
         shell->parser.length = shellStringCopy(shell->parser.buffer, (char *)cmd);
         shellExec(shell);
+        shell->status.isActive = active;
         return 0;
     }
 }
