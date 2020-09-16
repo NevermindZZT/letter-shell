@@ -304,6 +304,11 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
     unsigned int params[8] = {0};
     int paramNum = command->attr.attrs.paramNum > (argc - 1) ? 
         command->attr.attrs.paramNum : (argc - 1);
+    //TODO 防止 params[8]越界
+    if (SHELL_PARAMETER_MAX_NUMBER < argc)
+    {
+        return -1;
+    }
     for (int i = 0; i < argc - 1; i++)
     {
         params[i] = shellExtParsePara(shell, argv[i + 1]);
