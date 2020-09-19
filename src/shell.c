@@ -851,8 +851,11 @@ static void shellParserParam(Shell *shell)
             }
             if (record == 1)
             {
-                shell->parser.param[shell->parser.paramCount ++] = 
-                    &(shell->parser.buffer[i]);
+                if (shell->parser.paramCount < SHELL_PARAMETER_MAX_NUMBER)
+                {
+                    shell->parser.param[shell->parser.paramCount++] =
+                        &(shell->parser.buffer[i]);
+                }
                 record = 0;
             }
             if (shell->parser.buffer[i] == '\\'
