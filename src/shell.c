@@ -851,13 +851,11 @@ static void shellParserParam(Shell *shell)
             }
             if (record == 1)
             {
-                //TODO 防止shell->parser.param[]越界
                 if (shell->parser.paramCount < SHELL_PARAMETER_MAX_NUMBER)
                 {
-                    shell->parser.param[shell->parser.paramCount] =
+                    shell->parser.param[shell->parser.paramCount++] =
                         &(shell->parser.buffer[i]);
                 }
-                shell->parser.paramCount++;
                 record = 0;
             }
             if (shell->parser.buffer[i] == '\\'
@@ -872,11 +870,6 @@ static void shellParserParam(Shell *shell)
             record = 1;
         }
     }
-	//TODO 防止shell->parser.param[]越界 自动截断多余计数
-	if (shell->parser.paramCount > SHELL_PARAMETER_MAX_NUMBER)
-	{
-		shell->parser.paramCount = SHELL_PARAMETER_MAX_NUMBER;
-	}
 }
 
 
