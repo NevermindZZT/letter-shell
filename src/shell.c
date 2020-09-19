@@ -872,6 +872,11 @@ static void shellParserParam(Shell *shell)
             record = 1;
         }
     }
+	//TODO 防止shell->parser.param[]越界 自动截断多余计数
+	if (shell->parser.paramCount > SHELL_PARAMETER_MAX_NUMBER)
+	{
+		shell->parser.paramCount = SHELL_PARAMETER_MAX_NUMBER;
+	}
 }
 
 
@@ -883,12 +888,6 @@ static void shellParserParam(Shell *shell)
 static void shellRemoveParamQuotes(Shell *shell)
 {
     unsigned short paramLength;
-    //TODO 防止shell->parser.param[]越界 自动截断多余参数
-    if (shell->parser.paramCount > SHELL_PARAMETER_MAX_NUMBER)
-    {
-        shell->parser.paramCount = SHELL_PARAMETER_MAX_NUMBER;
-    }
-
     for (unsigned short i = 0; i < shell->parser.paramCount; i++)
     {
         if (shell->parser.param[i][0] == '\"')
