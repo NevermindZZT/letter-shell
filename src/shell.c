@@ -1118,10 +1118,12 @@ setVar, shellSetVar, set var);
  * 
  * @param shell shell对象
  * @param command 命令
+ * 
+ * @return unsigned int 命令返回值
  */
-static void shellRunCommand(Shell *shell, ShellCommand *command)
+unsigned int shellRunCommand(Shell *shell, ShellCommand *command)
 {
-    int returnValue;
+    int returnValue = 0;
     shell->status.isActive = 1;
     if (command->attr.attrs.type == SHELL_TYPE_CMD_MAIN)
     {
@@ -1154,6 +1156,8 @@ static void shellRunCommand(Shell *shell, ShellCommand *command)
         shellSetUser(shell, command);
     }
     shell->status.isActive = 0;
+
+    return returnValue;
 }
 
 
