@@ -33,13 +33,13 @@ static char logBuffer[LOG_BUFFER_SIZE];
  */
 void logRegister(Log *log, Shell *shell)
 {
-#if SHELL_USING_COMPANION == 1
     if (shell)
     {
         log->shell = shell;
+    #if SHELL_USING_COMPANION == 1
         shellCompanionAdd(shell, SHELL_COMPANION_ID_LOG, log);
+    #endif
     }
-#endif
     for (short i = 0; i < LOG_MAX_NUMBER; i++)
     {
         if (logList[i] == 0)
