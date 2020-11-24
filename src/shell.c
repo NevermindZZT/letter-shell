@@ -1695,18 +1695,24 @@ void shellHandler(Shell *shell, char data)
 #if SHELL_SUPPORT_END_LINE == 1
 void shellWriteEndLine(Shell *shell, char *buffer, int len)
 {
-    shellWriteString(shell, shellText[SHELL_TEXT_CLEAR_LINE]);
+    if (!shell->status.isActive)
+    {
+        shellWriteString(shell, shellText[SHELL_TEXT_CLEAR_LINE]);
+    }
     while (len --)
     {
         shell->write(*buffer++);
     }
-    shellWriteCommandLine(shell, 0);
-    if (shell->parser.length > 0)
+    if (!shell->status.isActive)
     {
-        shellWriteString(shell, shell->parser.buffer);
-        for (short i = 0; i < shell->parser.length - shell->parser.cursor; i++)
+        shellWriteCommandLine(shell, 0);
+        if (shell->parser.length > 0)
         {
-            shell->write('\b');
+            shellWriteString(shell, shell->parser.buffer);
+            for (short i = 0; i < shell->parser.length - shell->parser.cursor; i++)
+            {
+                shell->write('\b');
+            }
         }
     }
 }

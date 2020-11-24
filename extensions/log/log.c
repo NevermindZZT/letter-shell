@@ -206,7 +206,8 @@ void logHexDump(Log *log, void *base, unsigned int length)
         printLen = 0;
     }
 }
-SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+SHELL_EXPORT_CMD(
+SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
 hexdump, logHexDump, hex dump\r\n hexdump [log] [base] [len]);
 
 #if SHELL_USING_COMPANION == 1
