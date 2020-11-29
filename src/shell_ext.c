@@ -24,12 +24,12 @@ extern int shellGetVarValue(Shell *shell, ShellCommand *command);
  * @brief 判断数字进制
  * 
  * @param string 参数字符串
- * @return NUM_Type 进制
+ * @return ShellNumType 进制
  */
-static NUM_Type shellExtNumType(char *string)
+static ShellNumType shellExtNumType(char *string)
 {
     char *p = string;
-    NUM_Type type = NUM_TYPE_INT;
+    ShellNumType type = NUM_TYPE_DEC;
 
     if ((*p == '0') && ((*(p + 1) == 'x') || (*(p + 1) == 'X')))
     {
@@ -174,7 +174,7 @@ static char* shellExtParseString(char *string)
  */
 static unsigned int shellExtParseNumber(char *string)
 {
-    NUM_Type type = NUM_TYPE_INT;
+    ShellNumType type = NUM_TYPE_DEC;
     char radix = 10;
     char *p = string;
     char offset = 0;
@@ -301,7 +301,7 @@ unsigned int shellExtParsePara(Shell *shell, char *string)
  */
 int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 {
-    unsigned int params[8] = {0};
+    unsigned int params[SHELL_PARAMETER_MAX_NUMBER] = {0};
     int paramNum = command->attr.attrs.paramNum > (argc - 1) ? 
         command->attr.attrs.paramNum : (argc - 1);
     for (int i = 0; i < argc - 1; i++)
@@ -310,39 +310,135 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
     }
     switch (paramNum)
     {
+#if SHELL_PARAMETER_MAX_NUMBER >= 1
     case 0:
         return command->data.cmd.function();
         // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 1 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 2
     case 1:
         return command->data.cmd.function(params[0]);
         // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 2 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 3
     case 2:
         return command->data.cmd.function(params[0], params[1]);
         // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 3 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 4
     case 3:
         return command->data.cmd.function(params[0], params[1],
                                           params[2]);
         // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 4 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 5
     case 4:
         return command->data.cmd.function(params[0], params[1],
                                           params[2], params[3]);
         // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 5 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 6
     case 5:
         return command->data.cmd.function(params[0], params[1],
                                           params[2], params[3],
                                           params[4]);
         // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 6 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 7
     case 6:
         return command->data.cmd.function(params[0], params[1],
                                           params[2], params[3],
                                           params[4], params[5]);
         // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 7 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 8
     case 7:
         return command->data.cmd.function(params[0], params[1],
                                           params[2], params[3],
                                           params[4], params[5],
                                           params[6]);
         // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 8 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 9
+    case 8:
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6], params[7]);
+        // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 9 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 10
+    case 9:
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6], params[7],
+                                          params[8]);
+        // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 10 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 11
+    case 10:
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6], params[7],
+                                          params[8], params[9]);
+        // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 11 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 12
+    case 11:
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6], params[7],
+                                          params[8], params[9],
+                                          params[10]);
+        // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 12 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 13
+    case 12:
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6], params[7],
+                                          params[8], params[9],
+                                          params[10], params[11]);
+        // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 13 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 14
+    case 13:
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6], params[7],
+                                          params[8], params[9],
+                                          params[10], params[11],
+                                          params[12]);
+        // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 14 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 15
+    case 14:
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6], params[7],
+                                          params[8], params[9],
+                                          params[10], params[11],
+                                          params[12], params[13]);
+        // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 15 */
+#if SHELL_PARAMETER_MAX_NUMBER >= 16
+    case 15:
+        return command->data.cmd.function(params[0], params[1],
+                                          params[2], params[3],
+                                          params[4], params[5],
+                                          params[6], params[7],
+                                          params[8], params[9],
+                                          params[10], params[11],
+                                          params[12], params[13],
+                                          params[14]);
+        // break;
+#endif /** SHELL_PARAMETER_MAX_NUMBER >= 16 */
     default:
         return -1;
         // break;

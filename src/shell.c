@@ -1597,11 +1597,18 @@ void shellHelp(int argc, char *argv[])
                                                  argv[1],
                                                  shell->commandList.base,
                                                  0);
-        shellWriteString(shell, shellText[SHELL_TEXT_HELP_HEADER]);
-        shellWriteString(shell, shellGetCommandName(command));
-        shellWriteString(shell, "\r\n");
-        shellWriteString(shell, shellGetCommandDesc(command));
-        shellWriteString(shell, "\r\n");
+        if (command)
+        {
+            shellWriteString(shell, shellText[SHELL_TEXT_HELP_HEADER]);
+            shellWriteString(shell, shellGetCommandName(command));
+            shellWriteString(shell, "\r\n");
+            shellWriteString(shell, shellGetCommandDesc(command));
+            shellWriteString(shell, "\r\n");
+        }
+        else
+        {
+            shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
+        }
     }
 }
 SHELL_EXPORT_CMD(
