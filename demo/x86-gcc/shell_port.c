@@ -150,3 +150,15 @@ void shellKeyTest(void)
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
 keyTest, shellKeyTest, key test);
+
+void shellScanTest(void)
+{
+    int a;
+    char b[12];
+    shellScan(shellGetCurrent(), "%x %s\n", &a, b);
+    shellPrint(shellGetCurrent(), "result: a = %x, b = %s\r\n", a, b);
+}
+SHELL_EXPORT_CMD(
+SHELL_CMD_PERMISSION(0x00)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+scanTest, shellScanTest, test scan);
+

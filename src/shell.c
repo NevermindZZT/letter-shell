@@ -366,6 +366,42 @@ void shellPrint(Shell *shell, char *fmt, ...)
 #endif
 
 
+#if SHELL_SCAN_BUFFER > 0
+/**
+ * @brief shell格式化输入
+ * 
+ * @param shell shell对象
+ * @param fmt 格式化字符串
+ * @param ... 参数
+ */
+void shellScan(Shell *shell, char *fmt, ...)
+{
+    char buffer[SHELL_SCAN_BUFFER];
+    va_list vargs;
+    short index = 0;
+
+    SHELL_ASSERT(shell, return);
+
+    if (shell->read)
+    {
+        do {
+            if (shell->read(&buffer[index]) == 0)
+            {
+                shell->write(buffer[index]);
+                index++;
+            }
+        } while (buffer[index -1] != '\r' && buffer[index -1] != '\n' && index < SHELL_SCAN_BUFFER);
+        shellWriteString(shell, "\r\n");
+        buffer[index] = '\0';
+    }
+
+    va_start(vargs, fmt);
+    vsscanf(buffer, fmt, vargs);
+    va_end(vargs);
+}
+#endif
+
+
 /**
  * @brief shell 检查命令权限
  * 

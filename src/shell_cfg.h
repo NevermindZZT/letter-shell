@@ -112,6 +112,13 @@
 #define     SHELL_PRINT_BUFFER          128
 
 /**
+ * @brief shell格式化输入的缓冲大小
+ *        为0时不使用shell格式化输入
+ * @note shell格式化输入会阻塞shellTask, 仅适用于在有操作系统的情况下使用
+ */
+#define     SHELL_SCAN_BUFFER          0
+
+/**
  * @brief 获取系统时间(ms)
  *        定义此宏为获取系统Tick，如`HAL_GetTick()`
  * @note 此宏不定义时无法使用双击tab补全命令help，无法使用shell超时锁定
