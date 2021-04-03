@@ -12,8 +12,8 @@
 #ifndef __SHELL_CFG_H__
 #define __SHELL_CFG_H__
 
-#include "stm32f4xx_hal.h"
-
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 /**
  * @brief 是否使用默认shell任务while循环，使能宏`SHELL_USING_TASK`后此宏有意义
@@ -27,7 +27,7 @@
  *        使能此宏后，可以使用`SHELL_EXPORT_CMD()`等导出命令
  *        定义shell命令，关闭此宏的情况下，需要使用命令表的方式
  */
-#define     SHELL_USING_CMD_EXPORT      1
+#define     SHELL_USING_CMD_EXPORT      0
 
 /**
  * @brief 是否使用shell伴生对象
@@ -64,19 +64,19 @@
  * @brief 使用LF作为命令行回车触发
  *        可以和SHELL_ENTER_CR同时开启
  */
-#define     SHELL_ENTER_LF              0
+#define     SHELL_ENTER_LF              1
 
 /**
  * @brief 使用CR作为命令行回车触发
  *        可以和SHELL_ENTER_LF同时开启
  */
-#define     SHELL_ENTER_CR              0
+#define     SHELL_ENTER_CR              1
 
 /**
  * @brief 使用CRLF作为命令行回车触发
  *        不可以和SHELL_ENTER_LF或SHELL_ENTER_CR同时开启
  */
-#define     SHELL_ENTER_CRLF            1
+#define     SHELL_ENTER_CRLF            0
 
 /**
  * @brief 使用执行未导出函数的功能
@@ -118,7 +118,7 @@
  *        定义此宏为获取系统Tick，如`HAL_GetTick()`
  * @note 此宏不定义时无法使用双击tab补全命令help，无法使用shell超时锁定
  */
-#define     SHELL_GET_TICK()            HAL_GetTick()
+#define     SHELL_GET_TICK()            xTaskGetTickCount()
 
 /**
  * @brief shell内存分配

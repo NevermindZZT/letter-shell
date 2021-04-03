@@ -10,9 +10,11 @@
  */
 
 #include "shell.h"
-#include "serial.h"
-#include "stm32f4xx_hal.h"
-#include "usart.h"
+#include "freertos/FreeRTOS.h"
+#include "driver/uart.h"
+
+
+#define     SHELL_UART      UART_NUM_0
 
 
 Shell shell;
@@ -25,7 +27,7 @@ char shellBuffer[512];
  */
 void userShellWrite(char data)
 {
-    serialTransmit(&debugSerial, (uint8_t *)&data, 1, 0xFF);
+    uart_write_bytes(SHELL_UART, (const char *)&data, 1);
 }
 
 
@@ -37,15 +39,8 @@ void userShellWrite(char data)
  */
 signed char userShellRead(char *data)
 {
-    if (serialReceive(&debugSerial, (uint8_t *)data, 1, 0) == 1)
-    {
-        return 0;
-    }
-    else
-    {
-        return -1;
-    }
-    
+    return (uart_read_bytes(SHELL_UART, (uint8_t *)data, 1, portMAX_DELAY) == 1)
+        ? 0 : -1;
 }
 
 
@@ -55,6 +50,15 @@ signed char userShellRead(char *data)
  */
 void userShellInit(void)
 {
+    uart_config_t uartConfig = {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity    = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+    };
+    uart_param_config(SHELL_UART, &uartConfig);
+    uart_driver_install(SHELL_UART, 256 * 2, 0, 0, NULL, 0);
     shell.write = userShellWrite;
     shell.read = userShellRead;
     shellInit(&shell, shellBuffer, 512);

@@ -5,7 +5,7 @@
  * @version 3.0.0
  * @date 2019-12-30
  * 
- * @Copyright (c) 2020 Letter
+ * @copyright (c) 2020 Letter
  * 
  */
 
@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.0.0-beta2"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.0.6"                 /**< 版本号 */
 
 
 /**
@@ -44,22 +44,61 @@
 #define     SHELL_CMD_TYPE(type) \
             ((type & 0x0000000F) << 8)
 
+/**
+ * @brief 使能命令在未校验密码的情况下使用
+ */
 #define     SHELL_CMD_ENABLE_UNCHECKED \
             (1 << 12)
 
+/**
+ * @brief 禁用返回值打印
+ */
 #define     SHELL_CMD_DISABLE_RETURN \
             (1 << 13)
 
+/**
+ * @brief 只读属性(仅对变量生效)
+ */
+#define     SHELL_CMD_READ_ONLY \
+            (1 << 14)
 
-#if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
-    #define SECTION(x)                  __attribute__((section(x)))
-#elif defined(__ICCARM__)
-    #define SECTION(x)                  @ x
-#elif defined(__GNUC__)
-    #define SECTION(x)                  __attribute__((section(x)))
-#else
-    #define SECTION(x)
+/**
+ * @brief 命令参数数量
+ */
+#define     SHELL_CMD_PARAM_NUM(num) \
+            ((num & 0x0000000F)) << 16
+
+#ifndef SECTION
+    #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
+        #define SECTION(x)                  __attribute__((used, section(x)))
+    #elif defined(__ICCARM__) || defined(__ICCRX__)
+        #define SECTION(x)                  @ x
+    #elif defined(__GNUC__)
+        #define SECTION(x)                  __attribute__((section(x)))
+    #else
+        #define SECTION(x)
+    #endif
 #endif
+
+/**
+ * @brief shell float型参数转换
+ */
+#define     SHELL_PARAM_FLOAT(x)            (*(float *)(&x))
+
+/**
+ * @brief shell 代理函数名
+ */
+#define     SHELL_AGENCY_FUNC_NAME(_func)   agency##_func
+
+/**
+ * @brief shell代理函数定义
+ * 
+ * @param _func 被代理的函数
+ * @param ... 代理参数
+ */
+#define     SHELL_AGENCY_FUNC(_func, ...) \
+            void SHELL_AGENCY_FUNC_NAME(_func)(int p1, int p2, int p3, int p4, int p5, int p6, int p7) \
+            { _func(__VA_ARGS__); }
 
 #if SHELL_USING_CMD_EXPORT == 1
 
@@ -82,6 +121,19 @@
                 .data.cmd.function = (int (*)())_func, \
                 .data.cmd.desc = shellDesc##_name \
             }
+
+    /**
+     * @brief shell 代理命令定义
+     * 
+     * @param _attr 命令属性
+     * @param _name 命令名
+     * @param _func 命令函数
+     * @param _desc 命令描述
+     * @param ... 代理参数
+     */
+    #define SHELL_EXPORT_CMD_AGENCY(_attr, _name, _func, _desc, ...) \
+            SHELL_AGENCY_FUNC(_func, ##__VA_ARGS__) \
+            SHELL_EXPORT_CMD(_attr, _name, SHELL_AGENCY_FUNC_NAME(_func), _desc)
 
     /**
      * @brief shell 变量定义
@@ -142,6 +194,19 @@
                 .data.key.function = (void (*)(Shell *))_func, \
                 .data.key.desc = shellDesc##_value \
             }
+
+    /**
+     * @brief shell 代理按键定义
+     * 
+     * @param _attr 按键属性
+     * @param _value 按键键值
+     * @param _func 按键函数
+     * @param _desc 按键描述
+     * @param ... 代理参数
+     */
+    #define SHELL_EXPORT_KEY_AGENCY(_attr, _value, _func, _desc, ...) \
+            SHELL_AGENCY_FUNC(_func, ##__VA_ARGS__) \
+            SHELL_EXPORT_KEY(_attr, _value, SHELL_AGENCY_FUNC_NAME(_func), _desc)
 #else
     /**
      * @brief shell 命令item定义
@@ -208,9 +273,11 @@
             }
 
     #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc)
+    #define SHELL_EXPORT_CMD_AGENCY(_attr, _name, _func, _desc, ...)
     #define SHELL_EXPORT_VAR(_attr, _name, _value, _desc)
     #define SHELL_EXPORT_USER(_attr, _name, _password, _desc)
     #define SHELL_EXPORT_KEY(_attr, _value, _func, _desc)
+    #define SHELL_EXPORT_KEY_AGENCY(_attr, _name, _func, _desc, ...)
 #endif /** SHELL_USING_CMD_EXPORT == 1 */
 
 /**
@@ -223,8 +290,9 @@ typedef enum
     SHELL_TYPE_VAR_INT,                                         /**< int型变量 */
     SHELL_TYPE_VAR_SHORT,                                       /**< short型变量 */
     SHELL_TYPE_VAR_CHAR,                                        /**< char型变量 */
+    SHELL_TYPE_VAR_STRING,                                      /**< string型变量 */
     SHELL_TYPE_VAR_POINT,                                       /**< 指针型变量 */
-    SHELL_TYPE_VAL,                                             /**< 常量 */
+    SHELL_TYPE_VAR_NODE,                                        /**< 节点变量 */
     SHELL_TYPE_USER,                                            /**< 用户 */
     SHELL_TYPE_KEY,                                             /**< 按键 */
 } ShellCommandType;
@@ -233,20 +301,24 @@ typedef enum
 /**
  * @brief Shell定义
  */
-typedef struct
+typedef struct shell_def
 {
     struct
     {
         const struct shell_command *user;                       /**< 当前用户 */
         int activeTime;                                         /**< shell激活时间 */
+        char *path;                                             /**< 当前shell路径 */
+    #if SHELL_USING_COMPANION == 1
+        struct shell_companion_object *companions;              /**< 伴生对象 */
+    #endif
     } info;
     struct
     {
         unsigned short length;                                  /**< 输入数据长度 */
         unsigned short cursor;                                  /**< 当前光标位置 */
         char *buffer;                                           /**< 输入缓冲 */
-        unsigned short bufferSize;                              /**< 输入缓冲大小 */
         char *param[SHELL_PARAMETER_MAX_NUMBER];                /**< 参数 */
+        unsigned short bufferSize;                              /**< 输入缓冲大小 */
         unsigned short paramCount;                              /**< 参数数量 */
         int keyValue;                                           /**< 输入按键键值 */
     } parser;
@@ -286,6 +358,9 @@ typedef struct shell_command
             ShellCommandType type : 4;                          /**< command类型 */
             unsigned char enableUnchecked : 1;                  /**< 在未校验密码的情况下可用 */
             unsigned char disableReturn : 1;                    /**< 禁用返回值输出 */
+            unsigned char  readOnly : 1;                        /**< 只读 */
+            unsigned char reserve : 1;                          /**< 保留 */
+            unsigned char paramNum : 4;                         /**< 参数数量 */
         } attrs;
         int value;
     } attr;                                                     /**< 属性 */
@@ -318,13 +393,48 @@ typedef struct shell_command
     } data; 
 } ShellCommand;
 
+/**
+ * @brief shell节点变量属性
+ */
+typedef struct
+{
+    void *var;                                                  /**< 变量引用 */
+    int (*get)();                                               /**< 变量get方法 */
+    int (*set)();                                               /**< 变量set方法 */
+} ShellNodeVarAttr;
+
+
+#define shellSetPath(_shell, _path)     (_shell)->info.path = _path
+#define shellGetPath(_shell)            ((_shell)->info.path)
 
 void shellInit(Shell *shell, char *buffer, unsigned short size);
 unsigned short shellWriteString(Shell *shell, const char *string);
 void shellPrint(Shell *shell, char *fmt, ...);
+void shellScan(Shell *shell, char *fmt, ...);
 Shell* shellGetCurrent(void);
 void shellHandler(Shell *shell, char data);
+void shellWriteEndLine(Shell *shell, char *buffer, int len);
 void shellTask(void *param);
+int shellRun(Shell *shell, const char *cmd);
+
+
+
+#if SHELL_USING_COMPANION == 1
+/**
+ * @brief shell伴生对象定义
+ */
+typedef struct shell_companion_object
+{
+    int id;                                                     /**< 伴生对象ID */
+    void *obj;                                                  /**< 伴生对象 */
+    struct shell_companion_object *next;                        /**< 下一个伴生对象 */
+} ShellCompanionObj;
+
+
+signed char shellCompanionAdd(Shell *shell, int id, void *object);
+signed char shellCompanionDel(Shell *shell, int id);
+void *shellCompanionGet(Shell *shell, int id);
+#endif
 
 #endif
 

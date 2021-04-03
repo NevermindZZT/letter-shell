@@ -5,7 +5,7 @@
  * @version 3.0.0
  * @date 2019-12-31
  * 
- * @Copyright (c) 2019 Letter
+ * @copyright (c) 2019 Letter
  * 
  */
 
@@ -20,14 +20,14 @@
  */
 typedef enum
 {
-    NUM_TYPE_INT,                                           /**< 十进制整型 */
+    NUM_TYPE_DEC,                                           /**< 十进制整型 */
     NUM_TYPE_BIN,                                           /**< 二进制整型 */
     NUM_TYPE_OCT,                                           /**< 八进制整型 */
     NUM_TYPE_HEX,                                           /**< 十六进制整型 */
     NUM_TYPE_FLOAT                                          /**< 浮点型 */
-} NUM_Type;
+} ShellNumType;
 
 unsigned int shellExtParsePara(Shell *shell, char *string);
-int shellExtRun(Shell *shell, int (*function)(), int argc, char *argv[]);
+int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[]);
 
 #endif
