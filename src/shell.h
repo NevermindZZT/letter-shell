@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.0.6"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.1.0"                 /**< 版本号 */
 
 
 /**
@@ -340,8 +340,8 @@ typedef struct shell_def
         unsigned char isActive : 1;                             /**< 当前活动Shell */
         unsigned char tabFlag : 1;                              /**< tab标志 */
     } status;
-    signed char (*read)(char *);                                /**< shell读函数 */
-    void (*write)(const char);                                  /**< shell写函数 */
+    signed short (*read)(char *, unsigned short);               /**< shell读函数 */
+    signed short (*write)(const char *, unsigned short);        /**< shell写函数 */
 } Shell;
 
 

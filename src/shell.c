@@ -260,7 +260,7 @@ Shell* shellGetCurrent(void)
  */
 static void shellWriteByte(Shell *shell, const char data)
 {
-    shell->write(data);
+    shell->write(&data, 1);
 }
 
 
@@ -275,13 +275,13 @@ static void shellWriteByte(Shell *shell, const char data)
 unsigned short shellWriteString(Shell *shell, const char *string)
 {
     unsigned short count = 0;
+    char *p = string;
     SHELL_ASSERT(shell->write, return 0);
-    while(*string)
+    while(*p++)
     {
-        shell->write(*string ++);
         count ++;
     }
-    return count;
+    return shell->write(string, count);
 }
 
 
@@ -296,22 +296,24 @@ unsigned short shellWriteString(Shell *shell, const char *string)
 static unsigned short shellWriteCommandDesc(Shell *shell, const char *string)
 {
     unsigned short count = 0;
+    char *p = string;
     SHELL_ASSERT(shell->write, return 0);
-    while(*string
-        && *string != '\r'
-        && *string != '\n'
-        && count < 36)
+    while (*p && *p != '\r' && *p != '\n')
     {
-        shell->write(*string ++);
-        count ++;
-        if (count >= 36 && *(string + 1))
-        {
-            shell->write('.');
-            shell->write('.');
-            shell->write('.');
-        }
+        p++;
+        count++;
     }
-    return count;
+    
+    if (count > 36)
+    {
+        shell->write(string, 36);
+        shell->write("...", 3);
+    }
+    else
+    {
+        shell->write(string, count);
+    }
+    return count > 36 ? 36 : 39;
 }
 
 
@@ -385,9 +387,9 @@ void shellScan(Shell *shell, char *fmt, ...)
     if (shell->read)
     {
         do {
-            if (shell->read(&buffer[index]) == 0)
+            if (shell->read(&buffer[index], 1) == 1)
             {
-                shell->write(buffer[index]);
+                shell->write(buffer[index], 1);
                 index++;
             }
         } while (buffer[index -1] != '\r' && buffer[index -1] != '\n' && index < SHELL_SCAN_BUFFER);
@@ -1742,10 +1744,8 @@ void shellWriteEndLine(Shell *shell, char *buffer, int len)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_CLEAR_LINE]);
     }
-    while (len --)
-    {
-        shell->write(*buffer++);
-    }
+    shell->write(buffer, len);
+
     if (!shell->status.isActive)
     {
         shellWriteCommandLine(shell, 0);
@@ -1754,7 +1754,7 @@ void shellWriteEndLine(Shell *shell, char *buffer, int len)
             shellWriteString(shell, shell->parser.buffer);
             for (short i = 0; i < shell->parser.length - shell->parser.cursor; i++)
             {
-                shell->write('\b');
+                shell->write('\b', 1);
             }
         }
     }
@@ -1776,7 +1776,7 @@ void shellTask(void *param)
     while(1)
     {
 #endif
-        if (shell->read && shell->read(&data) == 0)
+        if (shell->read && shell->read(&data, 1) == 1)
         {
             shellHandler(shell, data);
         }

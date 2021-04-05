@@ -27,9 +27,14 @@ char shellPathBuffer[512] = "/";
  * 
  * @param data 数据
  */
-void userShellWrite(char data)
+unsigned short userShellWrite(char *data, unsigned short len)
 {
-    putchar(data);
+    unsigned short length = len;
+    while (length--)
+    {
+        putchar(*data++);
+    }
+    return len;
 }
 
 /**
@@ -38,14 +43,18 @@ void userShellWrite(char data)
  * @param data 数据
  * @return char 状态
  */
-signed char userShellRead(char *data)
+unsigned short userShellRead(char *data, unsigned short len)
 {
+    unsigned short length = len;
     system("stty -echo");
     system("stty -icanon");
-    *data = getchar();
+    while (length--)
+    {
+        *data++ = getchar();
+    }
     system("stty icanon");
     system("stty echo");
-    return 0;
+    return len;
 }
 
 /**
@@ -138,7 +147,7 @@ void shellKeyTest(void)
     SHELL_ASSERT(shell && shell->read, return);
     while (1)
     {
-        if (shell->read(&data) == 0)
+        if (shell->read(&data, 1) == 1)
         {
             if (data == '\n' || data == '\r')
             {
