@@ -28,6 +28,13 @@
                 action; \
             }
 
+#if SHELL_USING_LOCK == 1
+#define     SHELL_LOCK(shell)           shell->lock(shell)
+#define     SHELL_UNLOCK(shell)         shell->unlock(shell)
+#else
+#define     SHELL_LOCK(shell)
+#define     SHELL_UNLOCK(shell)
+#endif /** SHELL_USING_LOCK == 1 */
 /**
  * @brief shell 命令权限
  * 
@@ -342,6 +349,10 @@ typedef struct shell_def
     } status;
     signed short (*read)(char *, unsigned short);               /**< shell读函数 */
     signed short (*write)(const char *, unsigned short);        /**< shell写函数 */
+#if SHELL_USING_LOCK == 1
+    int (*lock)(struct shell_def *);                              /**< shell 加锁 */
+    int (*unlock)(struct shell_def *);                            /**< shell 解锁 */
+#endif
 } Shell;
 
 

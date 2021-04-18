@@ -1662,6 +1662,7 @@ help, shellHelp, show command info\r\nhelp [cmd]);
 void shellHandler(Shell *shell, char data)
 {
     SHELL_ASSERT(data, return);
+    SHELL_LOCK(shell);
 
 #if SHELL_LOCK_TIMEOUT > 0
     if (shell->info.user->data.user.password
@@ -1734,12 +1735,14 @@ void shellHandler(Shell *shell, char data)
     {
         shell->info.activeTime = SHELL_GET_TICK();
     }
+    SHELL_UNLOCK(shell);
 }
 
 
 #if SHELL_SUPPORT_END_LINE == 1
 void shellWriteEndLine(Shell *shell, char *buffer, int len)
 {
+    SHELL_LOCK(shell);
     if (!shell->status.isActive)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_CLEAR_LINE]);
@@ -1758,6 +1761,7 @@ void shellWriteEndLine(Shell *shell, char *buffer, int len)
             }
         }
     }
+    SHELL_UNLOCK(shell);
 }
 #endif /** SHELL_SUPPORT_END_LINE == 1 */
 
@@ -1906,7 +1910,6 @@ int shellExecute(int argc, char *argv[])
     if (shell && argc >= 2)
     {
         int (*func)() = (int (*)())shellExtParsePara(shell, argv[1]);
-        shellPrint(shell, "%08x\r\n", func);
         ShellCommand command = {
             .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)
                           |SHELL_CMD_DISABLE_RETURN,
