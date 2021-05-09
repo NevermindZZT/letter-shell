@@ -126,6 +126,12 @@
 #define     SHELL_GET_TICK()            0
 
 /**
+ * @brief 使用锁
+ * @note 使用shell锁时，需要对加锁和解锁进行实现
+ */
+#define     SHELL_USING_LOCK            0
+
+/**
  * @brief shell内存分配
  *        shell本身不需要此接口，若使用shell伴生对象，需要进行定义
  */

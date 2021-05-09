@@ -318,8 +318,8 @@ letter shell 3.x对可执行命令，按键，用户以及变量分别提供了�
     #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellCommand##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellCommand##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr, \
                 .data.cmd.name = shellCmd##_name, \
@@ -344,8 +344,8 @@ letter shell 3.x对可执行命令，按键，用户以及变量分别提供了�
     #define SHELL_EXPORT_VAR(_attr, _name, _value, _desc) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellVar##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellVar##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr, \
                 .data.var.name = shellCmd##_name, \
@@ -373,8 +373,8 @@ letter shell 3.x对可执行命令，按键，用户以及变量分别提供了�
             const char shellCmd##_name[] = #_name; \
             const char shellPassword##_name[] = #_password; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellUser##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellUser##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_USER), \
                 .data.user.name = shellCmd##_name, \
@@ -398,8 +398,8 @@ letter shell 3.x对可执行命令，按键，用户以及变量分别提供了�
      */
     #define SHELL_EXPORT_KEY(_attr, _value, _func, _desc) \
             const char shellDesc##_value[] = #_desc; \
-            const ShellCommand \
-            shellKey##_value SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellKey##_value SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_KEY), \
                 .data.key.value = _value, \

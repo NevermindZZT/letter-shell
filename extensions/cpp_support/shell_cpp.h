@@ -74,8 +74,8 @@ typedef struct shell_command_cpp_key
     #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
-            extern "C" const ShellCommandCppCmd \
-            shellCommand##_name SECTION("shellCommand") =  \
+            extern "C" SHELL_USED const ShellCommandCppCmd \
+            shellCommand##_name SHELL_SECTION("shellCommand") =  \
             { \
                 _attr, \
                 shellCmd##_name, \
@@ -95,8 +95,8 @@ typedef struct shell_command_cpp_key
     #define SHELL_EXPORT_VAR(_attr, _name, _value, _desc) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
-            extern "C" const ShellCommandCppVar \
-            shellVar##_name SECTION("shellCommand") =  \
+            extern "C" SHELL_USED const ShellCommandCppVar \
+            shellVar##_name SHELL_SECTION("shellCommand") =  \
             { \
                 _attr, \
                 shellCmd##_name, \
@@ -117,8 +117,8 @@ typedef struct shell_command_cpp_key
             const char shellCmd##_name[] = #_name; \
             const char shellPassword##_name[] = #_password; \
             const char shellDesc##_name[] = #_desc; \
-            extern "C" const ShellCommandCppUser \
-            shellUser##_name SECTION("shellCommand") =  \
+            extern "C" SHELL_USED const ShellCommandCppUser \
+            shellUser##_name SHELL_SECTION("shellCommand") =  \
             { \
                 _attr|SHELL_CMD_TYPE(SHELL_TYPE_USER), \
                 shellCmd##_name, \
@@ -137,9 +137,9 @@ typedef struct shell_command_cpp_key
      */
     #define SHELL_EXPORT_KEY(_attr, _value, _func, _desc) \
             const char shellDesc##_value[] = #_desc; \
-            extern "C" const ShellCommandCppKey \
-            shellKey##_value SECTION("shellCommand") =  \
-            { \
+            extern "C" SHELL_USED const ShellCommandCppKey \
+            shellKey##_value SHELL_SECTION("shellCommand") =  \
+            { \ 
                 _attr|SHELL_CMD_TYPE(SHELL_TYPE_KEY), \
                 _value, \
                 (void (*)(Shell *))_func, \

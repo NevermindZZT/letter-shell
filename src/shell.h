@@ -75,15 +75,27 @@
 #define     SHELL_CMD_PARAM_NUM(num) \
             ((num & 0x0000000F)) << 16
 
-#ifndef SECTION
-    #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
-        #define SECTION(x)                  __attribute__((used, section(x)))
-    #elif defined(__ICCARM__) || defined(__ICCRX__)
-        #define SECTION(x)                  @ x
+#ifndef SHELL_SECTION
+    #if defined(__CC_ARM) || defined(__CLANG_ARM)
+        #define SHELL_SECTION(x)                __attribute__((section(x)))
+    #elif defined (__IAR_SYSTEMS_ICC__)
+        #define SHELL_SECTION(x)                @ x
     #elif defined(__GNUC__)
-        #define SECTION(x)                  __attribute__((section(x)))
+        #define SHELL_SECTION(x)                __attribute__((section(x)))
     #else
-        #define SECTION(x)
+        #define SHELL_SECTION(x)
+    #endif
+#endif
+
+#ifndef SHELL_USED
+    #if defined(__CC_ARM) || defined(__CLANG_ARM)
+        #define SHELL_USED                      __attribute__((used))
+    #elif defined (__IAR_SYSTEMS_ICC__)
+        #define SHELL_USED                      __root
+    #elif defined(__GNUC__)
+        #define SHELL_USED                      __attribute__((used))
+    #else
+        #define SHELL_USED
     #endif
 #endif
 
@@ -120,8 +132,8 @@
     #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellCommand##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellCommand##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr, \
                 .data.cmd.name = shellCmd##_name, \
@@ -153,8 +165,8 @@
     #define SHELL_EXPORT_VAR(_attr, _name, _value, _desc) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellVar##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellVar##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr, \
                 .data.var.name = shellCmd##_name, \
@@ -174,8 +186,8 @@
             const char shellCmd##_name[] = #_name; \
             const char shellPassword##_name[] = #_password; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellUser##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellUser##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_USER), \
                 .data.user.name = shellCmd##_name, \
@@ -193,8 +205,8 @@
      */
     #define SHELL_EXPORT_KEY(_attr, _value, _func, _desc) \
             const char shellDesc##_value[] = #_desc; \
-            const ShellCommand \
-            shellKey##_value SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellKey##_value SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_KEY), \
                 .data.key.value = _value, \

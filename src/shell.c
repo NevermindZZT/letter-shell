@@ -22,7 +22,7 @@
 const char shellCmdDefaultUser[] = SHELL_DEFAULT_USER;
 const char shellPasswordDefaultUser[] = SHELL_DEFAULT_USER_PASSWORD;
 const char shellDesDefaultUser[] = "default user";
-const ShellCommand shellUserDefault SECTION("shellCommand") =
+SHELL_USED const ShellCommand shellUserDefault SHELL_SECTION("shellCommand") =
 {
     .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_USER),
     .data.user.name = shellCmdDefaultUser,
