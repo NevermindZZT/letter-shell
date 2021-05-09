@@ -31,6 +31,7 @@
   - [尾行模式](#尾行模式)
   - [建议终端软件](#建议终端软件)
   - [命令遍历工具](#命令遍历工具)
+  - [x86 demo](#x86-demo)
 
 ## 简介
 
@@ -480,7 +481,7 @@ p1, SHELL_PARAM_FLOAT(p2), p3, SHELL_PARAM_FLOAT(p4));
 
 ## 权限系统说明
 
-letter shell 3.x的权限管理同用户定义紧密相关，letter shell 3.x使用8个bit位表示命令权限，当用户和命令的权限按位与为真，或者命令权限为0时，表示该用户拥有此命令的权限，可以调用改命令
+letter shell 3.x的权限管理同用户定义紧密相关，letter shell 3.x使用8个bit位表示命令权限，当用户和命令的权限按位与为真，或者命令权限为0时，表示该用户拥有此命令的权限，可以调用该命令
 
 ## 锁说明
 
@@ -551,3 +552,14 @@ python shellTools.py project
 ```
 
 注意：shellTools会遍历指定目录中所有文件，所以当工程中文件较多时，速度会比较慢，建议只用于遍历用户模块的目录
+
+## x86 demo
+
+letter shell 3.x提供了一个x86的demo，可以直接编译运行，其中包含了一条按键键值测试命令，可以测试按键键值，用于快捷键的定义，编译运行方法如下：
+
+```sh
+mv src/shell_cfg.h src/shell_cfg.h.bak
+cd demo/x86-gcc/
+make
+./build/out
+```

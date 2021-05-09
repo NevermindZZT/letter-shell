@@ -16,10 +16,11 @@
 #if LOG_USING_COLOR == 1
 #define memPrintHead CSI(31) \
     "    Offset: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F" \
-    CSI(39)
+    CSI(39) \
+    "\r\n"
 #define memPrintAddr CSI(31)"0x%08x: "CSI(39)
 #else
-#define memPrintHead "    Offset: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"
+#define memPrintHead "    Offset: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\r\n"
 #define memPrintAddr "0x%08x: "
 #endif
 
@@ -92,7 +93,7 @@ logSetLevel, logSetLevel, set log level);
  * @param buffer buffer
  * @param len buffer长度
  */
-void logWriteBuffer(Log *log, LogLevel level, char *buffer, short len)
+static void logWriteBuffer(Log *log, LogLevel level, char *buffer, short len)
 {
     if (log == LOG_ALL_OBJ)
     {
@@ -125,11 +126,25 @@ void logWrite(Log *log, LogLevel level, char *fmt, ...)
     va_list vargs;
     short len;
 
+#if SHELL_USING_LOCK == 1
+    if (log->shell)
+    {
+        SHELL_LOCK(log->shell);
+    }
+#endif /* SHELL_USING_LOCK == 1 */
+
     va_start(vargs, fmt);
     len = vsnprintf(logBuffer, LOG_BUFFER_SIZE - 1, fmt, vargs);
     va_end(vargs);
 
     logWriteBuffer(log, level, logBuffer, len);
+
+#if SHELL_USING_LOCK == 1
+    if (log->shell)
+    {
+        SHELL_UNLOCK(log->shell);
+    }
+#endif /* SHELL_USING_LOCK == 1 */
 }
 
 
@@ -137,27 +152,45 @@ void logWrite(Log *log, LogLevel level, char *fmt, ...)
  * @brief 16进制输出
  * 
  * @param log log对象
+ * @param level 日志级别
  * @param base 内存基址
  * @param length 长度
  */
-void logHexDump(Log *log, void *base, unsigned int length)
+void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
 {
     unsigned char *address;
-    unsigned int len = length;
+    unsigned int len;
     unsigned int printLen = 0;
+    unsigned char buf[12];
 
-    if (length == 0)
+    if (length == 0 || log->level < level)
     {
         return;
     }
 
-    logWrite(log, LOG_NONE, "memory of 0x%08x, size: %d:\r\n", (unsigned int)base, length);
+#if SHELL_USING_LOCK == 1
+    if (log->shell)
+    {
+        SHELL_LOCK(log->shell);
+    }
+#endif /* SHELL_USING_LOCK == 1 */
+
+    logWriteBuffer(log, LOG_NONE, "memory of 0x", sizeof("memory of 0x"));
+    len = vsnprintf(buf, 11, "08x", (unsigned int)base);
+    logWriteBuffer(log, LOG_NONE, buf, len);
+    logWriteBuffer(log, LOG_NONE, ", size: ", sizeof(", size: "));
+    len = vsnprintf(buf, 11, "%d", length);
+    logWriteBuffer(log, LOG_NONE, buf, len);
+    logWriteBuffer(log, LOG_NONE, ":\r\n", sizeof(":\r\n"));
+
     
     address = (unsigned char *)((unsigned int)base & (~0x0000000F));
     length += (unsigned int)base - (unsigned int)address;
     length = (length + 15) & (~0x0000000F);
 
-    logWrite(log, LOG_NONE, memPrintHead"\r\n");
+    logWriteBuffer(log, LOG_NONE, memPrintHead, sizeof(memPrintHead));
+
+    len = length;
 
     while (length)
     {
@@ -205,10 +238,17 @@ void logHexDump(Log *log, void *base, unsigned int length)
         length -= 16;
         printLen = 0;
     }
+
+#if SHELL_USING_LOCK == 1
+    if (log->shell)
+    {
+        SHELL_UNLOCK(log->shell);
+    }
+#endif /* SHELL_USING_LOCK == 1 */
 }
 SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
-hexdump, logHexDump, hex dump\r\n hexdump [log] [base] [len]);
+hexdump, logHexDump, hex dump\r\n hexdump [log] [level] [base] [len]);
 
 #if SHELL_USING_COMPANION == 1
 void logSwitchLevel(Shell *shell)
