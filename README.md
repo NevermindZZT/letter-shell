@@ -2,7 +2,7 @@
 
 ![version](https://img.shields.io/badge/version-3.1.0-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2020.11.29-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2021.05.09-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -26,6 +26,7 @@
     - [命令属性字段说明](#命令属性字段说明)
   - [代理函数和代理参数解析](#代理函数和代理参数解析)
   - [权限系统说明](#权限系统说明)
+  - [锁说明](#锁说明)
   - [伴生对象](#伴生对象)
   - [尾行模式](#尾行模式)
   - [建议终端软件](#建议终端软件)
@@ -60,7 +61,30 @@
     Shell shell;
     ```
 
-2. 定义shell读，写函数，函数原型如下
+2. 定义shell读，写函数
+
+    对于使用letter shell 3.0版本，读写函数原型如下：
+
+    ```C
+    /**
+     * @brief shell读取数据函数原型
+     *
+     * @param char shell读取的字符
+     *
+     * @return char 0 读取数据成功
+     * @return char -1 读取数据失败
+     */
+    typedef signed char (*shellRead)(char *);
+
+    /**
+     * @brief shell写数据函数原型
+     *
+     * @param const char 需写的字符
+     */
+    typedef void (*shellWrite)(const char);
+    ```
+
+    对于使用letter shell 3.1版本，为了优化效率，修改了读写函数原型，如下：
 
     ```C
     /**
@@ -82,7 +106,6 @@
      * @return unsigned short 实际写入的字符数量
      */
     typedef unsigned short (*shellWrite)(const char *data, unsigned short len);
-    ```
 
 3. 申请一片缓冲区
 
@@ -111,7 +134,7 @@
 6. 说明
 
    - 对于中断方式使用shell，不用定义`shell->read`，但需要在中断中调用`shellHandler`
-   - 对于使用操作系统的情况，使能```SHEHLL_TASK_WHILE```宏，然后创建shellTask任务
+   - 对于使用操作系统的情况，使能`SHEHLL_TASK_WHILE`宏，然后创建shellTask任务
 
 7. 其他配置
 
@@ -140,6 +163,7 @@
     | SHELL_DOUBLE_CLICK_TIME     | 双击间隔(ms)                   |
     | SHELL_MAX_NUMBER            | 管理的最大shell数量            |
     | SHELL_GET_TICK()            | 获取系统时间(ms)               |
+    | SHELL_USING_LOCK            | 是否使用锁                     |
     | SHELL_MALLOC(size)          | 内存分配函数(shell本身不需要)  |
     | SHELL_FREE(obj)             | 内存释放函数(shell本身不需要)  |
     | SHELL_SHOW_INFO             | 是否显示shell信息              |
@@ -458,6 +482,48 @@ p1, SHELL_PARAM_FLOAT(p2), p3, SHELL_PARAM_FLOAT(p4));
 
 letter shell 3.x的权限管理同用户定义紧密相关，letter shell 3.x使用8个bit位表示命令权限，当用户和命令的权限按位与为真，或者命令权限为0时，表示该用户拥有此命令的权限，可以调用改命令
 
+## 锁说明
+
+letter shell 3.1增加了shell锁，主要目的是为了防止shell输出和其他输入(比如说日志)对终端的竞争，导致输出混乱的现象，如果使用场景中没有出现终端输出混乱的情况，可以不使用shell锁
+
+1. 使能宏并实现锁
+
+    使能`SHELL_USING_LOCK`宏，实现shell上锁和解锁函数，函数原型如下：
+
+    ```c
+    /**
+     * @brief shell上锁
+     *
+     * @param struct shell_def shell对象
+     *
+     * @return 0
+     */
+    typedef int (*shellLock)(struct shell_def *);
+
+    /**
+     * @brief shell解锁
+     *
+     * @param struct shell_def shell对象
+     *
+     * @return 0
+     */
+    typedef int (*shellLock)(struct shell_def *);
+    ```
+
+2. 使用锁
+
+    在可能产生终端竞争的地方，加上shell锁，比如如果调用`shellPrint`进行格式化输出
+
+    ```C
+    SHELL_LOCK(shell);
+    shellPrint(shell, ...);
+    SHELL_UNLOCK(shell);
+    ```
+
+3. 注意
+
+    - 不要在shell命令中调用shell锁，除非实现的shell锁为可嵌套的锁
+
 ## 伴生对象
 
 letter shell 3.0.3版本引入了伴生对象的概念，通过宏`SHELL_USING_COMPANION`开启或者关闭，若使用伴生对象的功能，需要同时将shell_companion.c文件加入到工程中，伴生对象可以用于需要将某个对象同shell关联的场景，比如说，通过快捷键控制shell终端对应的日志打印对象
@@ -470,7 +536,7 @@ letter shell 3.0.4版本新增了尾行模式，适用于需要在shell所使用
 
 使用letter shell尾行模式结合[log](./extensions/log/readme.md)日志输出的效果如下：
 
-![end lin mode](doc/img/shell_end_line_mode.gif)
+![end line mode](doc/img/shell_end_line_mode.gif)
 
 ## 建议终端软件
 
