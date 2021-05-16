@@ -13,7 +13,7 @@
 
 #include "shell.h"
 
-#define     LOG_VERSION        "1.0.0"
+#define     LOG_VERSION        "1.0.1"
 
 #define     SHELL_COMPANION_ID_LOG          -2
 

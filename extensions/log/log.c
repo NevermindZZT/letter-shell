@@ -246,9 +246,16 @@ void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
     }
 #endif /* SHELL_USING_LOCK == 1 */
 }
+#if SHELL_USING_COMPANION == 1
+SHELL_EXPORT_CMD_AGENCY(
+SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+hexdump, logHexDump, hex dump\r\n hexdump [base] [len],
+(void *)shellCompanionGet(shellGetCurrent(), SHELL_COMPANION_ID_LOG), (void *)LOG_NONE, p1, p2);
+#else
 SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
 hexdump, logHexDump, hex dump\r\n hexdump [log] [level] [base] [len]);
+#endif /** SHELL_USING_COMPANION == 1 */
 
 #if SHELL_USING_COMPANION == 1
 void logSwitchLevel(Shell *shell)
@@ -259,5 +266,4 @@ void logSwitchLevel(Shell *shell)
     logPrintln("set log level: %d", log->level);
 }
 SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x04000000, logSwitchLevel, switch log level);
-
 #endif /** SHELL_USING_COMPANION == 1 */
