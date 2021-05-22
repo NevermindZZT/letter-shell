@@ -1,15 +1,15 @@
-# letter shell 3.0
+# letter shell 3.x
 
-![version](https://img.shields.io/badge/version-3.0.6-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.1.0-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2020.11.29-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2021.05.09-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
 
 ![shell_info.png](doc/img/shell_info.png)
 
-- [letter shell 3.0](#letter-shell-30)
+- [letter shell 3.x](#letter-shell-3x)
   - [简介](#简介)
   - [功能](#功能)
   - [移植说明](#移植说明)
@@ -26,22 +26,26 @@
     - [命令属性字段说明](#命令属性字段说明)
   - [代理函数和代理参数解析](#代理函数和代理参数解析)
   - [权限系统说明](#权限系统说明)
+  - [锁说明](#锁说明)
   - [伴生对象](#伴生对象)
   - [尾行模式](#尾行模式)
   - [建议终端软件](#建议终端软件)
   - [命令遍历工具](#命令遍历工具)
+  - [x86 demo](#x86-demo)
 
 ## 简介
 
-[letter shell 3.0](https://github.com/NevermindZZT/letter-shell/tree/shell3.0)是一个C语言编写的，可以嵌入在程序中的嵌入式shell，主要面向嵌入式设备，以C语言函数为运行单位，可以通过命令行调用，运行程序中的函数
+[letter shell](https://github.com/NevermindZZT/letter-shell)是一个C语言编写的，可以嵌入在程序中的嵌入式shell，主要面向嵌入式设备，以C语言函数为运行单位，可以通过命令行调用，运行程序中的函数
 
-相对2.x版本，letter shell 3.0增加了用户管理，权限管理，后续会增加对文件系统的支持
+相对2.x版本，letter shell 3.x增加了用户管理，权限管理，以及对文件系统的初步支持
 
-此外3.0版本修改了命令格式和定义，2.x版本的工程需要经过简单的修改才能完成迁移
+此外3.x版本修改了命令格式和定义，2.x版本的工程需要经过简单的修改才能完成迁移
 
 若只需要使用基础功能，可以使用[letter shell 2.x](https://github.com/NevermindZZT/letter-shell/tree/shell2.x)版本
 
 使用说明可参考[Letter shell 3.0 全新出发](https://nevermindzzt.github.io/2020/01/19/Letter%20shell%203.0%E5%85%A8%E6%96%B0%E5%87%BA%E5%8F%91/)
+
+如果从3.0版本迁移到3.1以上版本，请注意3.1版本对读写函数原型的修改
 
 ## 功能
 
@@ -60,7 +64,9 @@
     Shell shell;
     ```
 
-2. 定义shell读，写函数，函数原型如下
+2. 定义shell读，写函数
+
+    对于使用letter shell 3.0版本，读写函数原型如下：
 
     ```C
     /**
@@ -79,6 +85,30 @@
      * @param const char 需写的字符
      */
     typedef void (*shellWrite)(const char);
+    ```
+
+    对于使用letter shell 3.1版本，为了优化效率，修改了读写函数原型，如下：
+
+    ```C
+    /**
+     * @brief shell读取数据函数原型
+     *
+     * @param data shell读取的字符
+     * @param len 请求读取的字符数量
+     *
+     * @return unsigned short 实际读取到的字符数量
+     */
+    typedef unsigned short (*shellRead)(char *data, unsigned short len);
+
+    /**
+     * @brief shell写数据函数原型
+     *
+     * @param data 需写的字符数据
+     * @param len 需要写入的字符数
+     *
+     * @return unsigned short 实际写入的字符数量
+     */
+    typedef unsigned short (*shellWrite)(const char *data, unsigned short len);
     ```
 
 3. 申请一片缓冲区
@@ -108,7 +138,7 @@
 6. 说明
 
    - 对于中断方式使用shell，不用定义`shell->read`，但需要在中断中调用`shellHandler`
-   - 对于使用操作系统的情况，使能```SHEHLL_TASK_WHILE```宏，然后创建shellTask任务
+   - 对于使用操作系统的情况，使能`SHEHLL_TASK_WHILE`宏，然后创建shellTask任务
 
 7. 其他配置
 
@@ -137,6 +167,7 @@
     | SHELL_DOUBLE_CLICK_TIME     | 双击间隔(ms)                   |
     | SHELL_MAX_NUMBER            | 管理的最大shell数量            |
     | SHELL_GET_TICK()            | 获取系统时间(ms)               |
+    | SHELL_USING_LOCK            | 是否使用锁                     |
     | SHELL_MALLOC(size)          | 内存分配函数(shell本身不需要)  |
     | SHELL_FREE(obj)             | 内存释放函数(shell本身不需要)  |
     | SHELL_SHOW_INFO             | 是否显示shell信息              |
@@ -149,7 +180,7 @@
 
 ### 函数定义
 
-letter shell 3.0同时支持两种形式的函数定义方式，形如main函数定义的`func(int argc, char *agrv[])`以及形如普通C函数的定义`func(int i, char *str, ...)`，两种函数定义方式适用于不同的场景
+letter shell 3.x同时支持两种形式的函数定义方式，形如main函数定义的`func(int argc, char *agrv[])`以及形如普通C函数的定义`func(int i, char *str, ...)`，两种函数定义方式适用于不同的场景
 
 #### main函数形式
 
@@ -196,7 +227,7 @@ input int: 666, char: A, string: hello world
 
 ### 变量使用
 
-letter shell 3.0支持导出变量，通过命令行查看，设置以及使用变量的值
+letter shell 3.x支持导出变量，通过命令行查看，设置以及使用变量的值
 
 - 导出变量
 
@@ -239,7 +270,7 @@ letter shell 3.0支持导出变量，通过命令行查看，设置以及使用�
 
 - 使用变量
 
-    letter shell 3.0的变量可以在命令中作为参数传递，对于需要传递结构体引用到命令中的场景特别适用，使用`$`+变量名的方式传递
+    letter shell 3.x的变量可以在命令中作为参数传递，对于需要传递结构体引用到命令中的场景特别适用，使用`$`+变量名的方式传递
 
     ```sh
     letter:/$ shellPrint $shell "hello world\r\n"
@@ -260,7 +291,7 @@ letter shell支持通过函数地址直接执行函数，可以方便执行那�
 
 ## 命令定义
 
-letter shell 3.0将可执行的函数命令定义，用户定义，按键定义以及变量定义统一归为命令定义，使用相同的结构储存，查找和执行
+letter shell 3.x将可执行的函数命令定义，用户定义，按键定义以及变量定义统一归为命令定义，使用相同的结构储存，查找和执行
 
 ### 定义方式
 
@@ -297,7 +328,7 @@ letter shell 支持使用命令导出方式和命令表方式进行命令的添�
 
 ### 定义宏说明
 
-letter shell 3.0对可执行命令，按键，用户以及变量分别提供了一个宏，用于进行命令定义
+letter shell 3.x对可执行命令，按键，用户以及变量分别提供了一个宏，用于进行命令定义
 
 1. 可执行命令定义
 
@@ -315,8 +346,8 @@ letter shell 3.0对可执行命令，按键，用户以及变量分别提供了�
     #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellCommand##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellCommand##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr, \
                 .data.cmd.name = shellCmd##_name, \
@@ -341,8 +372,8 @@ letter shell 3.0对可执行命令，按键，用户以及变量分别提供了�
     #define SHELL_EXPORT_VAR(_attr, _name, _value, _desc) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellVar##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellVar##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr, \
                 .data.var.name = shellCmd##_name, \
@@ -370,8 +401,8 @@ letter shell 3.0对可执行命令，按键，用户以及变量分别提供了�
             const char shellCmd##_name[] = #_name; \
             const char shellPassword##_name[] = #_password; \
             const char shellDesc##_name[] = #_desc; \
-            const ShellCommand \
-            shellUser##_name SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellUser##_name SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_USER), \
                 .data.user.name = shellCmd##_name, \
@@ -395,8 +426,8 @@ letter shell 3.0对可执行命令，按键，用户以及变量分别提供了�
      */
     #define SHELL_EXPORT_KEY(_attr, _value, _func, _desc) \
             const char shellDesc##_value[] = #_desc; \
-            const ShellCommand \
-            shellKey##_value SECTION("shellCommand") =  \
+            SHELL_USED const ShellCommand \
+            shellKey##_value SHELL_SECTION("shellCommand") =  \
             { \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_KEY), \
                 .data.key.value = _value, \
@@ -431,7 +462,7 @@ union
 
 ## 代理函数和代理参数解析
 
-letter shell 3.0原生支持将整数，字符，字符串参数，以及在某些情况下的浮点参数直接传递给执行命令的函数，一般情况下，这几种参数类型完全可以满足调试需要，然而在某些情况下，用户确实需要传递其他类型的参数，此时，可以选择将命令定义成main函数形式，使用字符串传递参数，然后自行对参数进行解析，除此之外，letter shell还提供了代理函数的机制，可以对任意类型的参数进行自定义解析
+letter shell 3.x原生支持将整数，字符，字符串参数，以及在某些情况下的浮点参数直接传递给执行命令的函数，一般情况下，这几种参数类型完全可以满足调试需要，然而在某些情况下，用户确实需要传递其他类型的参数，此时，可以选择将命令定义成main函数形式，使用字符串传递参数，然后自行对参数进行解析，除此之外，letter shell还提供了代理函数的机制，可以对任意类型的参数进行自定义解析
 
 关于代理函数的实现原理和具体使用示例，可以参考[letter-shell代理函数解析](https://nevermindzzt.github.io/2020/04/17/letter-shell%E4%BB%A3%E7%90%86%E5%87%BD%E6%95%B0%E8%A7%A3%E6%9E%90/)
 
@@ -453,7 +484,51 @@ p1, SHELL_PARAM_FLOAT(p2), p3, SHELL_PARAM_FLOAT(p4));
 
 ## 权限系统说明
 
-letter shell 3.0的权限管理同用户定义紧密相关，letter shell 3.0使用8个bit位表示命令权限，当用户和命令的权限按位与为真，或者命令权限为0时，表示该用户拥有此命令的权限，可以调用改命令
+letter shell 3.x的权限管理同用户定义紧密相关，letter shell 3.x使用8个bit位表示命令权限，当用户和命令的权限按位与为真，或者命令权限为0时，表示该用户拥有此命令的权限，可以调用该命令
+
+## 锁说明
+
+letter shell 3.1增加了shell锁，主要目的是为了防止shell输出和其他输入(比如说日志)对终端的竞争，导致输出混乱的现象，如果使用场景中没有出现终端输出混乱的情况，可以不使用shell锁
+
+注意: 请使用支持嵌套的锁
+
+1. 使能宏并实现锁
+
+    使能`SHELL_USING_LOCK`宏，实现shell上锁和解锁函数，函数原型如下：
+
+    ```c
+    /**
+     * @brief shell上锁
+     *
+     * @param struct shell_def shell对象
+     *
+     * @return 0
+     */
+    typedef int (*shellLock)(struct shell_def *);
+
+    /**
+     * @brief shell解锁
+     *
+     * @param struct shell_def shell对象
+     *
+     * @return 0
+     */
+    typedef int (*shellLock)(struct shell_def *);
+    ```
+
+2. 使用锁
+
+    在可能产生终端竞争的地方，加上shell锁，比如如果调用`shellPrint`进行格式化输出
+
+    ```C
+    SHELL_LOCK(shell);
+    shellPrint(shell, ...);
+    SHELL_UNLOCK(shell);
+    ```
+
+3. 注意
+
+    - 不要在shell命令中调用shell锁，除非实现的shell锁为可嵌套的锁
 
 ## 伴生对象
 
@@ -467,7 +542,7 @@ letter shell 3.0.4版本新增了尾行模式，适用于需要在shell所使用
 
 使用letter shell尾行模式结合[log](./extensions/log/readme.md)日志输出的效果如下：
 
-![end lin mode](doc/img/shell_end_line_mode.gif)
+![end line mode](doc/img/shell_end_line_mode.gif)
 
 ## 建议终端软件
 
@@ -475,10 +550,22 @@ letter shell 3.0.4版本新增了尾行模式，适用于需要在shell所使用
 
 ## 命令遍历工具
 
-letter shell 3.0提供了一个用于遍历工程中命令导出的工具，位于tools/shellTools.py，需要python3环境运行，可以列出工程中，所有使用`SHELL_EXPORT_XXX`导出的命令名，以及位置，结合VS Code可以直接进行跳转
+letter shell 3.x提供了一个用于遍历工程中命令导出的工具，位于tools/shellTools.py，需要python3环境运行，可以列出工程中，所有使用`SHELL_EXPORT_XXX`导出的命令名，以及位置，结合VS Code可以直接进行跳转
 
 ```sh
 python shellTools.py project
 ```
 
 注意：shellTools会遍历指定目录中所有文件，所以当工程中文件较多时，速度会比较慢，建议只用于遍历用户模块的目录
+
+## x86 demo
+
+letter shell 3.x提供了一个x86的demo，可以直接编译运行，其中包含了一条按键键值测试命令，可以测试按键键值，用于快捷键的定义，编译运行方法如下：
+
+```sh
+mv src/shell_cfg.h src/shell_cfg.h.bak
+cd demo/x86-gcc/
+cmake .
+make
+./LetterShell
+```

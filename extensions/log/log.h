@@ -13,7 +13,7 @@
 
 #include "shell.h"
 
-#define     LOG_VERSION        "1.0.0"
+#define     LOG_VERSION        "1.0.1"
 
 #define     SHELL_COMPANION_ID_LOG          -2
 
@@ -182,10 +182,19 @@ typedef struct
             action; \
         }
 
+/**
+ * @brief 16进制输出到所有终端
+ * 
+ * @param base 内存基址
+ * @param length 长度
+ */
+#define logHexDumpAll(base, length) \
+        logHexDump(LOG_ALL_OBJ, LOG_ALL, base, length)
+
 void logRegister(Log *log, Shell *shell);
 void logUnRegister(Log *log);
 void logSetLevel(Log *log, LogLevel level);
 void logWrite(Log *log, LogLevel level, char *fmt, ...);
-void logHexDump(Log *log, void *base, unsigned int length);
+void logHexDump(Log *log, LogLevel level, void *base, unsigned int length);
 
 #endif

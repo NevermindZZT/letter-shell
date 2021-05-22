@@ -1,6 +1,6 @@
 # log
 
-![version](https://img.shields.io/badge/version-1.0.0-brightgreen.svg)
+![version](https://img.shields.io/badge/version-1.0.1-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
 ![build](https://img.shields.io/badge/build-2020.08.02-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
@@ -160,11 +160,12 @@ void logSetLevel(Log *log, LogLevel level)
 数据16进制打印
 
 ```C
-void logHexDump(Log *log, void *base, unsigned int length)
+void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
 ```
 
 - 参数
   - `log` log对象
+  - `level` 日志级别
   - `base` 数据基址
   - `length` 数据长度
 

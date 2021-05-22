@@ -11,6 +11,7 @@
 
 #include "shell.h"
 #include "shell_fs.h"
+#include "log.h"
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -21,15 +22,39 @@ Shell shell;
 char shellBuffer[512];
 ShellFs shellFs;
 char shellPathBuffer[512] = "/";
+Log log = {
+    .active = 1,
+    .level = LOG_DEBUG
+};
+
+/**
+ * @brief 日志写函数实现
+ * 
+ * @param buffer 数据
+ * @param len 数据长度
+ * 
+ */
+void terminalLogWrite(char *buffer, short len)
+{
+    if (log.shell)
+    {
+        shellWriteEndLine(log.shell, buffer, len);
+    }
+}
 
 /**
  * @brief 用户shell写
  * 
  * @param data 数据
  */
-void userShellWrite(char data)
+unsigned short userShellWrite(char *data, unsigned short len)
 {
-    putchar(data);
+    unsigned short length = len;
+    while (length--)
+    {
+        putchar(*data++);
+    }
+    return len;
 }
 
 /**
@@ -38,15 +63,35 @@ void userShellWrite(char data)
  * @param data 数据
  * @return char 状态
  */
-signed char userShellRead(char *data)
+unsigned short userShellRead(char *data, unsigned short len)
 {
+    unsigned short length = len;
     system("stty -echo");
     system("stty -icanon");
-    *data = getchar();
+    while (length--)
+    {
+        *data++ = getchar();
+    }
     system("stty icanon");
     system("stty echo");
+    return len;
+}
+
+#if SHELL_USING_LOCK == 1
+static int lockCount = 0;
+int userShellLock(struct shell_def *shell)
+{
+    printf("lock: %d\r\n", lockCount);
     return 0;
 }
+
+
+int userShellUnlock(struct shell_def *shell)
+{
+    printf("unlock: %d\r\n", lockCount);
+    return 0;
+}
+#endif
 
 /**
  * @brief 列出文件
@@ -85,9 +130,19 @@ void userShellInit(void)
 
     shell.write = userShellWrite;
     shell.read = userShellRead;
+#if SHELL_USING_LOCK == 1
+    shell.lock = userShellLock;
+    shell.unlock = userShellUnlock;
+#endif
     shellSetPath(&shell, shellPathBuffer);
     shellInit(&shell, shellBuffer, 512);
     shellCompanionAdd(&shell, SHELL_COMPANION_ID_FS, &shellFs);
+
+    log.write = terminalLogWrite;
+    logRegister(&log, &shell);
+
+    logDebug("hello world");
+    logHexDump(LOG_ALL_OBJ, LOG_DEBUG, (void *)&shell, sizeof(shell));
 }
 
 
@@ -138,7 +193,7 @@ void shellKeyTest(void)
     SHELL_ASSERT(shell && shell->read, return);
     while (1)
     {
-        if (shell->read(&data) == 0)
+        if (shell->read(&data, 1) == 1)
         {
             if (data == '\n' || data == '\r')
             {

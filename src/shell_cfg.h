@@ -85,7 +85,7 @@
 
 /**
  * @brief shell命令参数最大数量
- *        包含命令名在内，超过8个参数并且使用了参数自动转换的情况下，需要修改源码
+ *        包含命令名在内，超过16个参数并且使用了参数自动转换的情况下，需要修改源码
  */
 #define     SHELL_PARAMETER_MAX_NUMBER  8
 
@@ -124,6 +124,12 @@
  * @note 此宏不定义时无法使用双击tab补全命令help，无法使用shell超时锁定
  */
 #define     SHELL_GET_TICK()            0
+
+/**
+ * @brief 使用锁
+ * @note 使用shell锁时，需要对加锁和解锁进行实现
+ */
+#define     SHELL_USING_LOCK            0
 
 /**
  * @brief shell内存分配
