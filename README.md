@@ -45,6 +45,8 @@
 
 使用说明可参考[Letter shell 3.0 全新出发](https://nevermindzzt.github.io/2020/01/19/Letter%20shell%203.0%E5%85%A8%E6%96%B0%E5%87%BA%E5%8F%91/)
 
+如果从3.0版本迁移到3.1以上版本，请注意3.1版本对读写函数原型的修改
+
 ## 功能
 
 - 命令自动补全
@@ -107,6 +109,7 @@
      * @return unsigned short 实际写入的字符数量
      */
     typedef unsigned short (*shellWrite)(const char *data, unsigned short len);
+    ```
 
 3. 申请一片缓冲区
 
