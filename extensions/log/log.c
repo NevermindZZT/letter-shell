@@ -126,25 +126,11 @@ void logWrite(Log *log, LogLevel level, char *fmt, ...)
     va_list vargs;
     short len;
 
-#if SHELL_USING_LOCK == 1
-    if (log->shell)
-    {
-        SHELL_LOCK(log->shell);
-    }
-#endif /* SHELL_USING_LOCK == 1 */
-
     va_start(vargs, fmt);
     len = vsnprintf(logBuffer, LOG_BUFFER_SIZE - 1, fmt, vargs);
     va_end(vargs);
 
     logWriteBuffer(log, level, logBuffer, len);
-
-#if SHELL_USING_LOCK == 1
-    if (log->shell)
-    {
-        SHELL_UNLOCK(log->shell);
-    }
-#endif /* SHELL_USING_LOCK == 1 */
 }
 
 
@@ -161,34 +147,19 @@ void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
     unsigned char *address;
     unsigned int len;
     unsigned int printLen = 0;
-    unsigned char buf[12];
 
-    if (length == 0 || log->level < level)
+    if (length == 0 || (log != LOG_ALL_OBJ && log->level < level))
     {
         return;
     }
 
-#if SHELL_USING_LOCK == 1
-    if (log->shell)
-    {
-        SHELL_LOCK(log->shell);
-    }
-#endif /* SHELL_USING_LOCK == 1 */
-
-    logWriteBuffer(log, LOG_NONE, "memory of 0x", sizeof("memory of 0x"));
-    len = vsnprintf(buf, 11, "08x", (unsigned int)base);
-    logWriteBuffer(log, LOG_NONE, buf, len);
-    logWriteBuffer(log, LOG_NONE, ", size: ", sizeof(", size: "));
-    len = vsnprintf(buf, 11, "%d", length);
-    logWriteBuffer(log, LOG_NONE, buf, len);
-    logWriteBuffer(log, LOG_NONE, ":\r\n", sizeof(":\r\n"));
-
+    len = snprintf(logBuffer, LOG_BUFFER_SIZE - 1, "memory of 0x%08x, size: %d:\r\n%s",
+                   (unsigned int)base, length, memPrintHead);
+    logWriteBuffer(log, level, logBuffer, len);
     
     address = (unsigned char *)((unsigned int)base & (~0x0000000F));
     length += (unsigned int)base - (unsigned int)address;
     length = (length + 15) & (~0x0000000F);
-
-    logWriteBuffer(log, LOG_NONE, memPrintHead, sizeof(memPrintHead));
 
     len = length;
 
@@ -233,24 +204,17 @@ void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
         logBuffer[printLen ++] = '|';
         logBuffer[printLen ++] = '\r';
         logBuffer[printLen ++] = '\n';
-        logWriteBuffer(log, LOG_NONE, logBuffer, printLen);
+        logWriteBuffer(log, level, logBuffer, printLen);
         address += 16;
         length -= 16;
         printLen = 0;
     }
-
-#if SHELL_USING_LOCK == 1
-    if (log->shell)
-    {
-        SHELL_UNLOCK(log->shell);
-    }
-#endif /* SHELL_USING_LOCK == 1 */
 }
 #if SHELL_USING_COMPANION == 1
 SHELL_EXPORT_CMD_AGENCY(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
 hexdump, logHexDump, hex dump\r\n hexdump [base] [len],
-(void *)shellCompanionGet(shellGetCurrent(), SHELL_COMPANION_ID_LOG), (void *)LOG_NONE, p1, p2);
+(void *)shellCompanionGet(shellGetCurrent(), SHELL_COMPANION_ID_LOG), LOG_NONE, p1, p2);
 #else
 SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,

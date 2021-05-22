@@ -487,6 +487,8 @@ letter shell 3.x的权限管理同用户定义紧密相关，letter shell 3.x使
 
 letter shell 3.1增加了shell锁，主要目的是为了防止shell输出和其他输入(比如说日志)对终端的竞争，导致输出混乱的现象，如果使用场景中没有出现终端输出混乱的情况，可以不使用shell锁
 
+注意: 请使用支持嵌套的锁
+
 1. 使能宏并实现锁
 
     使能`SHELL_USING_LOCK`宏，实现shell上锁和解锁函数，函数原型如下：
@@ -560,6 +562,7 @@ letter shell 3.x提供了一个x86的demo，可以直接编译运行，其中包
 ```sh
 mv src/shell_cfg.h src/shell_cfg.h.bak
 cd demo/x86-gcc/
+cmake .
 make
-./build/out
+./LetterShell
 ```
