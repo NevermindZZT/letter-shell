@@ -258,7 +258,7 @@ Shell* shellGetCurrent(void)
  * @param shell shell对象
  * @param data 字符数据
  */
-static void shellWriteByte(Shell *shell, const char data)
+static void shellWriteByte(Shell *shell, char data)
 {
     shell->write(&data, 1);
 }
@@ -275,13 +275,13 @@ static void shellWriteByte(Shell *shell, const char data)
 unsigned short shellWriteString(Shell *shell, const char *string)
 {
     unsigned short count = 0;
-    char *p = string;
+    const char *p = string;
     SHELL_ASSERT(shell->write, return 0);
     while(*p++)
     {
         count ++;
     }
-    return shell->write(string, count);
+    return shell->write((char *)string, count);
 }
 
 
@@ -296,7 +296,7 @@ unsigned short shellWriteString(Shell *shell, const char *string)
 static unsigned short shellWriteCommandDesc(Shell *shell, const char *string)
 {
     unsigned short count = 0;
-    char *p = string;
+    const char *p = string;
     SHELL_ASSERT(shell->write, return 0);
     while (*p && *p != '\r' && *p != '\n')
     {
@@ -306,12 +306,12 @@ static unsigned short shellWriteCommandDesc(Shell *shell, const char *string)
     
     if (count > 36)
     {
-        shell->write(string, 36);
+        shell->write((char *)string, 36);
         shell->write("...", 3);
     }
     else
     {
-        shell->write(string, count);
+        shell->write((char *)string, count);
     }
     return count > 36 ? 36 : 39;
 }
@@ -389,7 +389,7 @@ void shellScan(Shell *shell, char *fmt, ...)
         do {
             if (shell->read(&buffer[index], 1) == 1)
             {
-                shell->write(buffer[index], 1);
+                shell->write(&buffer[index], 1);
                 index++;
             }
         } while (buffer[index -1] != '\r' && buffer[index -1] != '\n' && index < SHELL_SCAN_BUFFER);
@@ -1757,7 +1757,7 @@ void shellWriteEndLine(Shell *shell, char *buffer, int len)
             shellWriteString(shell, shell->parser.buffer);
             for (short i = 0; i < shell->parser.length - shell->parser.cursor; i++)
             {
-                shell->write('\b', 1);
+                shellWriteByte(shell, '\b');
             }
         }
     }
@@ -1927,3 +1927,4 @@ SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RETURN,
 exec, shellExecute, execute function undefined);
 #endif
+

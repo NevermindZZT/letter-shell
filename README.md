@@ -2,7 +2,7 @@
 
 ![version](https://img.shields.io/badge/version-3.1.0-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2021.05.09-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2021.05.24-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -108,7 +108,7 @@
      *
      * @return unsigned short 实际写入的字符数量
      */
-    typedef unsigned short (*shellWrite)(const char *data, unsigned short len);
+    typedef unsigned short (*shellWrite)(char *data, unsigned short len);
     ```
 
 3. 申请一片缓冲区
