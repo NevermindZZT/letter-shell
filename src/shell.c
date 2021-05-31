@@ -150,7 +150,7 @@ static Shell *shellList[SHELL_MAX_NUMBER] = {NULL};
 
 
 static void shellAdd(Shell *shell);
-static void shellWriteCommandLine(Shell *shell, unsigned char newline);
+static void shellWritePrompt(Shell *shell, unsigned char newline);
 static void shellWriteReturnValue(Shell *shell, int value);
 static int shellShowVar(Shell *shell, ShellCommand *command);
 static void shellSetUser(Shell *shell, const ShellCommand *user);
@@ -212,7 +212,7 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
                                          SHELL_DEFAULT_USER,
                                          shell->commandList.base,
                                          0));
-    shellWriteCommandLine(shell, 1);
+    shellWritePrompt(shell, 1);
 }
 
 
@@ -324,7 +324,7 @@ static unsigned short shellWriteCommandDesc(Shell *shell, const char *string)
  * @param newline 新行
  * 
  */
-static void shellWriteCommandLine(Shell *shell, unsigned char newline)
+static void shellWritePrompt(Shell *shell, unsigned char newline)
 {
     if (shell->status.isChecked)
     {
@@ -778,7 +778,7 @@ void shellInsertByte(Shell *shell, char data)
     if (shell->parser.length >= shell->parser.bufferSize - 1)
     {
         shellWriteString(shell, shellText[SHELL_TEXT_CMD_TOO_LONG]);
-        shellWriteCommandLine(shell, 1);
+        shellWritePrompt(shell, 1);
         shellWriteString(shell, shell->parser.buffer);
         return;
     }
@@ -1483,7 +1483,7 @@ void shellTab(Shell *shell)
     if (shell->parser.length == 0)
     {
         shellListAll(shell);
-        shellWriteCommandLine(shell, 1);
+        shellWritePrompt(shell, 1);
     }
     else if (shell->parser.length > 0)
     {
@@ -1529,7 +1529,7 @@ void shellTab(Shell *shell)
         if (matchNum > 1)
         {
             shellListItem(shell, &base[lastMatchIndex]);
-            shellWriteCommandLine(shell, 1);
+            shellWritePrompt(shell, 1);
             shell->parser.length = maxMatch;
         }
         shell->parser.buffer[shell->parser.length] = 0;
@@ -1599,7 +1599,7 @@ SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
 void shellEnter(Shell *shell)
 {
     shellExec(shell);
-    shellWriteCommandLine(shell, 1);
+    shellWritePrompt(shell, 1);
 }
 #if SHELL_ENTER_LF == 1
 SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
@@ -1751,7 +1751,7 @@ void shellWriteEndLine(Shell *shell, char *buffer, int len)
 
     if (!shell->status.isActive)
     {
-        shellWriteCommandLine(shell, 0);
+        shellWritePrompt(shell, 0);
         if (shell->parser.length > 0)
         {
             shellWriteString(shell, shell->parser.buffer);
