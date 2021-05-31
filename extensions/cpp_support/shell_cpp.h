@@ -139,7 +139,7 @@ typedef struct shell_command_cpp_key
             const char shellDesc##_value[] = #_desc; \
             extern "C" SHELL_USED const ShellCommandCppKey \
             shellKey##_value SHELL_SECTION("shellCommand") =  \
-            { \ 
+            { \
                 _attr|SHELL_CMD_TYPE(SHELL_TYPE_KEY), \
                 _value, \
                 (void (*)(Shell *))_func, \
@@ -151,4 +151,5 @@ typedef struct shell_command_cpp_key
 #endif /**< defined __cplusplus */
 
 #endif /**< __SHELL_CPP_H__ */
+
 

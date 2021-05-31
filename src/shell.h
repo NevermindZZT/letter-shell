@@ -360,7 +360,7 @@ typedef struct shell_def
         unsigned char tabFlag : 1;                              /**< tab标志 */
     } status;
     signed short (*read)(char *, unsigned short);               /**< shell读函数 */
-    signed short (*write)(const char *, unsigned short);        /**< shell写函数 */
+    signed short (*write)(char *, unsigned short);              /**< shell写函数 */
 #if SHELL_USING_LOCK == 1
     int (*lock)(struct shell_def *);                              /**< shell 加锁 */
     int (*unlock)(struct shell_def *);                            /**< shell 解锁 */
@@ -460,4 +460,5 @@ void *shellCompanionGet(Shell *shell, int id);
 #endif
 
 #endif
+
 
