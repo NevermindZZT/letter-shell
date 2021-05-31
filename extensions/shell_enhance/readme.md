@@ -9,6 +9,7 @@
   - [简介](#简介)
   - [组件](#组件)
     - [shell_cmd_group](#shell_cmd_group)
+    - [shell_passthrough](#shell_passthrough)
 
 ## 简介
 
@@ -18,9 +19,10 @@
 
 `shell_enhance`目前包含的组件如下：
 
-| 组件            | 描述           | 依赖文件                            |
-| --------------- | -------------- | ----------------------------------- |
-| shell_cmd_group | 提供命令组功能 | shell_cmd_group.c shell_cmd_group.h |
+| 组件              | 描述           | 依赖文件                                |
+| ----------------- | -------------- | --------------------------------------- |
+| shell_cmd_group   | 提供命令组功能 | shell_cmd_group.c shell_cmd_group.h     |
+| shell_passthrough | 提供透传功能   | shell_passthrough.c shell_passthrough.h |
 
 ### shell_cmd_group
 
@@ -91,3 +93,40 @@
     test2: command group test2
     Return: 0, 0x00000000
     ```
+
+### shell_passthrough
+
+`shell_passthrough`提供了一个透传模式的功能，用户可以定义一个透传命令，执行透传命令后进入对应的透传模式，此后，命令行接收到的数据将以行为单位透传到定义的`handler`中，此扩展适用于一些需要进行终端数据转发的场景，常见的场景比如说通过命令行发送AT指令
+
+- 定义hanadler
+
+    passthrough模式需要定义一个函数，用于处理命令行传过来的数据，函数原型为`typedef int (*ShellPassthrough)(char *data, unsigned short len)`
+
+    ```C
+    void shellPassthroughTest(char *data, unsigned short len)
+    {
+        printf("passthrough mode test, data: %s, len: %d\r\n", data, len);
+    }
+    ```
+
+- 定义passthrough
+
+    使用宏`SHELL_EXPORT_PASSTROUGH`定义`passthrough`
+
+    ```C
+    SHELL_EXPORT_PASSTROUGH(SHELL_CMD_PERMISSION(0), passTest, passthrough>>, shellPassthroughTest, passthrough mode test);
+    ```
+
+- 调用
+
+    直接在命令行输入定义的`passthrough`名字可进入对应的透传模式，之后在输入的数据会按照行为单位通过`handler`调用
+
+    ```sh
+    letter:/mnt/f/Github/letter shell/demo/x86-gcc$ passTest
+    passthrough>>hello
+    passthrough mode test, data: hello, len: 5
+    ```
+
+- 退出
+
+    使用组合键`Ctrl + D`退出`passthrough`，键值可以在`shell_passthrough.h`文件中的`SHELL_PASSTHROUGH_EXIT_KEY`宏修改
