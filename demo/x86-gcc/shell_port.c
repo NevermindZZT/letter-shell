@@ -11,6 +11,7 @@
 
 #include "shell.h"
 #include "shell_fs.h"
+#include "shell_passthrough.h"
 #include "log.h"
 #include <stdio.h>
 #include <dirent.h>
@@ -217,3 +218,9 @@ SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0x00)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
 scanTest, shellScanTest, test scan);
 
+
+void shellPassthroughTest(char *data, unsigned short len)
+{
+    printf("passthrough mode test, data: %s, len: %d\r\n", data, len);
+}
+SHELL_EXPORT_PASSTROUGH(SHELL_CMD_PERMISSION(0), passTest, passthrough>>, shellPassthroughTest, passthrough mode test);

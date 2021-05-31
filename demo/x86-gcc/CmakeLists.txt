@@ -10,6 +10,7 @@ add_executable(LetterShell
                ../../src/shell_ext.c
                ../../extensions/fs_support/shell_fs.c
                ../../extensions/log/log.c
+               ../../extensions/shell_enhance/shell_passthrough.c
                )
 
 target_include_directories(LetterShell PUBLIC 
@@ -18,6 +19,7 @@ target_include_directories(LetterShell PUBLIC
                            ../../extensions/fs_support
                            ../../extensions/cpp_support
                            ../../extensions/log
+                           ../../extensions/shell_enhance
                            ) 
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
