@@ -130,3 +130,12 @@
 - 退出
 
     使用组合键`Ctrl + D`退出`passthrough`，键值可以在`shell_passthrough.h`文件中的`SHELL_PASSTHROUGH_EXIT_KEY`宏修改
+
+- 单次调用
+
+    某些情况下，使用`passthrough`模式时，我们可能只需要单词数据的透传，此时可以不进入`passthrough`命令行，直接调用命令带上透传的数据即可
+
+    ```sh
+    letter:/mnt/f/Github/letter shell/demo/x86-gcc$ passTest "hello world"
+    passthrough mode test, data: hello world, len: 11
+    ```

@@ -9,6 +9,7 @@
  * 
  */
 #include "shell_passthrough.h"
+#include "string.h"
 
 /**
  * @brief shell passthrough 模式
@@ -16,38 +17,49 @@
  * @param shell shell
  * @param prompt passthrough 提示符
  * @param handler pssthrough handler
+ * @param argc 命令行参数数量
+ * @param argv 命令行参数
  * 
  * @return unsigned int 返回值
  */
-unsigned int shellPassthrough(Shell *shell, const char *prompt, ShellPassthrough handler)
+unsigned int shellPassthrough(Shell *shell, const char *prompt, ShellPassthrough handler, int argc, char *argv[])
 {
     char data;
 
-    shell->status.isActive = 0;
-    shellWriteString(shell, prompt);
-    while (1)
+    if (argc > 1)
     {
-        if (shell->read && shell->read(&data, 1) == 1)
+        handler(argv[1], strlen(argv[1]));
+    }
+    else
+    {
+        shell->status.isActive = 0;
+        shellWriteString(shell, prompt);
+        while (1)
         {
-            if (data == '\r' || data == '\n')
+            if (shell->read && shell->read(&data, 1) == 1)
             {
-                if (shell->parser.length == 0)
+                if (data == '\r' || data == '\n')
                 {
-                    continue;
+                    if (shell->parser.length == 0)
+                    {
+                        continue;
+                    }
+                    shellWriteString(shell, "\r\n");
+                    shell->parser.buffer[shell->parser.length] = 0;
+                    handler(shell->parser.buffer, shell->parser.length);
+                    shell->parser.length = 0;
+                    shell->parser.cursor = 0;
+                    shellWriteString(shell, prompt);
                 }
-                shellWriteString(shell, "\r\n");
-                shell->parser.buffer[shell->parser.length] = 0;
-                handler(shell->parser.buffer, shell->parser.length);
-                shellWriteString(shell, prompt);
-            }
-            else if (data == SHELL_PASSTHROUGH_EXIT_KEY)
-            {
-                shellWriteString(shell, "\r\n");
-                return -1;
-            }
-            else
-            {
-                shellHandler(shell, data);
+                else if (data == SHELL_PASSTHROUGH_EXIT_KEY)
+                {
+                    shellWriteString(shell, "\r\n");
+                    return -1;
+                }
+                else
+                {
+                    shellHandler(shell, data);
+                }
             }
         }
     }
