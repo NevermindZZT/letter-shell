@@ -41,8 +41,8 @@ typedef int (*ShellPassthrough)(char *data, unsigned short len);
  * @param _handler passthrough 模式 handler
  */
 #define SHELL_PASSTROUGH_FUNC(_name, _prompt, _handler) \
-        void SHELL_PASSTROUGH_FUNC_NAME(_name)(void) \
-        { shellPassthrough(shellGetCurrent(), #_prompt, _handler); }
+        void SHELL_PASSTROUGH_FUNC_NAME(_name)(int p1, int p2) \
+        { shellPassthrough(shellGetCurrent(), #_prompt, _handler, p1, (void *)p2); }
 
 /**
  * @brief shell passthrouh 定义
@@ -55,8 +55,8 @@ typedef int (*ShellPassthrough)(char *data, unsigned short len);
  */
 #define SHELL_EXPORT_PASSTROUGH(_attr, _name, _prompt, _handler, _desc) \
         SHELL_PASSTROUGH_FUNC(_name, _prompt, _handler) \
-        SHELL_EXPORT_CMD(_attr|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC), _name, SHELL_PASSTROUGH_FUNC_NAME(_name), _desc)
+        SHELL_EXPORT_CMD(_attr|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), _name, SHELL_PASSTROUGH_FUNC_NAME(_name), _desc)
 
-unsigned int shellPassthrough(Shell *shell, const char *prompt, ShellPassthrough handler);
+unsigned int shellPassthrough(Shell *shell, const char *prompt, ShellPassthrough handler, int argc, char *argv[]);
 
 #endif
