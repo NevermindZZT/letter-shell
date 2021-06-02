@@ -53,6 +53,8 @@ unsigned int shellPassthrough(Shell *shell, const char *prompt, ShellPassthrough
                 else if (data == SHELL_PASSTHROUGH_EXIT_KEY)
                 {
                     shellWriteString(shell, "\r\n");
+                    shell->parser.length = 0;
+                    shell->parser.cursor = 0;
                     return -1;
                 }
                 else
