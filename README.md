@@ -81,7 +81,7 @@
     OsTaskCreate(shellTask, &shell, ...);
     ```
 
-    对于裸机环境，在主循环中调用`shellTask`，或者在接收到数据时，调用`shellInput`
+    对于裸机环境，在主循环中调用`shellTask(&shell)`，或者在接收到数据时，调用`shellInput`
 
 5. 说明
 
