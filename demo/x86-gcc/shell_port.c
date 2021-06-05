@@ -73,8 +73,8 @@ unsigned short userShellRead(char *data, unsigned short len)
     {
         *data++ = getchar();
     }
-    system("stty icanon");
-    system("stty echo");
+    // system("stty icanon");
+    // system("stty echo");
     return len;
 }
 
@@ -142,8 +142,8 @@ void userShellInit(void)
     log.write = terminalLogWrite;
     logRegister(&log, &shell);
 
-    logDebug("hello world");
-    logHexDump(LOG_ALL_OBJ, LOG_DEBUG, (void *)&shell, sizeof(shell));
+    // logDebug("hello world");
+    // logHexDump(LOG_ALL_OBJ, LOG_DEBUG, (void *)&shell, sizeof(shell));
 }
 
 
