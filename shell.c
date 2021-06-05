@@ -330,7 +330,7 @@ unsigned short shellDisplay(SHELL_TypeDef *shell, const char *string)
     {
         return 0;
     }
-    while(*string)
+    while((*string) && (count < SHELL_PRINT_BUFFER))
     {
         shell->write(*string++);
         count ++;
@@ -404,7 +404,7 @@ static void shellDisplayValue(SHELL_TypeDef *shell, int value)
 /**
  * @brief shell显示函数调用返回值
  * 
- * @param shell shel对象
+ * @param shell shell对象
  * @param value 值
  */
 static void shellDisplayReturn(SHELL_TypeDef *shell, int value)
