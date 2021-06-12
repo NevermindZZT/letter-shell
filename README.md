@@ -165,6 +165,7 @@
     | SHELL_PARAMETER_MAX_NUMBER  | shell命令参数最大数量          |
     | SHELL_HISTORY_MAX_NUMBER    | 历史命令记录数量               |
     | SHELL_DOUBLE_CLICK_TIME     | 双击间隔(ms)                   |
+    | SHELL_QUICK_HELP            | 快速帮助                       |
     | SHELL_MAX_NUMBER            | 管理的最大shell数量            |
     | SHELL_GET_TICK()            | 获取系统时间(ms)               |
     | SHELL_USING_LOCK            | 是否使用锁                     |

@@ -158,6 +158,7 @@ ShellCommand* shellSeekCommand(Shell *shell,
                                const char *cmd,
                                ShellCommand *base,
                                unsigned short compareLength);
+static void shellWriteCommandHelp(Shell *shell, char *cmd);
 
 /**
  * @brief shell 初始化
@@ -1543,6 +1544,12 @@ void shellTab(Shell *shell)
             && shell->status.tabFlag
             && SHELL_GET_TICK() - shell->info.activeTime < SHELL_DOUBLE_CLICK_TIME)
         {
+        #if SHELL_QUICK_HELP == 1
+            shellWriteString(shell, "\r\n");
+            shellWriteCommandHelp(shell, shell->parser.buffer);
+            shellWritePrompt(shell, 1);
+            shellWriteString(shell, shell->parser.buffer);
+        #else
             shellClearCommandLine(shell);
             for (short i = shell->parser.length; i >= 0; i--)
             {
@@ -1553,6 +1560,7 @@ void shellTab(Shell *shell)
             shell->parser.length += 5;
             shell->parser.cursor = shell->parser.length;
             shellWriteString(shell, shell->parser.buffer);
+        #endif
         }
         else
         {
@@ -1614,6 +1622,31 @@ SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0)|SHELL_CMD_ENABLE_UNCHECKED,
 0x0D0A0000, shellEnter, enter);
 #endif
 
+/**
+ * @brief shell 写命令帮助信息
+ * 
+ * @param shell shell对象
+ * @param cmd 命令字符串
+ */
+static void shellWriteCommandHelp(Shell *shell, char *cmd)
+{
+    ShellCommand *command = shellSeekCommand(shell,
+                                             cmd,
+                                             shell->commandList.base,
+                                             0);
+    if (command)
+    {
+        shellWriteString(shell, shellText[SHELL_TEXT_HELP_HEADER]);
+        shellWriteString(shell, shellGetCommandName(command));
+        shellWriteString(shell, "\r\n");
+        shellWriteString(shell, shellGetCommandDesc(command));
+        shellWriteString(shell, "\r\n");
+    }
+    else
+    {
+        shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
+    }
+}
 
 /**
  * @brief shell help
@@ -1631,22 +1664,7 @@ void shellHelp(int argc, char *argv[])
     }
     else if (argc > 1)
     {
-        ShellCommand *command = shellSeekCommand(shell,
-                                                 argv[1],
-                                                 shell->commandList.base,
-                                                 0);
-        if (command)
-        {
-            shellWriteString(shell, shellText[SHELL_TEXT_HELP_HEADER]);
-            shellWriteString(shell, shellGetCommandName(command));
-            shellWriteString(shell, "\r\n");
-            shellWriteString(shell, shellGetCommandDesc(command));
-            shellWriteString(shell, "\r\n");
-        }
-        else
-        {
-            shellWriteString(shell, shellText[SHELL_TEXT_CMD_NOT_FOUND]);
-        }
+        shellWriteCommandHelp(shell, argv[1]);
     }
 }
 SHELL_EXPORT_CMD(

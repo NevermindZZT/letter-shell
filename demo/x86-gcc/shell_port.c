@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <stddef.h>
 #include <string.h>
+#include <sys/time.h>
 
 Shell shell;
 char shellBuffer[512];
@@ -27,6 +28,18 @@ Log log = {
     .active = 1,
     .level = LOG_DEBUG
 };
+
+/**
+ * @brief 获取系统tick
+ * 
+ * @return unsigned int 系统tick
+ */
+unsigned int userGetTick()
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (tv.tv_sec * 1000 + tv.tv_usec / 1000) & 0x7FFFFFFF;
+}
 
 /**
  * @brief 日志写函数实现

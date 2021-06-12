@@ -13,6 +13,7 @@
 #define __SHELL_CFG_H__
 
 #include "stdlib.h"
+unsigned int userGetTick();
 
 /**
  * @brief 是否使用默认shell任务while循环，使能宏`SHELL_USING_TASK`后此宏有意义
@@ -102,6 +103,12 @@
 #define     SHELL_DOUBLE_CLICK_TIME     200
 
 /**
+ * @brief 快速帮助
+ *        作用于双击tab的场景，当使能此宏时，双击tab不会对命令进行help补全，而是直接显示对应命令的帮助信息
+ */
+#define     SHELL_QUICK_HELP            1
+
+/**
  * @brief 管理的最大shell数量
  */
 #define     SHELL_MAX_NUMBER            5
@@ -124,7 +131,7 @@
  *        定义此宏为获取系统Tick，如`HAL_GetTick()`
  * @note 此宏不定义时无法使用双击tab补全命令help，无法使用shell超时锁定
  */
-#define     SHELL_GET_TICK()            0
+#define     SHELL_GET_TICK()            userGetTick()
 
 /**
  * @brief 使用锁
