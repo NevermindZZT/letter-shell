@@ -40,20 +40,21 @@ unsigned int shellPassthrough(Shell *shell, const char *prompt, ShellPassthrough
             {
                 if (data == '\r' || data == '\n')
                 {
-                    if (shell->parser.length == 0)
-                    {
-                        continue;
-                    }
                     shellWriteString(shell, "\r\n");
-                    shell->parser.buffer[shell->parser.length] = 0;
-                    handler(shell->parser.buffer, shell->parser.length);
-                    shell->parser.length = 0;
-                    shell->parser.cursor = 0;
+                    if (shell->parser.length != 0)
+                    {
+                        shell->parser.buffer[shell->parser.length] = 0;
+                        handler(shell->parser.buffer, shell->parser.length);
+                        shell->parser.length = 0;
+                        shell->parser.cursor = 0;
+                    }
                     shellWriteString(shell, prompt);
                 }
                 else if (data == SHELL_PASSTHROUGH_EXIT_KEY)
                 {
                     shellWriteString(shell, "\r\n");
+                    shell->parser.length = 0;
+                    shell->parser.cursor = 0;
                     return -1;
                 }
                 else

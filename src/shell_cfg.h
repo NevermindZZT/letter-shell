@@ -101,6 +101,13 @@
 #define     SHELL_DOUBLE_CLICK_TIME     200
 
 /**
+ * @brief 快速帮助
+ *        作用于双击tab的场景，当使能此宏时，双击tab不会对命令进行help补全，而是直接显示对应命令的帮助信息
+ */
+#define     SHELL_QUICK_HELP            1
+
+
+/**
  * @brief 管理的最大shell数量
  */
 #define     SHELL_MAX_NUMBER            5

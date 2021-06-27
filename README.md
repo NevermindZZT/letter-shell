@@ -1,8 +1,8 @@
 # letter shell 3.x
 
-![version](https://img.shields.io/badge/version-3.1.0-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.1.1-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2021.05.24-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2021.06.27-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -165,6 +165,7 @@
     | SHELL_PARAMETER_MAX_NUMBER  | shell命令参数最大数量          |
     | SHELL_HISTORY_MAX_NUMBER    | 历史命令记录数量               |
     | SHELL_DOUBLE_CLICK_TIME     | 双击间隔(ms)                   |
+    | SHELL_QUICK_HELP            | 快速帮助                       |
     | SHELL_MAX_NUMBER            | 管理的最大shell数量            |
     | SHELL_GET_TICK()            | 获取系统时间(ms)               |
     | SHELL_USING_LOCK            | 是否使用锁                     |
@@ -283,7 +284,7 @@ letter shell采取一个静态数组对定义的多个shell进行管理，shell�
 
 ### 执行未导出函数
 
-letter shell支持通过函数地址直接执行函数，可以方便执行那些没有导出，但是有临时需要使用的函数，使用命令`exec [addr] [args]`执行，使用此功能需要开启`SHELL_EXEC_UNDEF_FUNC`宏，注意，由于直接操作函数地址执行，如果给进的地址有误，可能引起程序崩溃
+letter shell支持通过函数地址直接执行函数，可以方便执行那些没有导出，但是又临时需要使用的函数，使用命令`exec [addr] [args]`执行，使用此功能需要开启`SHELL_EXEC_UNDEF_FUNC`宏，注意，由于直接操作函数地址执行，如果给进的地址有误，可能引起程序崩溃
 
 函数的地址可以通过编译生成的文件查找，比如说对于keil，可以在`.map`文件中查找到每个函数的地址，对于keil，`.map`文件中的地址需要偏移一个字节，才可以成功执行，比如说`shellClear`函数地址为`0x08028620`，则通过`exec`执行应为`exec 0x08028621`
 
@@ -297,7 +298,7 @@ letter shell 3.x将可执行的函数命令定义，用户定义，按键定义�
 
 letter shell 支持使用命令导出方式和命令表方式进行命令的添加，定义，通过宏```SHELL_USING_CMD_EXPORT```控制
 
-命令导出方式支持keil，IAR(未测试)以及GCC
+命令导出方式支持keil，IAR以及GCC
 
 1. 命令导出方式
 
