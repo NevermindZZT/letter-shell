@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.1.0"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.1.1"                 /**< 版本号 */
 
 
 /**
@@ -341,6 +341,7 @@ typedef struct shell_def
         unsigned short paramCount;                              /**< 参数数量 */
         int keyValue;                                           /**< 输入按键键值 */
     } parser;
+#if SHELL_HISTORY_MAX_NUMBER > 0
     struct
     {
         char *item[SHELL_HISTORY_MAX_NUMBER];                   /**< 历史记录 */
@@ -348,6 +349,7 @@ typedef struct shell_def
         unsigned short record;                                  /**< 当前记录位置 */
         signed short offset;                                    /**< 当前历史记录偏移 */
     } history;
+#endif /** SHELL_HISTORY_MAX_NUMBER > 0 */
     struct
     {
         void *base;                                             /**< 命令表基址 */

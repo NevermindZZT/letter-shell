@@ -169,18 +169,21 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
 {
     shell->parser.length = 0;
     shell->parser.cursor = 0;
-    shell->history.offset = 0;
-    shell->history.number = 0;
-    shell->history.record = 0;
     shell->info.user = NULL;
     shell->status.isChecked = 1;
 
     shell->parser.buffer = buffer;
     shell->parser.bufferSize = size / (SHELL_HISTORY_MAX_NUMBER + 1);
+    
+#if SHELL_HISTORY_MAX_NUMBER > 0
+    shell->history.offset = 0;
+    shell->history.number = 0;
+    shell->history.record = 0;
     for (short i = 0; i < SHELL_HISTORY_MAX_NUMBER; i++)
     {
         shell->history.item[i] = buffer + shell->parser.bufferSize * (i + 1);
     }
+#endif /** SHELL_HISTORY_MAX_NUMBER > 0 */
 
 #if SHELL_USING_CMD_EXPORT == 1
     #if defined(__CC_ARM) || (defined(__ARMCC_VERSION) && __ARMCC_VERSION >= 6000000)
@@ -1272,6 +1275,7 @@ static void shellWriteReturnValue(Shell *shell, int value)
 }
 
 
+#if SHELL_HISTORY_MAX_NUMBER > 0
 /**
  * @brief shell历史记录添加
  * 
@@ -1351,6 +1355,7 @@ static void shellHistory(Shell *shell, signed char dir)
     }
     
 }
+#endif /** SHELL_HISTORY_MAX_NUMBER > 0 */
 
 
 /**
@@ -1383,7 +1388,9 @@ void shellExec(Shell *shell)
 
     if (shell->status.isChecked)
     {
+    #if SHELL_HISTORY_MAX_NUMBER > 0
         shellHistoryAdd(shell);
+    #endif /** SHELL_HISTORY_MAX_NUMBER > 0 */
         shellParserParam(shell);
         shell->parser.length = shell->parser.cursor = 0;
         if (shell->parser.paramCount == 0)
@@ -1412,6 +1419,7 @@ void shellExec(Shell *shell)
 }
 
 
+#if SHELL_HISTORY_MAX_NUMBER > 0
 /**
  * @brief shell上方向键输入
  * 
@@ -1434,6 +1442,7 @@ void shellDown(Shell *shell)
     shellHistory(shell, -1);
 }
 SHELL_EXPORT_KEY(SHELL_CMD_PERMISSION(0), 0x1B5B4200, shellDown, down);
+#endif /** SHELL_HISTORY_MAX_NUMBER > 0 */
 
 
 /**
