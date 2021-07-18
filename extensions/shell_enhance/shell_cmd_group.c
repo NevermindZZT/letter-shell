@@ -30,11 +30,9 @@ unsigned int shellCmdGroupRun(ShellCommand *group, int argc, char *argv[])
     ShellCommand *item = group;
     Shell *shell = shellGetCurrent();
 
-    if (argc < 2 || !shell)
-    {
-        return -1;
-    }
-    if (strcmp("-h", argv[1]) == 0)
+    SHELL_ASSERT(shell, return -1);
+
+    if (argc == 1 || strcmp("-h", argv[1]) == 0)
     {
         shellCmdGroupHelp(shell, argv[0], group);
         return 0;
