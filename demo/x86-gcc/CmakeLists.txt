@@ -11,6 +11,9 @@ add_executable(LetterShell
                ../../extensions/fs_support/shell_fs.c
                ../../extensions/log/log.c
                ../../extensions/shell_enhance/shell_passthrough.c
+               ../../extensions/shell_enhance/shell_cmd_group.c
+               ../../extensions/game/game.c
+               ../../extensions/game/2048/2048.c
                )
 
 target_include_directories(LetterShell PUBLIC 
