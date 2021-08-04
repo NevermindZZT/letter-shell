@@ -14,6 +14,7 @@ add_executable(LetterShell
                ../../extensions/shell_enhance/shell_cmd_group.c
                ../../extensions/game/game.c
                ../../extensions/game/2048/2048.c
+               ../../extensions/game/pushbox/pushbox.c
                )
 
 target_include_directories(LetterShell PUBLIC 
