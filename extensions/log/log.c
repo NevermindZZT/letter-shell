@@ -103,13 +103,21 @@ static void logWriteBuffer(Log *log, LogLevel level, char *buffer, short len)
                 && logList[i]->active
                 && logList[i]->level >= level)
             {
+#if SHELL_SUPPORT_END_LINE == 1
+                shellWriteEndLine(logList[i]->shell, logBuffer, len);
+#else
                 logList[i]->write(logBuffer, len);
+#endif
             }
         }
     }
     else if (log && log->active && log->level >= level)
     {
+#if SHELL_SUPPORT_END_LINE == 1
+        shellWriteEndLine(log->shell, logBuffer, len);
+#else
         log->write(logBuffer, len);
+#endif
     }
 }
 
