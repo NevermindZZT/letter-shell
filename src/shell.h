@@ -330,6 +330,9 @@ typedef struct shell_def
     #if SHELL_USING_COMPANION == 1
         struct shell_companion_object *companions;              /**< 伴生对象 */
     #endif
+    #if SHELL_KEEP_RETURN_VALUE == 1
+        int retVal;                                             /**< 返回值 */
+    #endif
     } info;
     struct
     {

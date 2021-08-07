@@ -80,14 +80,10 @@ unsigned short userShellWrite(char *data, unsigned short len)
 unsigned short userShellRead(char *data, unsigned short len)
 {
     unsigned short length = len;
-    system("stty -echo");
-    system("stty -icanon");
     while (length--)
     {
         *data++ = getchar();
     }
-    // system("stty icanon");
-    // system("stty echo");
     return len;
 }
 
@@ -237,3 +233,10 @@ void shellPassthroughTest(char *data, unsigned short len)
     printf("passthrough mode test, data: %s, len: %d\r\n", data, len);
 }
 SHELL_EXPORT_PASSTROUGH(SHELL_CMD_PERMISSION(0), passTest, passthrough>>, shellPassthroughTest, passthrough mode test);
+
+int shellRetValChange(int value)
+{
+    return value;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+changeRetVal, shellRetValChange, change shell return vallue);

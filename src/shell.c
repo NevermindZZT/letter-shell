@@ -1272,6 +1272,9 @@ static void shellWriteReturnValue(Shell *shell, int value)
     shellToHex(value, buffer);
     shellWriteString(shell, buffer);
     shellWriteString(shell, "\r\n");
+#if SHELL_KEEP_RETURN_VALUE == 1
+    shell->info.retVal = value;
+#endif
 }
 
 
@@ -1955,3 +1958,21 @@ SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RE
 exec, shellExecute, execute function undefined);
 #endif
 
+#if SHELL_KEEP_RETURN_VALUE == 1
+/**
+ * @brief shell返回值获取
+ *        获取上一次执行的命令的返回值
+ * 
+ * @return int 返回值
+ */
+static int shellRetValGet()
+{
+    Shell *shell = shellGetCurrent();
+    return shell ? shell->info.retVal : 0;
+}
+static ShellNodeVarAttr shellRetVal = {
+    .get = shellRetValGet
+};
+SHELL_EXPORT_VAR(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_VAR_NODE)|SHELL_CMD_READ_ONLY,
+RETVAL, &shellRetVal, return value of last command);
+#endif /** SHELL_KEEP_RETURN_VALUE == 1 */
