@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <unistd.h>
 
 
 #define printf(...) shellPrint(shellPushbox, ##__VA_ARGS__)
@@ -91,6 +89,7 @@ void pushbox_print_map()
         }
         printf( "\r\n");
     }
+	printf("w,a,s,d or q\n");
 }
 
 //推箱子
@@ -182,6 +181,3 @@ int main_pushbox(int argc, char* argv[])
     printf( "\033[?25l\033[2J");
 	return EXIT_SUCCESS;
 }
-SHELL_EXPORT_CMD(
-    SHELL_CMD_PERMISSION(0) | SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN) | SHELL_CMD_DISABLE_RETURN,
-    pushbox, main_pushbox, game pushbox);
