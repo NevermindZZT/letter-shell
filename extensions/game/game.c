@@ -22,4 +22,6 @@ ShellCommand gameGroup[] =
         pushbox, main_pushbox, game pushbox),
     SHELL_CMD_GROUP_END()
 };
-SHELL_EXPORT_CMD_GROUP(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), game, gameGroup, games);
+SHELL_EXPORT_CMD_GROUP(
+SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RETURN,
+game, gameGroup, games);

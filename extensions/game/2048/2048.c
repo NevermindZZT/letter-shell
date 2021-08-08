@@ -24,7 +24,7 @@ Shell *shell2048 = NULL;
 
 char shellGetChar(Shell *shell) {
     char data;
-    if (shell->read(&data, 1) == 1) {
+    if (shell->read && shell->read(&data, 1) == 1) {
         return data;
     } else {
         return -1;
@@ -421,5 +421,3 @@ int main_2048(int argc, char *argv[]) {
 
 	return EXIT_SUCCESS;
 }
-SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN),
-2048, main_2048, game 2048\n2048 [param]\nParam: blackwhite bluered or null);

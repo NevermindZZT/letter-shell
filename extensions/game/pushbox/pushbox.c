@@ -14,7 +14,7 @@ Shell *shellPushbox = NULL;
 
 static char shellGetChar(Shell *shell) {
     char data;
-    if (shell->read(&data, 1) == 1) {
+    if (shell->read && shell->read(&data, 1) == 1) {
         return data;
     } else {
         return -1;
