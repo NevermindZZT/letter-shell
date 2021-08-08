@@ -10,6 +10,7 @@ add_executable(LetterShell
                ../../src/shell_ext.c
                ../../extensions/fs_support/shell_fs.c
                ../../extensions/log/log.c
+               ../../extensions/telnet/telnetd.c
                ../../extensions/shell_enhance/shell_passthrough.c
                ../../extensions/shell_enhance/shell_cmd_group.c
                ../../extensions/game/game.c
@@ -24,8 +25,10 @@ target_include_directories(LetterShell PUBLIC
                            ../../extensions/cpp_support
                            ../../extensions/log
                            ../../extensions/shell_enhance
+                           ../../extensions/telnet
                            ) 
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -T shell.lds")
+set(CMAKE_CXX_FLAGS "${CAMKE_CXX_FLAGS} -std=c++11 -pthread")

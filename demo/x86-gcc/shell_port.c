@@ -13,12 +13,14 @@
 #include "shell_fs.h"
 #include "shell_passthrough.h"
 #include "log.h"
+#include "telnetd.h"
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <stddef.h>
 #include <string.h>
 #include <sys/time.h>
+#include <pthread.h>
 
 Shell shell;
 char shellBuffer[512];
@@ -128,6 +130,21 @@ size_t userShellListDir(char *path, char *buffer, size_t maxLen)
 }
 
 /**
+ * @brief 新线程接口
+ * 
+ * @param handler 线程函数
+ * @param param 线程参数
+ * 
+ * @return int 0 启动成功 -1 启动失败
+ */
+int userNewThread(void *handler, void *param)
+{
+    pthread_t tid;
+
+    return pthread_create(&tid, NULL, handler, param) == 0 ? 0 : -1;
+}
+
+/**
  * @brief 用户shell初始化
  * 
  */
@@ -150,6 +167,8 @@ void userShellInit(void)
 
     log.write = terminalLogWrite;
     logRegister(&log, &shell);
+
+    telentdInit(userNewThread);
 
     // logDebug("hello world");
     // logHexDump(LOG_ALL_OBJ, LOG_DEBUG, (void *)&shell, sizeof(shell));

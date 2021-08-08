@@ -435,7 +435,10 @@ typedef struct
 #define shellSetPath(_shell, _path)     (_shell)->info.path = _path
 #define shellGetPath(_shell)            ((_shell)->info.path)
 
+#define shellDeInit(shell)              shellRemove(shell)
+
 void shellInit(Shell *shell, char *buffer, unsigned short size);
+void shellRemove(Shell *shell);
 unsigned short shellWriteString(Shell *shell, const char *string);
 void shellPrint(Shell *shell, char *fmt, ...);
 void shellScan(Shell *shell, char *fmt, ...);

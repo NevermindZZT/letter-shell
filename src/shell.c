@@ -237,6 +237,23 @@ static void shellAdd(Shell *shell)
     }
 }
 
+/**
+ * @brief 移除shell
+ * 
+ * @param shell shell对象
+ * 
+ */
+void shellRemove(Shell *shell)
+{
+    for (short i = 0; i < SHELL_MAX_NUMBER; i++)
+    {
+        if (shellList[i] == shell)
+        {
+            shellList[i] = NULL;
+            return;
+        }
+    }
+}
 
 /**
  * @brief 获取当前活动shell
