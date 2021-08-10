@@ -154,6 +154,11 @@ static void telnetdConnection(int client)
     shellCompanionAdd(telnetdShell, SHELL_COMPANION_ID_TELNETD, (void *)client);
     shellInit(telnetdShell, shellBuffer, TELNETD_SHELL_BUFFER_SIZE);
 
+    if (TELNETD_SHELL_USER)
+    {
+        shellRun(telnetdShell, TELNETD_SHELL_USER);
+    }
+
     while (1)
     {
         len = recv(client, data, 1, 0);

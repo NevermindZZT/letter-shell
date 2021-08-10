@@ -37,6 +37,11 @@
 #define TELNETD_SHELL_BUFFER_SIZE   512
 
 /**
+ * @brief telnet shell的用户名，使用默认shell用户设置为NULL即可
+ */
+#define TELNETD_SHELL_USER          NULL
+
+/**
  * @brief 新线程接口
  * 
  * @param void * 线程执行函数
