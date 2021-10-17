@@ -18,8 +18,8 @@ import os
 import sys
 import re
 
-FILE_PATTERN = r"^.*?\.(c|h)$"
-SHELL_EXPORT_PATTERN = r"^\s*SHELL_EXPORT_(CMD|CMD_AGENCY|VAR|USER|KEY|KEY_AGENCY|CMD_GROUP)\s*\(\s*\S+\s*,\s*(\S+)\s*,.*$"
+FILE_PATTERN = r"^.*?\.(cpp|c|h)$"
+SHELL_EXPORT_PATTERN = r"^\s*SHELL_EXPORT_(CMD|CMD_AGENCY|VAR|USER|KEY|KEY_AGENCY|CMD_GROUP|PASSTROUGH)\s*\(\s*\S+\s*,\s*(\S+)\s*,.*$"
 
 def isCodeFile(name):
     return re.match(FILE_PATTERN, name) != None
@@ -28,7 +28,7 @@ def getCodeFiles(path):
     names = os.listdir(path)
     files = []
     for name in names:
-        fullName = path + '\\' + name
+        fullName =  os.path.join(path, name)
         if os.path.isdir(fullName):
             files = files + getCodeFiles(fullName)
         else:
@@ -80,5 +80,5 @@ if __name__ == "__main__":
             pass
 
     for item in sorted(itemList, key=lambda x:(x[1])):
-        print("shell export %s, %s in file %s(%d)"
+        print("shell export %s, %s in file %s:%d"
              %(item[0], item[1], item[2], item[3]))

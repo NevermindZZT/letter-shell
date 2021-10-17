@@ -109,6 +109,13 @@ unsigned int userGetTick();
 #define     SHELL_QUICK_HELP            1
 
 /**
+ * @brief 保存命令返回值
+ *        开启后会默认定义一个`RETVAL`变量，会保存上一次命令执行的返回值，可以在随后的命令中进行调用
+ *        如果命令的`SHELL_CMD_DISABLE_RETURN`标志被设置，则该命令不会更新`RETVAL`
+ */
+#define     SHELL_KEEP_RETURN_VALUE     1
+
+/**
  * @brief 管理的最大shell数量
  */
 #define     SHELL_MAX_NUMBER            5
