@@ -22,7 +22,7 @@
  */
 #define     SHELL_CMD_GROUP_FUNC(_group) \
             void SHELL_CMD_GROUP_FUNC_NAME(_group)(int p1, int p2) \
-            { shellCmdGroupRun(&_group, p1, p2); }
+            { shellCmdGroupRun(_group, p1, (char **)p2); }
 
 
 /**
@@ -59,4 +59,4 @@
  */
 #define SHELL_CMD_GROUP_END()   {0}
 
-unsigned int shellCmdGroupRun(ShellCommand *group, int argc, char *argv[]);
+int shellCmdGroupRun(ShellCommand *group, int argc, char *argv[]);
