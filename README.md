@@ -96,9 +96,9 @@
      * @param data shell读取的字符
      * @param len 请求读取的字符数量
      *
-     * @return unsigned short 实际读取到的字符数量
+     * @return signed short 实际读取到的字符数量
      */
-    typedef unsigned short (*shellRead)(char *data, unsigned short len);
+    typedef signed short (*shellRead)(char *data, unsigned short len);
 
     /**
      * @brief shell写数据函数原型
@@ -106,9 +106,9 @@
      * @param data 需写的字符数据
      * @param len 需要写入的字符数
      *
-     * @return unsigned short 实际写入的字符数量
+     * @return signed short 实际写入的字符数量
      */
-    typedef unsigned short (*shellWrite)(char *data, unsigned short len);
+    typedef signed short (*shellWrite)(char *data, unsigned short len);
     ```
 
 3. 申请一片缓冲区
