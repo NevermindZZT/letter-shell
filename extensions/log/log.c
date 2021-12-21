@@ -81,8 +81,15 @@ void logSetLevel(Log *log, LogLevel level)
     logAssert(log, return);
     log->level = level;
 }
+#if SHELL_USING_COMPANION == 1
+SHELL_EXPORT_CMD_AGENCY(
+SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
+logSetLevel, logSetLevel,  set log level\r\n logSetLevel [level],
+(void *)shellCompanionGet(shellGetCurrent(), SHELL_COMPANION_ID_LOG), p1);
+#else
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
-logSetLevel, logSetLevel, set log level);
+logSetLevel, logSetLevel, set log level\r\n logSetLevel [log] [level]);
+#endif /** SHELL_USING_COMPANION == 1 */
 
 
 /**
