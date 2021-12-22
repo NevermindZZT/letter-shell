@@ -119,7 +119,7 @@ static const char *shellText[] =
     [SHELL_TEXT_HELP_HEADER] =
         "command help of ",
     [SHELL_TEXT_PASSWORD_HINT] = 
-        "\r\nPlease input password:",
+        "Please input password:",
     [SHELL_TEXT_PASSWORD_ERROR] = 
         "\r\npassword error\r\n",
     [SHELL_TEXT_CLEAR_CONSOLE] = 
