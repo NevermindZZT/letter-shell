@@ -27,6 +27,58 @@
 Log *logList[LOG_MAX_NUMBER] = {0};
 static char logBuffer[LOG_BUFFER_SIZE];
 
+#if LOG_USING_LOCK == 1
+/**
+ * @brief   上锁log对象
+ * @param   log log对象
+ */
+static void logLock(Log *log)
+{
+    if (log == LOG_ALL_OBJ)
+    {
+        for (short i = 0; i < LOG_MAX_NUMBER; i++)
+        {
+            if (logList[i] && logList[i]->active)
+            {
+                if (logList[i]->lock)
+                {
+                    LOG_LOCK(logList[i]);
+                }
+            }
+        }
+    }
+    else if (log->lock)
+    {
+        LOG_LOCK(log);
+    }
+}
+
+/**
+ * @brief   解锁log对象
+ * @param   log log对象
+ */
+static void logUnlock(Log *log)
+{
+    if (log == LOG_ALL_OBJ)
+    {
+        for (short i = 0; i < LOG_MAX_NUMBER; i++)
+        {
+            if (logList[i] && logList[i]->active)
+            {
+                if (logList[i]->unlock)
+                {
+                    LOG_UNLOCK(logList[i]);
+                }
+            }
+        }
+    }
+    else if (log->unlock)
+    {
+        LOG_UNLOCK(log);
+    }
+}
+#endif /* LOG_USING_LOCK == 1 */
+
 /**
  * @brief 注册log对象
  * 
@@ -102,6 +154,9 @@ logSetLevel, logSetLevel, set log level\r\n logSetLevel [log] [level]);
  */
 static void logWriteBuffer(Log *log, LogLevel level, char *buffer, short len)
 {
+#if LOG_USING_LOCK == 1
+    logLock(log);
+#endif /* LOG_USING_LOCK == 1 */
     if (log == LOG_ALL_OBJ)
     {
         for (short i = 0; i < LOG_MAX_NUMBER; i++)
@@ -118,6 +173,9 @@ static void logWriteBuffer(Log *log, LogLevel level, char *buffer, short len)
     {
         log->write(logBuffer, len);
     }
+#if LOG_USING_LOCK == 1
+    logUnlock(log);
+#endif /* LOG_USING_LOCK == 1 */
 }
 
 /**
@@ -132,14 +190,19 @@ void logWrite(Log *log, LogLevel level, char *fmt, ...)
 {
     va_list vargs;
     short len;
-
+    
+#if LOG_USING_LOCK == 1
+    logLock(log);
+#endif /* LOG_USING_LOCK == 1 */
     va_start(vargs, fmt);
     len = vsnprintf(logBuffer, LOG_BUFFER_SIZE - 1, fmt, vargs);
     va_end(vargs);
 
     logWriteBuffer(log, level, logBuffer, len);
+#if LOG_USING_LOCK == 1
+    logUnlock(log);
+#endif /* LOG_USING_LOCK == 1 */
 }
-
 
 /**
  * @brief 16进制输出
@@ -159,7 +222,9 @@ void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
     {
         return;
     }
-
+#if LOG_USING_LOCK == 1
+    logLock(log);
+#endif /* LOG_USING_LOCK == 1 */
     len = snprintf(logBuffer, LOG_BUFFER_SIZE - 1, "memory of 0x%08x, size: %d:\r\n%s",
                    (unsigned int)base, length, memPrintHead);
     logWriteBuffer(log, level, logBuffer, len);
@@ -216,6 +281,9 @@ void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
         length -= 16;
         printLen = 0;
     }
+#if LOG_USING_LOCK == 1
+    logUnlock(log);
+#endif /* LOG_USING_LOCK == 1 */
 }
 #if SHELL_USING_COMPANION == 1
 SHELL_EXPORT_CMD_AGENCY(

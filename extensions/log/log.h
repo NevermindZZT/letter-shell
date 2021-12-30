@@ -17,6 +17,7 @@
 
 #define     SHELL_COMPANION_ID_LOG          -2
 
+#define     LOG_USING_LOCK     0
 #define     LOG_BUFFER_SIZE    256              /**< log输出缓冲大小 */
 #define     LOG_USING_COLOR    1                /**< 是否使用颜色 */
 #define     LOG_MAX_NUMBER     5                /**< 允许注册的最大log对象数量 */
@@ -28,6 +29,14 @@
 #ifndef     LOG_ENABLE
     #define LOG_ENABLE         1                /**< 使能log */
 #endif
+
+#if LOG_USING_LOCK == 1
+#define     LOG_LOCK(log)           log->lock(log)
+#define     LOG_UNLOCK(log)         log->unlock(log)
+#else
+#define     LOG_LOCK(log)
+#define     LOG_UNLOCK(log)
+#endif /* LOG_USING_LOCK == 1 */
 
 #define     LOG_ALL_OBJ        ((Log *)-1)      /**< 所有已注册的log对象 */
 
@@ -92,11 +101,15 @@ typedef enum
  * @brief log对象定义
  * 
  */
-typedef struct
+typedef struct log_def
 {
     void (*write)(char *, short);                   /**< 写buffer */
     char active;                                    /**< 是否激活 */
     LogLevel level;                                 /**< 日志级别 */
+#if LOG_USING_LOCK == 1   
+    int (*lock)(struct log_def *);                  /**< log 加锁 */
+    int (*unlock)(struct log_def *);                /**< log 解锁 */
+#endif /** LOG_USING_LOCK == 1 */
     Shell *shell;                                   /**< 关联shell对象 */
 } Log;
 
