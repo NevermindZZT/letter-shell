@@ -13,6 +13,7 @@ add_executable(LetterShell
                ../../extensions/telnet/telnetd.c
                ../../extensions/shell_enhance/shell_passthrough.c
                ../../extensions/shell_enhance/shell_cmd_group.c
+               ../../extensions/shell_enhance/shell_secure_user.c
                ../../extensions/game/game.c
                ../../extensions/game/2048/2048.c
                ../../extensions/game/pushbox/pushbox.c
@@ -20,6 +21,7 @@ add_executable(LetterShell
 
 target_include_directories(LetterShell PUBLIC 
                            "${PROJECT_BINARY_DIR}" 
+                           ./
                            ../../src
                            ../../extensions/fs_support
                            ../../extensions/cpp_support
