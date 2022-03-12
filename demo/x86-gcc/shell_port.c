@@ -12,6 +12,7 @@
 #include "shell.h"
 #include "shell_fs.h"
 #include "shell_passthrough.h"
+#include "shell_secure_user.h"
 #include "log.h"
 #include "telnetd.h"
 #include <stdio.h>
@@ -259,3 +260,9 @@ int shellRetValChange(int value)
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
 changeRetVal, shellRetValChange, change shell return vallue);
+
+char *shellSecureUserHandlerTest(const char *name)
+{
+    return (char *)name;
+}
+SHELL_EXPORT_SECURE_USER(SHELL_CMD_PERMISSION(0xFF), secure, shellSecureUserHandlerTest, secure user test);

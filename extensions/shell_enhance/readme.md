@@ -10,6 +10,7 @@
   - [组件](#组件)
     - [shell_cmd_group](#shell_cmd_group)
     - [shell_passthrough](#shell_passthrough)
+    - [shell_secure_user](#shell_secure_user)
 
 ## 简介
 
@@ -23,6 +24,7 @@
 | ----------------- | -------------- | --------------------------------------- |
 | shell_cmd_group   | 提供命令组功能 | shell_cmd_group.c shell_cmd_group.h     |
 | shell_passthrough | 提供透传功能   | shell_passthrough.c shell_passthrough.h |
+| shell_secure_user | 安全用户功能   | shell_secure_user.c shell_secure_user.h |
 
 ### shell_cmd_group
 
@@ -133,9 +135,36 @@
 
 - 单次调用
 
-    某些情况下，使用`passthrough`模式时，我们可能只需要单词数据的透传，此时可以不进入`passthrough`命令行，直接调用命令带上透传的数据即可
+    某些情况下，使用`passthrough`模式时，我们可能只需要单次数据的透传，此时可以不进入`passthrough`命令行，直接调用命令带上透传的数据即可
 
     ```sh
     letter:/mnt/f/Github/letter shell/demo/x86-gcc$ passTest "hello world"
     passthrough mode test, data: hello world, len: 11
     ```
+
+### shell_secure_user
+
+`shell_secure_user`组件是对shell用户的一个补充，在`letter shell`中，我们可以通过定义不同的用户和分配命令权限，约束使用者可以执行的命令，可以将高权限的用户定义密码，但是，shell用户的默认实现只支持固定的密码，在编译时就已经确定，安全性不高
+
+使用`shell_secure_user`组件，我们可以定义一个函数，使用这个函数得到用户的密码，一般的，我们可以根据芯片的ID，mac地址，甚至可以向服务器做请求以获取密码，提高安全性
+
+- 定义获取用户密码函数(handler)
+
+    示例函数直接返回用户名作为密码，实际使用时可以通过任何方式计算或者获取密码，注意，此处返回的密码字符串，请自行分配内存保存
+
+    ```c
+    char *shellSecureUserHandlerTest(const char *name)
+    {
+        return (char *)name;
+    }
+    ```
+
+- 定义用户
+
+    ```c
+    SHELL_EXPORT_SECURE_USER(SHELL_CMD_PERMISSION(0xFF), secure, shellSecureUserHandlerTest, secure user test);
+    ```
+
+- 调用
+
+    使用`shell_secure_user`定义的用户和shell默认用户调用方法完全一致，只需要在shell命令行输入用户名和密码即可

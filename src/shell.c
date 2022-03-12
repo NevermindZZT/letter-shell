@@ -153,7 +153,7 @@ static void shellAdd(Shell *shell);
 static void shellWritePrompt(Shell *shell, unsigned char newline);
 static void shellWriteReturnValue(Shell *shell, int value);
 static int shellShowVar(Shell *shell, ShellCommand *command);
-static void shellSetUser(Shell *shell, const ShellCommand *user);
+void shellSetUser(Shell *shell, const ShellCommand *user);
 ShellCommand* shellSeekCommand(Shell *shell,
                                const char *cmd,
                                ShellCommand *base,
@@ -1249,7 +1249,7 @@ static void shellCheckPassword(Shell *shell)
  * @param shell shell对象
  * @param user 用户
  */
-static void shellSetUser(Shell *shell, const ShellCommand *user)
+void shellSetUser(Shell *shell, const ShellCommand *user)
 {
     shell->info.user = user;
     shell->status.isChecked = 
