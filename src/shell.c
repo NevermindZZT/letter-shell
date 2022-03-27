@@ -373,7 +373,7 @@ static void shellWritePrompt(Shell *shell, unsigned char newline)
  * @param fmt 格式化字符串
  * @param ... 参数
  */
-void shellPrint(Shell *shell, char *fmt, ...)
+void shellPrint(Shell *shell, const char *fmt, ...)
 {
     char buffer[SHELL_PRINT_BUFFER];
     va_list vargs;

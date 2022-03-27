@@ -121,7 +121,7 @@ static void logWriteBuffer(Log *log, LogLevel level, char *buffer, short len)
  * @param fmt 格式
  * @param ... 参数
  */
-void logWrite(Log *log, LogLevel level, char *fmt, ...)
+void logWrite(Log *log, LogLevel level, const char *fmt, ...)
 {
     va_list vargs;
     short len;
@@ -201,6 +201,7 @@ void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
                 }
             }
         }
+        logBuffer[printLen ++] = ' ';
         logBuffer[printLen ++] = '|';
         logBuffer[printLen ++] = '\r';
         logBuffer[printLen ++] = '\n';
@@ -214,7 +215,7 @@ void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
 SHELL_EXPORT_CMD_AGENCY(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
 hexdump, logHexDump, hex dump\r\n hexdump [base] [len],
-(void *)shellCompanionGet(shellGetCurrent(), SHELL_COMPANION_ID_LOG), LOG_NONE, p1, p2);
+(void *)shellCompanionGet(shellGetCurrent(), SHELL_COMPANION_ID_LOG), LOG_NONE, (void *)p1, (unsigned int)p2);
 #else
 SHELL_EXPORT_CMD(
 SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)|SHELL_CMD_DISABLE_RETURN,
