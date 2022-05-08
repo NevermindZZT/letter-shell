@@ -16,7 +16,6 @@
 
 #define     SHELL_UART      UART_NUM_0
 
-
 Shell shell;
 char shellBuffer[512];
 
@@ -24,10 +23,13 @@ char shellBuffer[512];
  * @brief 用户shell写
  * 
  * @param data 数据
+ * @param len 数据长度
+ * 
+ * @return unsigned short 写入实际长度
  */
-void userShellWrite(char data)
+unsigned short userShellWrite(char *data, unsigned short len)
 {
-    uart_write_bytes(SHELL_UART, (const char *)&data, 1);
+    return uart_write_bytes(SHELL_UART, (const char *)data, len);
 }
 
 
@@ -35,12 +37,13 @@ void userShellWrite(char data)
  * @brief 用户shell读
  * 
  * @param data 数据
- * @return char 状态
+ * @param len 数据长度
+ * 
+ * @return unsigned short 读取实际长度
  */
-signed char userShellRead(char *data)
+signed char userShellRead(char *data, unsigned short len)
 {
-    return (uart_read_bytes(SHELL_UART, (uint8_t *)data, 1, portMAX_DELAY) == 1)
-        ? 0 : -1;
+    return uart_read_bytes(SHELL_UART, (uint8_t *)data, len, portMAX_DELAY);
 }
 
 
@@ -62,5 +65,6 @@ void userShellInit(void)
     shell.write = userShellWrite;
     shell.read = userShellRead;
     shellInit(&shell, shellBuffer, 512);
-}
 
+    xTaskCreate(shellTask, "shell", 2048, &shell, 10, NULL);
+}

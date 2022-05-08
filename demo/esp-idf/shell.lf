@@ -1,0 +1,13 @@
+[sections:shellCommand]
+entries:
+    shellCommand+
+
+[scheme:shell_command]
+entries:
+    shellCommand -> flash_rodata
+
+[mapping:shell]
+archive: *
+entries:
+    * (shell_command);
+        shellCommand -> flash_rodata KEEP() ALIGN(4, pre, post) SURROUND(shell_command)
