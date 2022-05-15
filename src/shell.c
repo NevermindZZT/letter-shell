@@ -438,8 +438,9 @@ signed char shellCheckPermission(Shell *shell, ShellCommand *command)
 {
     return ((!command->attr.attrs.permission
                 || command->attr.attrs.type == SHELL_TYPE_USER
-                || (command->attr.attrs.permission 
-                    & shell->info.user->attr.attrs.permission))
+                || (shell->info.user
+                    && (command->attr.attrs.permission 
+                        & shell->info.user->attr.attrs.permission)))
             && (shell->status.isChecked
                 || command->attr.attrs.enableUnchecked))
             ? 0 : -1;
