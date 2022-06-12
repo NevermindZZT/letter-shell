@@ -156,12 +156,12 @@ void logHexDump(Log *log, LogLevel level, void *base, unsigned int length)
     len = snprintf(logBuffer, LOG_BUFFER_SIZE - 1, "memory of 0x%08x, size: %d:\r\n%s",
                    (unsigned int)base, length, memPrintHead);
     logWriteBuffer(log, level, logBuffer, len);
+
+    len = length;
     
     address = (unsigned char *)((unsigned int)base & (~0x0000000F));
     length += (unsigned int)base - (unsigned int)address;
     length = (length + 15) & (~0x0000000F);
-
-    len = length;
 
     while (length)
     {
