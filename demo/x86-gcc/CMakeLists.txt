@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(LetterShell VERSION 0.1.0)
 
+add_definitions(-DSHELL_CFG_USER="shell_cfg_user.h")
+
 add_executable(LetterShell
                main.c
                shell_port.c
@@ -20,7 +22,7 @@ add_executable(LetterShell
                )
 
 target_include_directories(LetterShell PUBLIC 
-                           "${PROJECT_BINARY_DIR}" 
+                           "${PROJECT_BINARY_DIR}"
                            ./
                            ../../src
                            ../../extensions/fs_support
