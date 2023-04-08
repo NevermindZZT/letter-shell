@@ -266,3 +266,9 @@ char *shellSecureUserHandlerTest(const char *name)
     return (char *)name;
 }
 SHELL_EXPORT_SECURE_USER(SHELL_CMD_PERMISSION(0xFF), secure, shellSecureUserHandlerTest, secure user test);
+
+void systemPassthrough(char *data, unsigned short len)
+{
+    system(data);
+}
+SHELL_EXPORT_PASSTROUGH(SHELL_CMD_PERMISSION(0), system, system>>\x20, systemPassthrough, passthrough for system command);
