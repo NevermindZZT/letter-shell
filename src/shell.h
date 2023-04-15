@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.1.2"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.2.0"                 /**< 版本号 */
 
 
 /**
@@ -128,8 +128,9 @@
      * @param _name 命令名
      * @param _func 命令函数
      * @param _desc 命令描述
+     * @param ... 其他参数
      */
-    #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc) \
+    #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc, ...) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
             SHELL_USED const ShellCommand \
@@ -138,7 +139,8 @@
                 .attr.value = _attr, \
                 .data.cmd.name = shellCmd##_name, \
                 .data.cmd.function = (int (*)())_func, \
-                .data.cmd.desc = shellDesc##_name \
+                .data.cmd.desc = shellDesc##_name, \
+                ##__VA_ARGS__ \
             }
 
     /**
@@ -386,7 +388,7 @@ typedef struct shell_command
             ShellCommandType type : 4;                          /**< command类型 */
             unsigned char enableUnchecked : 1;                  /**< 在未校验密码的情况下可用 */
             unsigned char disableReturn : 1;                    /**< 禁用返回值输出 */
-            unsigned char  readOnly : 1;                        /**< 只读 */
+            unsigned char readOnly : 1;                         /**< 只读 */
             unsigned char reserve : 1;                          /**< 保留 */
             unsigned char paramNum : 4;                         /**< 参数数量 */
         } attrs;
@@ -399,26 +401,41 @@ typedef struct shell_command
             const char *name;                                   /**< 命令名 */
             int (*function)();                                  /**< 命令执行函数 */
             const char *desc;                                   /**< 命令描述 */
+        #if SHELL_USING_FUNC_SIGNATURE == 1
+            const char *signature;                              /**< 函数签名 */
+        #endif
         } cmd;                                                  /**< 命令定义 */
         struct
         {
             const char *name;                                   /**< 变量名 */
             void *value;                                        /**< 变量值 */
             const char *desc;                                   /**< 变量描述 */
+        #if SHELL_USING_FUNC_SIGNATURE == 1
+            const char *unsued;                                 /**< 未使用成员 */
+        #endif
         } var;                                                  /**< 变量定义 */
         struct
         {
             const char *name;                                   /**< 用户名 */
             const char *password;                               /**< 用户密码 */
             const char *desc;                                   /**< 用户描述 */
+        #if SHELL_USING_FUNC_SIGNATURE == 1
+            const char *unsued;                                 /**< 未使用成员 */
+        #endif
         } user;                                                 /**< 用户定义 */
         struct
         {
             int value;                                          /**< 按键键值 */
             void (*function)(Shell *);                          /**< 按键执行函数 */
             const char *desc;                                   /**< 按键描述 */
+        #if SHELL_USING_FUNC_SIGNATURE == 1
+            const char *unsued;                                 /**< 未使用成员 */
+        #endif
         } key;                                                  /**< 按键定义 */
-    } data; 
+    } data;
+#if SHELL_COMMAND_FILL_BYTES != 0
+    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
+#endif
 } ShellCommand;
 
 /**

@@ -25,6 +25,12 @@ typedef struct shell_command_cpp_cmd
     const char *name;                                           /**< 命令名 */
     int (*function)();                                          /**< 命令执行函数 */
     const char *desc;                                           /**< 命令描述 */
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    const char *signature;                                      /**< 函数签名 */
+#endif
+#if SHELL_COMMAND_FILL_BYTES != 0
+    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
+#endif
 } ShellCommandCppCmd;
 
 /**
@@ -36,6 +42,12 @@ typedef struct shell_command_cpp_var
     const char *name;                                           /**< 变量名 */
     void *value;                                                /**< 变量值 */
     const char *desc;                                           /**< 变量描述 */
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    void *unused;                                               /**< 未使用成员，需要保持和 ShellCommandCppCmd 大小一致 */
+#endif
+#if SHELL_COMMAND_FILL_BYTES != 0
+    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
+#endif
 } ShellCommandCppVar;
 
 /**
@@ -47,6 +59,12 @@ typedef struct shell_command_cpp_user
     const char *name;                                           /**< 用户名 */
     const char *password;                                       /**< 用户密码 */
     const char *desc;                                           /**< 用户描述 */
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    void *unused;                                               /**< 未使用成员，需要保持和 ShellCommandCppCmd 大小一致 */
+#endif
+#if SHELL_COMMAND_FILL_BYTES != 0
+    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
+#endif
 } ShellCommandCppUser;
 
 /**
@@ -58,6 +76,12 @@ typedef struct shell_command_cpp_key
     int value;                                                  /**< 按键键值 */
     void (*function)(Shell *);                                  /**< 按键执行函数 */
     const char *desc;                                           /**< 按键描述 */
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    void *unused;                                               /**< 未使用成员，需要保持和 ShellCommandCppCmd 大小一致 */
+#endif
+#if SHELL_COMMAND_FILL_BYTES != 0
+    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
+#endif
 } ShellCommandCppKey;
 
 #if SHELL_USING_CMD_EXPORT == 1
@@ -70,8 +94,9 @@ typedef struct shell_command_cpp_key
      * @param _name 命令名
      * @param _func 命令函数
      * @param _desc 命令描述
+     * @param ... 其他参数
      */
-    #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc) \
+    #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc, ...) \
             const char shellCmd##_name[] = #_name; \
             const char shellDesc##_name[] = #_desc; \
             extern "C" SHELL_USED const ShellCommandCppCmd \
@@ -80,7 +105,8 @@ typedef struct shell_command_cpp_key
                 _attr, \
                 shellCmd##_name, \
                 (int (*)())_func, \
-                shellDesc##_name \
+                shellDesc##_name, \
+                ##__VA_ARGS__ \
             }
 
     #undef SHELL_EXPORT_VAR

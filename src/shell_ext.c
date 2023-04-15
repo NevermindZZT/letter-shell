@@ -12,13 +12,44 @@
 #include "shell_cfg.h"
 #include "shell.h"
 #include "shell_ext.h"
-
+#include "string.h"
 
 extern ShellCommand* shellSeekCommand(Shell *shell,
                                       const char *cmd,
                                       ShellCommand *base,
                                       unsigned short compareLength);
 extern int shellGetVarValue(Shell *shell, ShellCommand *command);
+
+#if SHELL_USING_FUNC_SIGNATURE == 1
+/**
+ * @brief 获取下一个参数类型
+ * 
+ * @param signature 函数签名
+ * @param index 参数遍历在签名中的起始索引
+ * @param type 获取到的参数类型
+ * 
+ * @return int 下一个参数在签名中的索引
+ */
+static int shellGetNextArgType(const char *signature, int index, char *type)
+{
+    char *p = signature + index;
+    if (*p == 'L')
+    {
+        while (*p != ';' && *p != 0)
+        {
+            *type++ = *p++;
+            index++;
+        }
+    }
+    else
+    {
+        *type++ = *p;
+        index++;
+    }
+    *type = '\0';
+    return index;
+}
+#endif
 
 /**
  * @brief 判断数字进制
@@ -92,7 +123,7 @@ static char shellExtToNum(char code)
  */
 static char shellExtParseChar(char *string)
 {
-    char *p = string + 1;
+    char *p = (*string == '\'') ? (string + 1) : string;
     char value = 0;
 
     if (*p == '\\')
@@ -268,23 +299,43 @@ static unsigned int shellExtParseVar(Shell *shell, char *var)
  * @param string 参数
  * @return unsigned int 解析结果
  */
-unsigned int shellExtParsePara(Shell *shell, char *string)
+unsigned int shellExtParsePara(Shell *shell, char *string, char *type)
 {
-    if (*string == '\'' && *(string + 1))
+    if (type == NULL || (*string == '$' && *(string + 1)))
     {
-        return (unsigned int)shellExtParseChar(string);
+        if (*string == '\'' && *(string + 1))
+        {
+            return (unsigned int)shellExtParseChar(string);
+        }
+        else if (*string == '-' || (*string >= '0' && *string <= '9'))
+        {
+            return (unsigned int)shellExtParseNumber(string);
+        }
+        else if (*string == '$' && *(string + 1))
+        {
+            return shellExtParseVar(shell, string);
+        }
+        else if (*string)
+        {
+            return (unsigned int)shellExtParseString(string);
+        }
     }
-    else if (*string == '-' || (*string >= '0' && *string <= '9'))
+    else
     {
-        return (unsigned int)shellExtParseNumber(string);
-    }
-    else if (*string == '$' && *(string + 1))
-    {
-        return shellExtParseVar(shell, string);
-    }
-    else if (*string)
-    {
-        return (unsigned int)shellExtParseString(string);
+        if (strcmp("c", type) == 0)
+        {
+            return (unsigned int)shellExtParseChar(string);
+        }
+        else if (strcmp("i", type) == 0
+                 || strcmp("f", type) == 0
+                 || strcmp("p", type) == 0)
+        {
+            return (unsigned int)shellExtParseNumber(string);
+        }
+        else if (strcmp("s", type) == 0)
+        {
+            return (unsigned int)shellExtParseString(string);
+        }
     }
     return 0;
 }
@@ -304,9 +355,24 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
     unsigned int params[SHELL_PARAMETER_MAX_NUMBER] = {0};
     int paramNum = command->attr.attrs.paramNum > (argc - 1) ? 
         command->attr.attrs.paramNum : (argc - 1);
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    char type[8];
+    int index = 0;
+#endif
     for (int i = 0; i < argc - 1; i++)
     {
-        params[i] = shellExtParsePara(shell, argv[i + 1]);
+    #if SHELL_USING_FUNC_SIGNATURE == 1
+        if (command->data.cmd.signature != NULL) {
+            index = shellGetNextArgType(command->data.cmd.signature, index, type);
+            params[i] = shellExtParsePara(shell, argv[i + 1], type);
+        }
+        else
+        {
+            params[i] = shellExtParsePara(shell, argv[i + 1], NULL);
+        }
+    #else
+        params[i] = shellExtParsePara(shell, argv[i + 1], NULL);
+    #endif
     }
     switch (paramNum)
     {

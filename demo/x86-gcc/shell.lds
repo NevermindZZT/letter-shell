@@ -77,6 +77,13 @@ SECTIONS
   . = SEGMENT_START("rodata-segment", ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1)));
   .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }
   .rodata1        : { *(.rodata1) }
+  . = ALIGN(32);
+  .shell_command ALIGN(4) :
+  {
+    _shell_command_start = .;
+    KEEP (*(shellCommand))
+    _shell_command_end = .;
+  }
   .eh_frame_hdr   : { *(.eh_frame_hdr) *(.eh_frame_entry .eh_frame_entry.*) }
   .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) *(.eh_frame.*) }
   .gcc_except_table   : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }
@@ -183,12 +190,7 @@ SECTIONS
   . = ALIGN(64 / 8);
   . = SEGMENT_START("ldata-segment", .);
   .lrodata   ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1)) :
-  {
-    *(.lrodata .lrodata.* .gnu.linkonce.lr.*)  
-    _shell_command_start = .;
-    KEEP (*(shellCommand))
-    _shell_command_end = .;
-  }
+  { *(.lrodata .lrodata.* .gnu.linkonce.lr.*) }
   .ldata   ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1)) :
   {
     *(.ldata .ldata.* .gnu.linkonce.l.*)

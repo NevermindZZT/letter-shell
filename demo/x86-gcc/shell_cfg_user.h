@@ -66,4 +66,21 @@ unsigned int userGetTick();
  */
 #define     SHELL_FREE(obj)             free(obj)
 
+/**
+ * @brief 使用函数签名
+ *        使能后，可以在声明命令时，指定函数的签名，shell 会根据函数签名进行参数转换，
+ *        而不是自动判断参数的类型，如果参数和函数签名不匹配，会停止执行命令
+ */
+#define     SHELL_USING_FUNC_SIGNATURE  1
+
+/**
+ * @brief 命令填充字节数
+ *        这个选项控制对声明的命令结构体进行填充，填充的字节数为`SHELL_COMMAND_FILL_BYTES`，
+ *        填充的数据位于命令结构体的末尾
+ *        部分编译器会在结构体数据后面进行填充，使变量的地址对齐，这会导致 shell 中
+ *        通过 sizeof 获取结构体大小，然后通过偏移进行遍历的时候，无法正确地找到命令
+ *        通过填充，我们主动将结构体对齐，从而使得 shell 可以正确地遍历命令
+ */
+#define     SHELL_COMMAND_FILL_BYTES    24
+
 #endif

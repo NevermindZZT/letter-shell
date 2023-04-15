@@ -34,5 +34,7 @@ target_include_directories(LetterShell PUBLIC
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -T shell.lds")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} \
+    -T \"${CMAKE_CURRENT_SOURCE_DIR}/shell.lds\" \
+    -Wl,-Map=LetterShell.map")
 set(CMAKE_CXX_FLAGS "${CAMKE_CXX_FLAGS} -std=c++11 -pthread")

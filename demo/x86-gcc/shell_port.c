@@ -272,3 +272,12 @@ void systemPassthrough(char *data, unsigned short len)
     system(data);
 }
 SHELL_EXPORT_PASSTROUGH(SHELL_CMD_PERMISSION(0), system, system>>\x20, systemPassthrough, passthrough for system command);
+
+#if SHELL_USING_FUNC_SIGNATURE == 1
+void shellFuncSignatureTest(int a, char *b, char c)
+{
+    printf("a = %d, b = %s, c = %c\r\n", a, b, c);
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+funcSignatureTest, shellFuncSignatureTest, test function signature, .data.cmd.signature = "isc");
+#endif

@@ -1957,7 +1957,7 @@ int shellExecute(int argc, char *argv[])
     Shell *shell = shellGetCurrent();
     if (shell && argc >= 2)
     {
-        int (*func)() = (int (*)())shellExtParsePara(shell, argv[1]);
+        int (*func)() = (int (*)())shellExtParsePara(shell, argv[1], NULL);
         ShellCommand command = {
             .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)
                           |SHELL_CMD_DISABLE_RETURN,

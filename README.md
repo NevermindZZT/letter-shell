@@ -1,8 +1,8 @@
 # letter shell 3.x
 
-![version](https://img.shields.io/badge/version-3.1.2-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.2.0-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2021.10.17-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2023.04.15-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
@@ -25,6 +25,7 @@
     - [定义宏说明](#定义宏说明)
     - [命令属性字段说明](#命令属性字段说明)
   - [代理函数和代理参数解析](#代理函数和代理参数解析)
+  - [函数签名](#函数签名)
   - [权限系统说明](#权限系统说明)
   - [锁说明](#锁说明)
   - [伴生对象](#伴生对象)
@@ -178,6 +179,8 @@
     | SHELL_DEFAULT_USER          | shell默认用户                  |
     | SHELL_DEFAULT_USER_PASSWORD | 默认用户密码                   |
     | SHELL_LOCK_TIMEOUT          | shell自动锁定超时              |
+    | SHELL_USING_FUNC_SIGNATURE  | 使用函数签名                   |
+    | SHELL_COMMAND_FILL_BYTES    | 命令结构体填充字节数           |
 
 ## 使用方式
 
@@ -485,6 +488,36 @@ p1, SHELL_PARAM_FLOAT(p2), p3, SHELL_PARAM_FLOAT(p4));
 
 相比常规的命令导出，代理函数命令导出前4个参数和常规形式的命令导出一致，之后的参数即传递至目标函数的参数，letter shell默认实现的代理函数定义支持最多7个参数，p1~p7，对于不需要代理参数解析的参数，只需要对应写入`px(x为1~7)`即可，比如上方示例的`p1`和`p3`，而需要代理参数解析的参数，则需要使用对应的参数解析器，比如上方示例的`p2`和`p4`
 
+## 函数签名
+
+letter shell 3.2.x 之后，引入了函数签名的概念，以便于参数自动解析
+
+之前的版本里，如果声明的命令是 `SHELL_TYPE_CMD_FUNC`，shell 会自动进行参数的转换，但是参数转换后的类型是猜出来的，无法保证转换后的数据类型是正确的，一旦猜错了，就容易导致程序挂掉
+
+由此，借鉴 Java 等语言的函数签名，新版也引入了函数签名的概念，在声明命令时，可以给定最终执行命令的函数的签名，shell 根据这个签名进行参数转换，使用此功能时，需要打开宏 `SHELL_USING_FUNC_SIGNATURE`
+
+函数签名是一个字符串，通过这个字符串声明表达函数的参数类型，返回值不声明，比如一个函数`int func(int a, char *b, char c)`，它的函数签名就是 `ics`
+
+基本类型的参数签名定义如下:
+
+| 类型                 | 签名 |
+| -------------------- | ---- |
+| char(字符)           | c    |
+| int/short/char(数字) | i    |
+| char * (字符串)      | s    |
+| pointer              | p    |
+
+声明命令时，在最后添加一个参数 `.data.cmd.signature = "ics"` 即可，比如：
+
+```c
+void shellFuncSignatureTest(int a, char *b, char c)
+{
+    printf("a = %d, b = %s, c = %c\r\n", a, b, c);
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+funcSignatureTest, shellFuncSignatureTest, test function signature, .data.cmd.signature = "isc");
+```
+
 ## 权限系统说明
 
 letter shell 3.x的权限管理同用户定义紧密相关，letter shell 3.x使用8个bit位表示命令权限，当用户和命令的权限按位与为真，或者命令权限为0时，表示该用户拥有此命令的权限，可以调用该命令
@@ -566,7 +599,6 @@ python shellTools.py project
 letter shell 3.x提供了一个x86的demo，可以直接编译运行，其中包含了一条按键键值测试命令，可以测试按键键值，用于快捷键的定义，编译运行方法如下：
 
 ```sh
-mv src/shell_cfg.h src/shell_cfg.h.bak
 cd demo/x86-gcc/
 cmake .
 make
