@@ -30,9 +30,9 @@ extern int shellGetVarValue(Shell *shell, ShellCommand *command);
  * 
  * @return int 下一个参数在签名中的索引
  */
-static int shellGetNextArgType(const char *signature, int index, char *type)
+static int shellGetNextParamType(const char *signature, int index, char *type)
 {
-    char *p = signature + index;
+    const char *p = signature + index;
     if (*p == 'L')
     {
         while (*p != ';' && *p != 0)
@@ -40,14 +40,41 @@ static int shellGetNextArgType(const char *signature, int index, char *type)
             *type++ = *p++;
             index++;
         }
+        *type++ = *p++;
+        index++;
     }
-    else
+    else if (*p != 0)
     {
         *type++ = *p;
         index++;
     }
     *type = '\0';
     return index;
+}
+
+
+static int shellGetParamNumExcept(const char *signature)
+{
+    int num = 0;
+    const char *p = signature;
+    
+    while (*p)
+    {
+        if (*p == 'L')
+        {
+            while (*p != ';' && *p != 0)
+            {
+                p++;
+            }
+            p++;
+        }
+        else
+        {
+            p++;
+        }
+        num++;
+    }
+    return num;
 }
 #endif
 
@@ -297,47 +324,88 @@ static unsigned int shellExtParseVar(Shell *shell, char *var)
  * 
  * @param shell shell对象
  * @param string 参数
- * @return unsigned int 解析结果
+ * @param result 解析结果
+ * 
+ * @return int 0 解析成功 --1 解析失败
  */
-unsigned int shellExtParsePara(Shell *shell, char *string, char *type)
+int shellExtParsePara(Shell *shell, char *string, char *type, unsigned int *result)
 {
     if (type == NULL || (*string == '$' && *(string + 1)))
     {
         if (*string == '\'' && *(string + 1))
         {
-            return (unsigned int)shellExtParseChar(string);
+            *result = (unsigned int)shellExtParseChar(string);
+            return 0;
         }
         else if (*string == '-' || (*string >= '0' && *string <= '9'))
         {
-            return (unsigned int)shellExtParseNumber(string);
+            *result = (unsigned int)shellExtParseNumber(string);
+            return 0;
         }
         else if (*string == '$' && *(string + 1))
         {
-            return shellExtParseVar(shell, string);
+            *result = shellExtParseVar(shell, string);
+            return 0;
         }
         else if (*string)
         {
-            return (unsigned int)shellExtParseString(string);
+            *result = (unsigned int)shellExtParseString(string);
+            return 0;
         }
     }
+#if SHELL_USING_FUNC_SIGNATURE == 1
     else
     {
         if (strcmp("c", type) == 0)
         {
-            return (unsigned int)shellExtParseChar(string);
+            *result = (unsigned int)shellExtParseChar(string);
+            return 0;
         }
         else if (strcmp("i", type) == 0
                  || strcmp("f", type) == 0
                  || strcmp("p", type) == 0)
         {
-            return (unsigned int)shellExtParseNumber(string);
+            *result = (unsigned int)shellExtParseNumber(string);
+            return 0;
         }
         else if (strcmp("s", type) == 0)
         {
-            return (unsigned int)shellExtParseString(string);
+            *result = (unsigned int)shellExtParseString(string);
+            return 0;
+        }
+        else
+        {
+            ShellCommand *command = shellSeekCommand(shell,
+                                                     type,
+                                                     shell->commandList.base,
+                                                     0);
+            if (command != NULL)
+            {
+                void *param;
+                if (command->data.paramParser.function(shellExtParseString(string), &param) == 0)
+                {
+                    *result = (unsigned int)param;
+                    return 0;
+                }
+                else
+                {
+                    shellWriteString(shell, "Parse param for type: ");
+                    shellWriteString(shell, type);
+                    shellWriteString(shell, " failed\r\n");
+                    return -1;
+                }
+            }
+            else
+            {
+                shellWriteString(shell, "Can't find the param parser for type: ");
+                shellWriteString(shell, type);
+                shellWriteString(shell, "\r\n");
+                return -1;
+            }
         }
     }
-    return 0;
+#endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
+    return -1;
 }
 
 
@@ -356,23 +424,38 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
     int paramNum = command->attr.attrs.paramNum > (argc - 1) ? 
         command->attr.attrs.paramNum : (argc - 1);
 #if SHELL_USING_FUNC_SIGNATURE == 1
-    char type[8];
+    char type[16];
     int index = 0;
+    
+    if (command->data.cmd.signature != NULL)
+    {
+        int except = shellGetParamNumExcept(command->data.cmd.signature);
+        if (except != argc - 1)
+        {
+            shellWriteString(shell, "Parameters number incorrect\r\n");
+            shellPrint(shell, "except: %d, actual: %d\r\n", except, argc - 1);
+            return -1;
+        }
+    }
 #endif
     for (int i = 0; i < argc - 1; i++)
     {
     #if SHELL_USING_FUNC_SIGNATURE == 1
         if (command->data.cmd.signature != NULL) {
-            index = shellGetNextArgType(command->data.cmd.signature, index, type);
-            params[i] = shellExtParsePara(shell, argv[i + 1], type);
+            index = shellGetNextParamType(command->data.cmd.signature, index, type);
+            if (shellExtParsePara(shell, argv[i + 1], type, &params[i]) != 0)
+            {
+                return -1;
+            }
         }
         else
+    #endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
         {
-            params[i] = shellExtParsePara(shell, argv[i + 1], NULL);
+            if (shellExtParsePara(shell, argv[i + 1], NULL, &params[i]) != 0)
+            {
+                return -1;
+            }
         }
-    #else
-        params[i] = shellExtParsePara(shell, argv[i + 1], NULL);
-    #endif
     }
     switch (paramNum)
     {

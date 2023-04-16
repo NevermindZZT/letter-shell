@@ -84,6 +84,19 @@ typedef struct shell_command_cpp_key
 #endif
 } ShellCommandCppKey;
 
+#if SHELL_USING_FUNC_SIGNATURE == 1
+typedef struct shell_command_cpp_param_parser
+{
+    int attr;                                                   /**< 属性 */
+    const char *type;                                           /**< 参数类型 */
+    int (*function)(char *, void **);;                          /**< 解析函数 */
+    void *unsed[2];                                             /**< 未使用成员，需要保持和 ShellCommandCppCmd 大小一致 */
+#if SHELL_COMMAND_FILL_BYTES != 0
+    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
+#endif
+} ShellCommandCppParamParser;
+#endif
+
 #if SHELL_USING_CMD_EXPORT == 1
 
     #undef SHELL_EXPORT_CMD
@@ -171,11 +184,28 @@ typedef struct shell_command_cpp_key
                 (void (*)(Shell *))_func, \
                 shellDesc##_value \
             }
+
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    /**
+     * @brief shell 参数解析器定义
+     * 
+     * @param _attr 参数解析器属性
+     * @param _type 参数解析器类型
+     * @param _func 参数解析器函数
+     */
+    #define SHELL_EXPORT_PARAM_PARSER(_attr, _type, _func) \
+            const char shellDesc##_func[] = #_type; \
+            extern "C" SHELL_USED const ShellCommandCppParamParser \
+            shellCommand##_func SHELL_SECTION("shellCommand") = \
+            { \
+                _attr|SHELL_CMD_TYPE(SHELL_TYPE_PARAM_PARSER), \
+                shellDesc##_func, \
+                (int (*)(char *, void **))_func \
+            }
+#endif
 #endif /** SHELL_USING_CMD_EXPORT == 1 */
 
 }
 #endif /**< defined __cplusplus */
 
 #endif /**< __SHELL_CPP_H__ */
-
-

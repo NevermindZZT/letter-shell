@@ -573,6 +573,12 @@ static const char* shellGetCommandName(ShellCommand *command)
     {
         return command->data.user.name;
     }
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    else if (command->attr.attrs.type == SHELL_TYPE_PARAM_PARSER)
+    {
+        return command->data.paramParser.type;
+    }
+#endif
     else
     {
         shellToHex(command->data.key.value, buffer);
@@ -1957,7 +1963,13 @@ int shellExecute(int argc, char *argv[])
     Shell *shell = shellGetCurrent();
     if (shell && argc >= 2)
     {
-        int (*func)() = (int (*)())shellExtParsePara(shell, argv[1], NULL);
+        unsigned result;
+        if (shellExtParsePara(shell, argv[1], NULL, &result) != 0)
+        {
+            shellWriteString(shell, shellText[SHELL_TEXT_PARAM_ERROR]);
+            return -1;
+        }
+        int (*func)() = (int (*)())result;
         ShellCommand command = {
             .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC)
                           |SHELL_CMD_DISABLE_RETURN,

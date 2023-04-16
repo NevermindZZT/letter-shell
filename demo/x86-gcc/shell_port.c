@@ -274,10 +274,39 @@ void systemPassthrough(char *data, unsigned short len)
 SHELL_EXPORT_PASSTROUGH(SHELL_CMD_PERMISSION(0), system, system>>\x20, systemPassthrough, passthrough for system command);
 
 #if SHELL_USING_FUNC_SIGNATURE == 1
+
 void shellFuncSignatureTest(int a, char *b, char c)
 {
     printf("a = %d, b = %s, c = %c\r\n", a, b, c);
 }
-SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
-funcSignatureTest, shellFuncSignatureTest, test function signature, .data.cmd.signature = "isc");
-#endif
+SHELL_EXPORT_CMD_SIGN(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+funcSignatureTest, shellFuncSignatureTest, test function signature, isc);
+
+typedef struct {
+    int a;
+    char *b;
+} TestStruct;
+
+int testStructParser(char *string, void **param)
+{
+    TestStruct *data = malloc(sizeof(TestStruct));
+    data->b = malloc(16);
+    if (sscanf(string, "%d %s", &(data->a), data->b) == 2)
+    {
+        *param = (void *)data;
+        return 0;
+    }
+    return -1;
+}
+SHELL_EXPORT_PARAM_PARSER(0, LTestStruct;, testStructParser);
+
+void shellParamParserTest(int a, TestStruct *data, char *c)
+{
+    printf("a = %d, data->a = %d, data->b = %s, c = %s\r\n", a, data->a, data->b, c);
+    free(data->b);
+    free(data);
+}
+SHELL_EXPORT_CMD_SIGN(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+paramParserTest, shellParamParserTest, test function signature and param parser, iLTestStruct;s);
+
+#endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
