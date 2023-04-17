@@ -16,6 +16,14 @@
 #include SHELL_CFG_USER
 #endif
 
+
+#ifndef SHELL_MAX_LINEBYTE
+/**
+ * @brief 最大单行字节数
+ */
+#define SHELL_MAX_LINEBYTE 36
+#endif
+
 #ifndef SHELL_TASK_WHILE
 /**
  * @brief 是否使用默认shell任务while循环

@@ -325,16 +325,16 @@ static unsigned short shellWriteCommandDesc(Shell *shell, const char *string)
         count++;
     }
     
-    if (count > 36)
+    if (count > SHELL_MAX_LINEBYTE)
     {
-        shell->write((char *)string, 36);
+        shell->write((char *)string, SHELL_MAX_LINEBYTE);
         shell->write("...", 3);
     }
     else
     {
         shell->write((char *)string, count);
     }
-    return count > 36 ? 36 : 39;
+    return count > SHELL_MAX_LINEBYTE ? SHELL_MAX_LINEBYTE : (SHELL_MAX_LINEBYTE+3);
 }
 
 
