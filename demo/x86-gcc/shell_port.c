@@ -298,13 +298,19 @@ int testStructParser(char *string, void **param)
     }
     return -1;
 }
-SHELL_EXPORT_PARAM_PARSER(0, LTestStruct;, testStructParser);
+
+int testStructClener(void *param)
+{
+    TestStruct *data = (TestStruct *)param;
+    free(data->b);
+    free(data);
+    return 0;
+}
+SHELL_EXPORT_PARAM_PARSER(0, LTestStruct;, testStructParser, testStructClener);
 
 void shellParamParserTest(int a, TestStruct *data, char *c)
 {
     printf("a = %d, data->a = %d, data->b = %s, c = %s\r\n", a, data->a, data->b, c);
-    free(data->b);
-    free(data);
 }
 SHELL_EXPORT_CMD_SIGN(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
 paramParserTest, shellParamParserTest, test function signature and param parser, iLTestStruct;s);

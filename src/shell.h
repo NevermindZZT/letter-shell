@@ -260,16 +260,18 @@
      * 
      * @param _attr 参数解析器属性
      * @param _type 参数解析器类型
-     * @param _func 参数解析器函数
+     * @param _parser 参数解析器函数
+     * @param _cleaner 参数清理器
      */
-    #define SHELL_EXPORT_PARAM_PARSER(_attr, _type, _func) \
-            const char shellDesc##_func[] = #_type; \
+    #define SHELL_EXPORT_PARAM_PARSER(_attr, _type, _parser, _cleaner) \
+            const char shellDesc##_parser[] = #_type; \
             SHELL_USED const ShellCommand \
-            shellCommand##_func SHELL_SECTION("shellCommand") = \
+            shellCommand##_parser SHELL_SECTION("shellCommand") = \
             { \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_PARAM_PARSER), \
-                .data.paramParser.type = shellDesc##_func, \
-                .data.paramParser.function = (int (*)(char *, void **))_func \
+                .data.paramParser.type = shellDesc##_parser, \
+                .data.paramParser.parser = (int (*)(char *, void **))_parser, \
+                .data.paramParser.cleaner = (int (*)(void *))_cleaner \
             }
 #endif
 
@@ -344,13 +346,15 @@
      * 
      * @param _attr 参数解析器属性
      * @param _type 参数解析器类型
-     * @param _func 参数解析器函数
+     * @param _parser 参数解析器函数
+     * @param _cleaner 参数清理器
      */
-    #define SHELL_PARAM_PARSER_ITEM(_attr, _type, _func) \
+    #define SHELL_PARAM_PARSER_ITEM(_attr, _type, _parser, _cleaner) \
             { \
                 .attr.value = _attr|SHELL_CMD_TYPE(SHELL_TYPE_PARAM_PARSER), \
                 .data.paramParser.type = #_type, \
-                .data.paramParser.function = (int (*)(char *, void **))_func \
+                .data.paramParser.parser = (int (*)(char *, void **))_parser, \
+                .data.paramParser.cleaner = (int (*)(void *))_cleaner \
             }
 #endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
 
@@ -494,7 +498,8 @@ typedef struct shell_command
         struct
         {
             const char *type;                                   /**< 参数类型 */
-            int (*function)(char *, void **);                   /**< 解析函数 */
+            int (*parser)(char *, void **);                     /**< 解析函数 */
+            int (*cleaner)(void *);                             /**< 清理器 */
         } paramParser;                                          /**< 参数解析器 */
 #endif
     } data;

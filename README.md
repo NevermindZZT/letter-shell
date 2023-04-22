@@ -26,6 +26,7 @@
     - [命令属性字段说明](#命令属性字段说明)
   - [代理函数和代理参数解析](#代理函数和代理参数解析)
   - [函数签名](#函数签名)
+    - [自定义类型解析](#自定义类型解析)
   - [权限系统说明](#权限系统说明)
   - [锁说明](#锁说明)
   - [伴生对象](#伴生对象)
@@ -496,7 +497,7 @@ letter shell 3.2.x 之后，引入了函数签名的概念，以便于参数自�
 
 由此，借鉴 Java 等语言的函数签名，新版也引入了函数签名的概念，在声明命令时，可以给定最终执行命令的函数的签名，shell 根据这个签名进行参数转换，使用此功能时，需要打开宏 `SHELL_USING_FUNC_SIGNATURE`
 
-函数签名是一个字符串，通过这个字符串声明表达函数的参数类型，返回值不声明，比如一个函数`int func(int a, char *b, char c)`，它的函数签名就是 `ics`
+函数签名是一个字符串，通过这个字符串声明表达函数的参数类型，返回值不声明，比如一个函数`int func(int a, char *b, char c)`，它的函数签名就是 `isc`
 
 基本类型的参数签名定义如下:
 
@@ -507,7 +508,7 @@ letter shell 3.2.x 之后，引入了函数签名的概念，以便于参数自�
 | char * (字符串)      | s    |
 | pointer              | p    |
 
-声明命令时，在最后添加一个参数 `.data.cmd.signature = "ics"` 即可，比如：
+声明命令时，在最后添加一个参数 `.data.cmd.signature = "isc"` 即可，比如：
 
 ```c
 void shellFuncSignatureTest(int a, char *b, char c)
@@ -517,6 +518,55 @@ void shellFuncSignatureTest(int a, char *b, char c)
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
 funcSignatureTest, shellFuncSignatureTest, test function signature, .data.cmd.signature = "isc");
 ```
+
+### 自定义类型解析
+
+由于函数签名的引用，我们就可以使用函数签名描述任何参数，对应的，在参数类型已知的情况下，也可以定义对应的参数解析器进行参数解析，自定义的参数类型签名需要以 `L` 开头，以 `;` 结尾，比如说定义一个 `TestStruct` 结构体类型为 `LTestStruct;`，那么接收这个结构体为参数的函数就可以通过这个类型签名定义函数签名，并导出命令
+
+```c
+typedef struct {
+    int a;
+    char *b;
+} TestStruct;
+
+void shellParamParserTest(int a, TestStruct *data, char *c)
+{
+    printf("a = %d, data->a = %d, data->b = %s, c = %s\r\n", a, data->a, data->b, c);
+}
+SHELL_EXPORT_CMD_SIGN(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+paramParserTest, shellParamParserTest, test function signature and param parser, iLTestStruct;s);
+```
+
+同时，我们需要对自定义的类型定义解析器，使用 `SHELL_EXPORT_PARAM_PARSER` 宏
+
+```c
+int testStructParser(char *string, void **param)
+{
+    TestStruct *data = malloc(sizeof(TestStruct));
+    data->b = malloc(16);
+    if (sscanf(string, "%d %s", &(data->a), data->b) == 2)
+    {
+        *param = (void *)data;
+        return 0;
+    }
+    return -1;
+}
+
+int testStructClener(void *param)
+{
+    TestStruct *data = (TestStruct *)param;
+    free(data->b);
+    free(data);
+    return 0;
+}
+SHELL_EXPORT_PARAM_PARSER(0, LTestStruct;, testStructParser, testStructClener);
+```
+
+`SHELL_EXPORT_PARAM_PARSER` 接收四个参数，第一个参数表示属性，这里一般填 0 皆可，第二个参数就是解析器对应的类型签名，第三个参数是解析器函数，第四个参数是清理函数，清理函数在参数解析失败或者命令执行完毕后会被调用，一般用于清理解析器分配的内存，如果不需要清理函数，填 `NULL` 即可
+
+解析器函数接收两个参数，第一个参数是输入的字符串，也就是命令行输入的参数，第二个参数是解析后的参数，解析成功后，需要将解析后的参数赋值给第二个参数，解析成功返回 0，解析失败返回 -1
+
+清理函数接收一个参数，就是解析器函数解析得到的结果
 
 ## 权限系统说明
 
