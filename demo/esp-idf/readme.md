@@ -11,3 +11,5 @@
 - `esp-idf` 编译系统会忽略 `__attribute__((used))` 声明，所以仅仅作为命令定义的函数不会被包含在编译出来的固件里面，只有被代码引用的函数会被编译进去
 
 - 此 demo 包含链接使用的 `.lf` 文件，在使用这个文件的情况下不需要修改 `esp-idf` 中的 `ld` 文件
+
+- 如果使用 overlay 的方式配置 shell，建议在主 CMakeList.txt 后面添加 `idf_build_set_property(COMPILE_OPTIONS "-DSHELL_CFG_USER=\"shell_cfg_user.h\"" APPEND)`

@@ -246,4 +246,13 @@
 #define     SHELL_LOCK_TIMEOUT          0 * 60 * 1000
 #endif /** SHELL_LOCK_TIMEOUT */
 
+#ifndef SHELL_USING_FUNC_SIGNATURE
+/**
+ * @brief 使用函数签名
+ *        使能后，可以在声明命令时，指定函数的签名，shell 会根据函数签名进行参数转换，
+ *        而不是自动判断参数的类型，如果参数和函数签名不匹配，会停止执行命令
+ */
+#define     SHELL_USING_FUNC_SIGNATURE  0
+#endif /** SHELL_USING_FUNC_SIGNATURE */
+
 #endif

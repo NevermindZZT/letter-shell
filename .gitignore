@@ -3,5 +3,8 @@ cmake_install.cmake
 CMakeCache.txt
 demo/x86-gcc/Makefile
 demo/x86-gcc/LetterShell
+demo/x86-gcc/LetterShell.map
+demo/x86-gcc/compile_commands.json
+demo/x86-gcc/.cache/
 .vscode
 build
