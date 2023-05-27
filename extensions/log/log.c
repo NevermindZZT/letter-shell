@@ -189,7 +189,7 @@ static void logWriteBuffer(Log *log, LogLevel level, char *buffer, short len)
 void logWrite(Log *log, LogLevel level, const char *fmt, ...)
 {
     va_list vargs;
-    short len;
+    int len;
     
 #if LOG_USING_LOCK == 1
     logLock(log);
@@ -197,6 +197,11 @@ void logWrite(Log *log, LogLevel level, const char *fmt, ...)
     va_start(vargs, fmt);
     len = vsnprintf(logBuffer, LOG_BUFFER_SIZE - 1, fmt, vargs);
     va_end(vargs);
+
+    if (len > LOG_BUFFER_SIZE)
+    {
+        len = LOG_BUFFER_SIZE;
+    }
 
     logWriteBuffer(log, level, logBuffer, len);
 #if LOG_USING_LOCK == 1

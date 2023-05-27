@@ -377,14 +377,18 @@ void shellPrint(Shell *shell, const char *fmt, ...)
 {
     char buffer[SHELL_PRINT_BUFFER];
     va_list vargs;
+    int len;
 
     SHELL_ASSERT(shell, return);
 
     va_start(vargs, fmt);
-    vsnprintf(buffer, SHELL_PRINT_BUFFER - 1, fmt, vargs);
+    len = vsnprintf(buffer, SHELL_PRINT_BUFFER, fmt, vargs);
     va_end(vargs);
-    
-    shellWriteString(shell, buffer);
+    if (len > SHELL_PRINT_BUFFER)
+    {
+        len = SHELL_PRINT_BUFFER;
+    }
+    shell->write(buffer, len);
 }
 #endif
 
