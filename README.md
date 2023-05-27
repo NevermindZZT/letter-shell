@@ -181,7 +181,6 @@
     | SHELL_DEFAULT_USER_PASSWORD | 默认用户密码                   |
     | SHELL_LOCK_TIMEOUT          | shell自动锁定超时              |
     | SHELL_USING_FUNC_SIGNATURE  | 使用函数签名                   |
-    | SHELL_COMMAND_FILL_BYTES    | 命令结构体填充字节数           |
 
 ## 使用方式
 

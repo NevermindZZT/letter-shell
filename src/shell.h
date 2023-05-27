@@ -77,11 +77,11 @@
 
 #ifndef SHELL_SECTION
     #if defined(__CC_ARM) || defined(__CLANG_ARM)
-        #define SHELL_SECTION(x)                __attribute__((section(x)))
+        #define SHELL_SECTION(x)                __attribute__((section(x), aligned(1)))
     #elif defined (__IAR_SYSTEMS_ICC__)
         #define SHELL_SECTION(x)                @ x
     #elif defined(__GNUC__)
-        #define SHELL_SECTION(x)                __attribute__((section(x)))
+        #define SHELL_SECTION(x)                __attribute__((section(x), aligned(1)))
     #else
         #define SHELL_SECTION(x)
     #endif
@@ -503,9 +503,6 @@ typedef struct shell_command
         } paramParser;                                          /**< 参数解析器 */
 #endif
     } data;
-#if SHELL_COMMAND_FILL_BYTES != 0
-    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
-#endif
 } ShellCommand;
 
 /**

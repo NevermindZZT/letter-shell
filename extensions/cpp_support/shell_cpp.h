@@ -28,9 +28,6 @@ typedef struct shell_command_cpp_cmd
 #if SHELL_USING_FUNC_SIGNATURE == 1
     const char *signature;                                      /**< 函数签名 */
 #endif
-#if SHELL_COMMAND_FILL_BYTES != 0
-    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
-#endif
 } ShellCommandCppCmd;
 
 /**
@@ -44,9 +41,6 @@ typedef struct shell_command_cpp_var
     const char *desc;                                           /**< 变量描述 */
 #if SHELL_USING_FUNC_SIGNATURE == 1
     void *unused;                                               /**< 未使用成员，需要保持和 ShellCommandCppCmd 大小一致 */
-#endif
-#if SHELL_COMMAND_FILL_BYTES != 0
-    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
 #endif
 } ShellCommandCppVar;
 
@@ -62,9 +56,6 @@ typedef struct shell_command_cpp_user
 #if SHELL_USING_FUNC_SIGNATURE == 1
     void *unused;                                               /**< 未使用成员，需要保持和 ShellCommandCppCmd 大小一致 */
 #endif
-#if SHELL_COMMAND_FILL_BYTES != 0
-    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
-#endif
 } ShellCommandCppUser;
 
 /**
@@ -79,9 +70,6 @@ typedef struct shell_command_cpp_key
 #if SHELL_USING_FUNC_SIGNATURE == 1
     void *unused;                                               /**< 未使用成员，需要保持和 ShellCommandCppCmd 大小一致 */
 #endif
-#if SHELL_COMMAND_FILL_BYTES != 0
-    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
-#endif
 } ShellCommandCppKey;
 
 #if SHELL_USING_FUNC_SIGNATURE == 1
@@ -92,9 +80,6 @@ typedef struct shell_command_cpp_param_parser
     int (*parser)(char *, void **);;                            /**< 解析函数 */
     int (*cleaner)(void *);                                     /**< 清理函数 */
     void *unsed;                                                /**< 未使用成员，需要保持和 ShellCommandCppCmd 大小一致 */
-#if SHELL_COMMAND_FILL_BYTES != 0
-    char fill[SHELL_COMMAND_FILL_BYTES];                         /**< 填充字节 */
-#endif
 } ShellCommandCppParamParser;
 #endif
 

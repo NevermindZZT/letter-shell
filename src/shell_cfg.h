@@ -255,16 +255,4 @@
 #define     SHELL_USING_FUNC_SIGNATURE  0
 #endif /** SHELL_USING_FUNC_SIGNATURE */
 
-#ifndef SHELL_COMMAND_FILL_BYTES
-/**
- * @brief 命令填充字节数
- *        这个选项控制对声明的命令结构体进行填充，填充的字节数为`SHELL_COMMAND_FILL_BYTES`，
- *        填充的数据位于命令结构体的末尾
- *        部分编译器会在结构体数据后面进行填充，使变量的地址对齐，这会导致 shell 中
- *        通过 sizeof 获取结构体大小，然后通过偏移进行遍历的时候，无法正确地找到命令
- *        通过填充，我们主动将结构体对齐，从而使得 shell 可以正确地遍历命令
- */
-#define     SHELL_COMMAND_FILL_BYTES    0
-#endif /** SHELL_COMMAND_FILL_BYTES */
-
 #endif
