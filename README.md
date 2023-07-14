@@ -198,7 +198,7 @@ int func(int argc, char *agrv[])
     printf("%dparameter(s)\r\n", argc);
     for (char i = 1; i < argc; i++)
     {
-        printf("%s\r\n", argv[i]);
+        printf("%s\r\n", agrv[i]);
     }
 }
 SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN), func, func, test);
