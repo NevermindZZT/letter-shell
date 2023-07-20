@@ -500,127 +500,132 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 1 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 2
     case 1:
-        ret = command->data.cmd.function(params[0]);
+    {
+        int (*func)(int) = command->data.cmd.function;
+        ret = func(params[0]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 2 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 3
     case 2:
-        ret = command->data.cmd.function(params[0], params[1]);
+    {
+        int (*func)(int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 3 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 4
     case 3:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2]);
+    {
+        int (*func)(int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 4 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 5
     case 4:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3]);
+    {
+        int (*func)(int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 5 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 6
     case 5:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4]);
+    {
+        int (*func)(int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 6 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 7
     case 6:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5]);
+    {
+        int (*func)(int, int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 7 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 8
     case 7:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6]);
+    {
+        int (*func)(int, int, int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 8 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 9
     case 8:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6], params[7]);
+    {
+        int (*func)(int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 9 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 10
     case 9:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6], params[7],
-                                          params[8]);
+    {
+        int (*func)(int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
+                   params[8]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 10 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 11
     case 10:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6], params[7],
-                                          params[8], params[9]);
+    {
+        int (*func)(int, int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
+                   params[8], params[9]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 11 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 12
     case 11:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6], params[7],
-                                          params[8], params[9],
-                                          params[10]);
+    {
+        int (*func)(int, int, int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
+                   params[8], params[9], params[10]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 12 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 13
     case 12:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6], params[7],
-                                          params[8], params[9],
-                                          params[10], params[11]);
+    {
+        int (*func)(int, int, int, int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
+                   params[8], params[9], params[10], params[11]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 13 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 14
     case 13:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6], params[7],
-                                          params[8], params[9],
-                                          params[10], params[11],
-                                          params[12]);
+    {
+        int (*func)(int, int, int, int, int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
+                   params[8], params[9], params[10], params[11], params[12]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 14 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 15
     case 14:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6], params[7],
-                                          params[8], params[9],
-                                          params[10], params[11],
-                                          params[12], params[13]);
+    {
+        int (*func)(int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+            = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
+                   params[8], params[9], params[10], params[11], params[12], params[13]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 15 */
 #if SHELL_PARAMETER_MAX_NUMBER >= 16
     case 15:
-        ret = command->data.cmd.function(params[0], params[1],
-                                          params[2], params[3],
-                                          params[4], params[5],
-                                          params[6], params[7],
-                                          params[8], params[9],
-                                          params[10], params[11],
-                                          params[12], params[13],
-                                          params[14]);
+    {
+        int (*func)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+            = command->data.cmd.function;
+        ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
+                   params[8], params[9], params[10], params[11], params[12], params[13], params[14]);
         break;
+    }
 #endif /** SHELL_PARAMETER_MAX_NUMBER >= 16 */
     default:
         ret = -1;
