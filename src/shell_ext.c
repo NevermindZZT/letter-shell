@@ -454,13 +454,13 @@ int shellExtCleanerPara(Shell *shell, char *type, unsigned int param)
  */
 int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 {
+    int ret = 0;
     unsigned int params[SHELL_PARAMETER_MAX_NUMBER] = {0};
     int paramNum = command->attr.attrs.paramNum > (argc - 1) ? 
         command->attr.attrs.paramNum : (argc - 1);
 #if SHELL_USING_FUNC_SIGNATURE == 1
     char type[16];
     int index = 0;
-    int ret = 0;
     
     if (command->data.cmd.signature != NULL)
     {
