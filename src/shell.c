@@ -143,6 +143,17 @@ static const char *shellText[] =
 };
 
 
+unsigned char pairedChars[][2] = {
+    {'\"', '\"'},
+    // {'[', ']'},
+    // {'(', ')'},
+    // {'{', '}'},
+    // {'<', '>'},
+    // {'\'', '\''},
+    // {'`', '`'},
+};
+
+
 /**
  * @brief shell对象表
  */
@@ -900,8 +911,9 @@ void shellDeleteByte(Shell *shell, signed char direction)
  */
 static void shellParserParam(Shell *shell)
 {
-    unsigned char quotes = 0;
     unsigned char record = 1;
+    unsigned char pairedLeft[16] = {0};
+    unsigned char pariedCount = 0;
 
     for (short i = 0; i < SHELL_PARAMETER_MAX_NUMBER; i++)
     {
@@ -911,33 +923,44 @@ static void shellParserParam(Shell *shell)
     shell->parser.paramCount = 0;
     for (unsigned short i = 0; i < shell->parser.length; i++)
     {
-        if (quotes != 0
-            || (shell->parser.buffer[i] != ' '
-                && shell->parser.buffer[i] != 0))
-        {
-            if (shell->parser.buffer[i] == '\"')
+        if (pariedCount == 0) {
+            if (shell->parser.buffer[i] != ' ' 
+                && record == 1
+                && shell->parser.paramCount < SHELL_PARAMETER_MAX_NUMBER)
             {
-                quotes = quotes ? 0 : 1;
-            }
-            if (record == 1)
-            {
-                if (shell->parser.paramCount < SHELL_PARAMETER_MAX_NUMBER)
-                {
-                    shell->parser.param[shell->parser.paramCount++] =
-                        &(shell->parser.buffer[i]);
-                }
+                shell->parser.param[shell->parser.paramCount++] =
+                    &(shell->parser.buffer[i]);
                 record = 0;
             }
-            if (shell->parser.buffer[i] == '\\'
-                && shell->parser.buffer[i + 1] != 0)
+            else if (shell->parser.buffer[i] == ' ' && record == 0)
             {
-                i++;
+                shell->parser.buffer[i] = 0;
+                record = 1;
+                continue;
             }
         }
-        else
+
+        for (unsigned char j = 0; j < sizeof(pairedChars) / 2; j++)
         {
-            shell->parser.buffer[i] = 0;
-            record = 1;
+            if (pariedCount > 0
+                    && shell->parser.buffer[i] == pairedChars[j][1]
+                    && pairedLeft[pariedCount - 1] == pairedChars[j][0])
+            {
+                --pariedCount;
+                break;
+            }
+            else if (shell->parser.buffer[i] == pairedChars[j][0])
+            {
+                pairedLeft[pariedCount++] = pairedChars[j][0];
+                pariedCount &= 0x0F;
+                break;
+            }
+        }
+        
+        if (shell->parser.buffer[i] == '\\'
+            && shell->parser.buffer[i + 1] != 0)
+        {
+            i++;
         }
     }
 }
