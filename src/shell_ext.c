@@ -324,6 +324,7 @@ static unsigned int shellExtParseVar(Shell *shell, char *var)
  * 
  * @param shell shell对象
  * @param string 参数
+ * @param type 参数类型
  * @param result 解析结果
  * 
  * @return int 0 解析成功 --1 解析失败
@@ -410,6 +411,15 @@ int shellExtParsePara(Shell *shell, char *string, char *type, unsigned int *resu
 
 
 #if SHELL_USING_FUNC_SIGNATURE == 1
+/**
+ * @brief 清理参数
+ * 
+ * @param shell shell 
+ * @param type 参数类型
+ * @param param 参数
+ * 
+ * @return int 0 清理成功 -1 清理失败
+ */
 int shellExtCleanerPara(Shell *shell, char *type, unsigned int param)
 {
     if (type == NULL)

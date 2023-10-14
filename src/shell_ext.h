@@ -28,6 +28,9 @@ typedef enum
 } ShellNumType;
 
 int shellExtParsePara(Shell *shell, char *string, char *type, unsigned int *result);
+#if SHELL_USING_FUNC_SIGNATURE == 1
+int shellExtCleanerPara(Shell *shell, char *type, unsigned int param);
+#endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
 int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[]);
 
 #endif

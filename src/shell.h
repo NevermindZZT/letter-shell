@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.2.0"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.2.1"                 /**< 版本号 */
 
 
 /**
@@ -359,13 +359,16 @@
 #endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
 
     #define SHELL_EXPORT_CMD(_attr, _name, _func, _desc)
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    #define SHELL_EXPORT_CMD_SIGN(_attr, _name, _func, _desc, _sign)
+#endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
     #define SHELL_EXPORT_CMD_AGENCY(_attr, _name, _func, _desc, ...)
     #define SHELL_EXPORT_VAR(_attr, _name, _value, _desc)
     #define SHELL_EXPORT_USER(_attr, _name, _password, _desc)
     #define SHELL_EXPORT_KEY(_attr, _value, _func, _desc)
     #define SHELL_EXPORT_KEY_AGENCY(_attr, _name, _func, _desc, ...)
 #if SHELL_USING_FUNC_SIGNATURE == 1
-    #define SHELL_EXPORT_PARAM_PARSER(_attr, _type, _func)
+    #define SHELL_EXPORT_PARAM_PARSER(_attr, _type, _parser, _cleaner)
 #endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
 #endif /** SHELL_USING_CMD_EXPORT == 1 */
 

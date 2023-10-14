@@ -316,3 +316,16 @@ SHELL_EXPORT_CMD_SIGN(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC
 paramParserTest, shellParamParserTest, test function signature and param parser, iLTestStruct;s);
 
 #endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
+
+int paramTest(int argc, char *argv[])
+{
+    int i;
+    printf("argc = %d\r\n", argc);
+    for (i = 0; i < argc; i++)
+    {
+        printf("argv[%d] = %s\r\n", i, argv[i]);
+    }
+    return 0;
+}
+SHELL_EXPORT_CMD(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN),
+paramTest, paramTest, test param);

@@ -10,6 +10,7 @@ add_executable(LetterShell
                ../../src/shell.c
                ../../src/shell_companion.c
                ../../src/shell_ext.c
+               ../../src/shell_cmd_list.c
                ../../extensions/fs_support/shell_fs.c
                ../../extensions/log/log.c
                ../../extensions/telnet/telnetd.c
