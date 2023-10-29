@@ -27,10 +27,21 @@ typedef enum
     NUM_TYPE_FLOAT                                          /**< 浮点型 */
 } ShellNumType;
 
-int shellExtParsePara(Shell *shell, char *string, char *type, unsigned int *result);
+#if SHELL_SUPPORT_ARRAY_PARAM == 1
+typedef struct
+{
+    unsigned short size;
+    unsigned char elementBytes;
+} ShellArrayHeader;
+#endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
+
+int shellExtParsePara(Shell *shell, char *string, char *type, size_t *result);
 #if SHELL_USING_FUNC_SIGNATURE == 1
-int shellExtCleanerPara(Shell *shell, char *type, unsigned int param);
+int shellExtCleanerPara(Shell *shell, char *type, size_t param);
 #endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
+#if SHELL_SUPPORT_ARRAY_PARAM == 1
+int shellGetArrayParamSize(void *param);
+#endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
 int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[]);
 
 #endif

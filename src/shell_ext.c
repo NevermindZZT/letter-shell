@@ -20,6 +20,13 @@ extern ShellCommand* shellSeekCommand(Shell *shell,
                                       unsigned short compareLength);
 extern int shellGetVarValue(Shell *shell, ShellCommand *command);
 
+#if SHELL_SUPPORT_ARRAY_PARAM == 1
+extern int shellSplit(char *string, unsigned short strLen, char *array[], char splitKey, short maxNum);
+
+static int shellExtParseArray(Shell *shell, char *string, char *type, size_t *result);
+static int shellExtCleanerArray(Shell *shell, char *type, void *param);
+#endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
+
 #if SHELL_USING_FUNC_SIGNATURE == 1
 /**
  * @brief 获取下一个参数类型
@@ -33,6 +40,13 @@ extern int shellGetVarValue(Shell *shell, ShellCommand *command);
 static int shellGetNextParamType(const char *signature, int index, char *type)
 {
     const char *p = signature + index;
+#if SHELL_SUPPORT_ARRAY_PARAM == 1
+    if (*p == '[')
+    {
+        *type++ = *p++;
+        index++;
+    }
+#endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
     if (*p == 'L')
     {
         while (*p != ';' && *p != 0)
@@ -60,6 +74,12 @@ static int shellGetParamNumExcept(const char *signature)
     
     while (*p)
     {
+    #if SHELL_SUPPORT_ARRAY_PARAM == 1
+        if (*p == '[')
+        {
+            p++;
+        }
+    #endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
         if (*p == 'L')
         {
             while (*p != ';' && *p != 0)
@@ -228,18 +248,18 @@ static char* shellExtParseString(char *string)
  * @brief 解析数字参数
  * 
  * @param string 字符串参数
- * @return unsigned int 解析出的数字
+ * @return size_t 解析出的数字
  */
-static unsigned int shellExtParseNumber(char *string)
+static size_t shellExtParseNumber(char *string)
 {
     ShellNumType type = NUM_TYPE_DEC;
     char radix = 10;
     char *p = string;
     char offset = 0;
     signed char sign = 1;
-    unsigned int valueInt = 0;
+    size_t valueInt = 0;
     float valueFloat = 0.0;
-    unsigned int devide = 0;
+    size_t devide = 0;
 
     if (*string == '-')
     {
@@ -286,7 +306,7 @@ static unsigned int shellExtParseNumber(char *string)
     if (type == NUM_TYPE_FLOAT && devide != 0)
     {
         valueFloat = (float)valueInt / devide * sign;
-        return *(unsigned int *)(&valueFloat);
+        return *(size_t *)(&valueFloat);
     }
     else
     {
@@ -300,9 +320,9 @@ static unsigned int shellExtParseNumber(char *string)
  * 
  * @param shell shell对象
  * @param var 变量
- * @return unsigned int 变量值
+ * @return size_t 变量值
  */
-static unsigned int shellExtParseVar(Shell *shell, char *var)
+static size_t shellExtParseVar(Shell *shell, char *var)
 {
     ShellCommand *command = shellSeekCommand(shell,
                                              var + 1,
@@ -329,18 +349,18 @@ static unsigned int shellExtParseVar(Shell *shell, char *var)
  * 
  * @return int 0 解析成功 --1 解析失败
  */
-int shellExtParsePara(Shell *shell, char *string, char *type, unsigned int *result)
+int shellExtParsePara(Shell *shell, char *string, char *type, size_t *result)
 {
     if (type == NULL || (*string == '$' && *(string + 1)))
     {
         if (*string == '\'' && *(string + 1))
         {
-            *result = (unsigned int)shellExtParseChar(string);
+            *result = (size_t)shellExtParseChar(string);
             return 0;
         }
         else if (*string == '-' || (*string >= '0' && *string <= '9'))
         {
-            *result = (unsigned int)shellExtParseNumber(string);
+            *result = shellExtParseNumber(string);
             return 0;
         }
         else if (*string == '$' && *(string + 1))
@@ -350,28 +370,36 @@ int shellExtParsePara(Shell *shell, char *string, char *type, unsigned int *resu
         }
         else if (*string)
         {
-            *result = (unsigned int)shellExtParseString(string);
+            *result = (size_t)shellExtParseString(string);
             return 0;
         }
     }
 #if SHELL_USING_FUNC_SIGNATURE == 1
     else
     {
+    #if SHELL_SUPPORT_ARRAY_PARAM == 1
+        if (type[0] == '[') {
+            return shellExtParseArray(shell, string, type, result);
+        }
+        else
+    #endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
         if (strcmp("c", type) == 0)
         {
-            *result = (unsigned int)shellExtParseChar(string);
+            *result = (size_t)shellExtParseChar(string);
             return 0;
         }
-        else if (strcmp("i", type) == 0
+        else if (strcmp("q", type) == 0
+                 || strcmp("h", type) == 0
+                 || strcmp("i", type) == 0
                  || strcmp("f", type) == 0
                  || strcmp("p", type) == 0)
         {
-            *result = (unsigned int)shellExtParseNumber(string);
+            *result = shellExtParseNumber(string);
             return 0;
         }
         else if (strcmp("s", type) == 0)
         {
-            *result = (unsigned int)shellExtParseString(string);
+            *result = (size_t)shellExtParseString(string);
             return 0;
         }
         else
@@ -385,7 +413,7 @@ int shellExtParsePara(Shell *shell, char *string, char *type, unsigned int *resu
                 void *param;
                 if (command->data.paramParser.parser(shellExtParseString(string), &param) == 0)
                 {
-                    *result = (unsigned int)param;
+                    *result = (size_t)param;
                     return 0;
                 }
                 else
@@ -420,7 +448,7 @@ int shellExtParsePara(Shell *shell, char *string, char *type, unsigned int *resu
  * 
  * @return int 0 清理成功 -1 清理失败
  */
-int shellExtCleanerPara(Shell *shell, char *type, unsigned int param)
+int shellExtCleanerPara(Shell *shell, char *type, size_t param)
 {
     if (type == NULL)
     {
@@ -428,7 +456,15 @@ int shellExtCleanerPara(Shell *shell, char *type, unsigned int param)
     }
     else
     {
+    #if SHELL_SUPPORT_ARRAY_PARAM == 1
+        if (type[0] == '[') {
+            return shellExtCleanerArray(shell, type, (void *) param);
+        }
+        else
+    #endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
         if (strcmp("c", type) == 0
+            || strcmp("q", type) == 0
+            || strcmp("h", type) == 0
             || strcmp("i", type) == 0
             || strcmp("f", type) == 0
             || strcmp("p", type) == 0
@@ -452,6 +488,140 @@ int shellExtCleanerPara(Shell *shell, char *type, unsigned int param)
 }
 #endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
 
+#if SHELL_SUPPORT_ARRAY_PARAM == 1
+/**
+ * @brief 估算数组长度
+ * 
+ * @param string 数组参数
+ * 
+ * @return int 估算的数组长度
+ */
+static int shellEstimateArrayLength(char *string)
+{
+    int length = 0;
+    char *p = string;
+    while (*p)
+    {
+        if (*p == ',')
+        {
+            length++;
+        }
+        p++;
+    }
+    return length + 1;
+}
+
+/**
+ * @brief 分割数组参数
+ * 
+ * @param string 数组参数
+ * @param array 分割后的字符串数组
+ * 
+ * @return int 数组长度
+ */
+static int shellSplitArray(char *string, char ***array)
+{
+    int strLen = strlen(string);
+    if (string[strLen - 1] == ']')
+    {
+        string[--strLen] = 0;
+    }
+    if (string[0] == '[')
+    {
+        --strLen;
+        string++;
+    }
+    int size = shellEstimateArrayLength(string);
+    *array = SHELL_MALLOC(size * sizeof(char *));
+    return shellSplit(string, strLen, *array, ',', size);
+}
+
+/**
+ * @brief 解析数组参数
+ * 
+ * @param shell shell 对象
+ * @param string 数组参数
+ * @param type 参数类型
+ * @param result 解析结果
+ * 
+ * @return int 0 解析成功 -1 解析失败
+ */
+static int shellExtParseArray(Shell *shell, char *string, char *type, size_t *result)
+{
+    char **params;
+    int size = shellSplitArray(string, &params);
+    int elementBytes = sizeof(void *);
+
+    if (strcmp(type + 1, "q") == 0)
+    {
+        elementBytes = sizeof(char);
+    }
+    else if (strcmp(type + 1, "h") == 0)
+    {
+        elementBytes = sizeof(short);
+    }
+    else if (strcmp(type + 1, "i") == 0)
+    {
+        elementBytes = sizeof(int);
+    }
+
+    ShellArrayHeader *header = SHELL_MALLOC(elementBytes * size + sizeof(ShellArrayHeader));
+    *result = (size_t) ((size_t) header + sizeof(ShellArrayHeader));
+    header->size = size;
+    header->elementBytes = elementBytes;
+    for (short i = 0; i < size; i++)
+    {
+        size_t value;
+        if (shellExtParsePara(shell, params[i], type + 1, &value) != 0)
+        {
+            SHELL_FREE(header);
+            SHELL_FREE(params);
+            return -1;
+        }
+        memcpy((void *) ((size_t) *result + elementBytes * i), &value, elementBytes);
+    }
+
+    SHELL_FREE(params);
+    return 0;
+}
+
+/**
+ * @brief 清理数组参数
+ * 
+ * @param shell shell 对象
+ * @param type 参数类型
+ * @param param 参数
+ * 
+ * @return int 0 清理成功 -1 清理失败
+ */
+static int shellExtCleanerArray(Shell *shell, char *type, void *param)
+{
+    ShellArrayHeader *header = (ShellArrayHeader *) ((size_t) param - sizeof(ShellArrayHeader));
+    for (short i = 0; i < header->size; i++)
+    {
+        if (shellExtCleanerPara(shell, type + 1, *(size_t *) ((size_t) param + header->elementBytes * i)) != 0)
+        {
+            return -1;
+        }
+    }
+    SHELL_FREE(header);
+    return 0;
+}
+
+/**
+ * @brief 获取数组大小
+ * 
+ * @param param 数组
+ * 
+ * @return int 数组大小
+ */
+int shellGetArrayParamSize(void *param)
+{
+    ShellArrayHeader *header = (ShellArrayHeader *) ((size_t) param - sizeof(ShellArrayHeader));
+    return header->size;
+}
+#endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
+
 
 /**
  * @brief 执行命令
@@ -465,7 +635,7 @@ int shellExtCleanerPara(Shell *shell, char *type, unsigned int param)
 int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 {
     int ret = 0;
-    unsigned int params[SHELL_PARAMETER_MAX_NUMBER] = {0};
+    size_t params[SHELL_PARAMETER_MAX_NUMBER] = {0};
     int paramNum = command->attr.attrs.paramNum > (argc - 1) ? 
         command->attr.attrs.paramNum : (argc - 1);
 #if SHELL_USING_FUNC_SIGNATURE == 1
@@ -511,7 +681,7 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 2
     case 1:
     {
-        int (*func)(int) = command->data.cmd.function;
+        int (*func)(size_t) = command->data.cmd.function;
         ret = func(params[0]);
         break;
     }
@@ -519,7 +689,7 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 3
     case 2:
     {
-        int (*func)(int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1]);
         break;
     }
@@ -527,7 +697,7 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 4
     case 3:
     {
-        int (*func)(int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2]);
         break;
     }
@@ -535,7 +705,7 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 5
     case 4:
     {
-        int (*func)(int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3]);
         break;
     }
@@ -543,7 +713,7 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 6
     case 5:
     {
-        int (*func)(int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4]);
         break;
     }
@@ -551,7 +721,7 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 7
     case 6:
     {
-        int (*func)(int, int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5]);
         break;
     }
@@ -559,7 +729,7 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 8
     case 7:
     {
-        int (*func)(int, int, int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6]);
         break;
     }
@@ -567,7 +737,8 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 9
     case 8:
     {
-        int (*func)(int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t)
+            = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
         break;
     }
@@ -575,7 +746,8 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 10
     case 9:
     {
-        int (*func)(int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                    size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
                    params[8]);
         break;
@@ -584,7 +756,8 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 11
     case 10:
     {
-        int (*func)(int, int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                    size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
                    params[8], params[9]);
         break;
@@ -593,7 +766,8 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 12
     case 11:
     {
-        int (*func)(int, int, int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                    size_t, size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
                    params[8], params[9], params[10]);
         break;
@@ -602,7 +776,8 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 13
     case 12:
     {
-        int (*func)(int, int, int, int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                    size_t, size_t, size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
                    params[8], params[9], params[10], params[11]);
         break;
@@ -611,7 +786,8 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 14
     case 13:
     {
-        int (*func)(int, int, int, int, int, int, int, int, int, int, int, int, int) = command->data.cmd.function;
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                    size_t, size_t, size_t, size_t, size_t) = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
                    params[8], params[9], params[10], params[11], params[12]);
         break;
@@ -620,7 +796,8 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 15
     case 14:
     {
-        int (*func)(int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                    size_t, size_t, size_t, size_t, size_t, size_t)
             = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
                    params[8], params[9], params[10], params[11], params[12], params[13]);
@@ -630,7 +807,8 @@ int shellExtRun(Shell *shell, ShellCommand *command, int argc, char *argv[])
 #if SHELL_PARAMETER_MAX_NUMBER >= 16
     case 15:
     {
-        int (*func)(int, int, int, int, int, int, int, int, int, int, int, int, int, int, int)
+        int (*func)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t,
+                    size_t, size_t, size_t, size_t, size_t, size_t, size_t)
             = command->data.cmd.function;
         ret = func(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7],
                    params[8], params[9], params[10], params[11], params[12], params[13], params[14]);
