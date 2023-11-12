@@ -66,7 +66,13 @@ static int shellGetNextParamType(const char *signature, int index, char *type)
     return index;
 }
 
-
+/**
+ * @brief 获取期待的参数个数
+ * 
+ * @param signature 函数签名
+ * 
+ * @return int 参数个数
+ */
 static int shellGetParamNumExcept(const char *signature)
 {
     int num = 0;
@@ -225,7 +231,7 @@ static char* shellExtParseString(char *string)
     {
         if (*p == '\\')
         {
-            *(string + index) = shellExtParseChar(p - 1);
+            *(string + index) = shellExtParseChar(p);
             p++;
         }
         else if (*p == '\"')
@@ -377,13 +383,18 @@ int shellExtParsePara(Shell *shell, char *string, char *type, size_t *result)
 #if SHELL_USING_FUNC_SIGNATURE == 1
     else
     {
+        if (*string == '$' && *(string + 1))
+        {
+            *result = shellExtParseVar(shell, string);
+            return 0;
+        }
     #if SHELL_SUPPORT_ARRAY_PARAM == 1
-        if (type[0] == '[') {
+        else if (type[0] == '[')
+        {
             return shellExtParseArray(shell, string, type, result);
         }
-        else
     #endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
-        if (strcmp("c", type) == 0)
+        else if (strcmp("c", type) == 0)
         {
             *result = (size_t)shellExtParseChar(string);
             return 0;
