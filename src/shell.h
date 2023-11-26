@@ -14,7 +14,7 @@
 
 #include "shell_cfg.h"
 
-#define     SHELL_VERSION               "3.2.2"                 /**< 版本号 */
+#define     SHELL_VERSION               "3.2.3"                 /**< 版本号 */
 
 
 /**

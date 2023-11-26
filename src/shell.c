@@ -835,7 +835,7 @@ void shellInsertByte(Shell *shell, char data)
         shell->parser.buffer[shell->parser.length++] = data;
         shell->parser.buffer[shell->parser.length] = 0;
         shell->parser.cursor++;
-        shellWriteByte(shell, data);
+        shellWriteByte(shell, shell->status.isChecked ? data : '*');
     }
     else if (shell->parser.cursor < shell->parser.length)
     {
@@ -848,7 +848,8 @@ void shellInsertByte(Shell *shell, char data)
         shell->parser.buffer[++shell->parser.length] = 0;
         for (short i = shell->parser.cursor - 1; i < shell->parser.length; i++)
         {
-            shellWriteByte(shell, shell->parser.buffer[i]);
+            shellWriteByte(shell, 
+                           shell->status.isChecked ? shell->parser.buffer[i] : '*');
         }
         for (short i = shell->parser.length - shell->parser.cursor; i > 0; i--)
         {
