@@ -10,6 +10,7 @@
  */
 
 #include "shell.h"
+#include "shell_ext.h"
 #include "shell_fs.h"
 #include "shell_passthrough.h"
 #include "shell_secure_user.h"
@@ -267,7 +268,7 @@ char *shellSecureUserHandlerTest(const char *name)
 }
 SHELL_EXPORT_SECURE_USER(SHELL_CMD_PERMISSION(0xFF), secure, shellSecureUserHandlerTest, secure user test);
 
-void systemPassthrough(char *data, unsigned short len)
+int systemPassthrough(char *data, unsigned short len)
 {
     system(data);
 }
@@ -314,6 +315,29 @@ void shellParamParserTest(int a, TestStruct *data, char *c)
 }
 SHELL_EXPORT_CMD_SIGN(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
 paramParserTest, shellParamParserTest, test function signature and param parser, iLTestStruct;s);
+
+#if SHELL_SUPPORT_ARRAY_PARAM == 1
+int shellArrayTest(int a, int *b, char *c, TestStruct **datas)
+{
+    int i;
+    printf("a = %d, b = %p, c = %p, datas = %p\r\n", a, b, c, datas);
+    for (i = 0; i < shellGetArrayParamSize(b); i++)
+    {
+        printf("b[%d] = %d\r\n", i, b[i]);
+    }
+    for (i = 0; i < shellGetArrayParamSize(c); i++)
+    {
+        printf("c[%d] = %d\r\n", i, c[i]);
+    }
+    for (i = 0; i < shellGetArrayParamSize(datas); i++)
+    {
+        printf("datas[%d]->a = %d, datas[%d]->b = %s\r\n", i, datas[i]->a, i, datas[i]->b);
+    }
+    return 0;
+}
+SHELL_EXPORT_CMD_SIGN(SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_FUNC),
+arrayTest, shellArrayTest, test array param parser, i[i[q[LTestStruct;);
+#endif /** SHELL_SUPPORT_ARRAY_PARAM == 1 */
 
 #endif /** SHELL_USING_FUNC_SIGNATURE == 1 */
 
