@@ -39,8 +39,8 @@ SHELL_USED const ShellCommand shellUserDefault SHELL_SECTION("shellCommand") =
     #elif defined(__ICCARM__) || defined(__ICCRX__)
         #pragma section="shellCommand"
     #elif defined(__GNUC__)
-        extern const unsigned int _shell_command_start;
-        extern const unsigned int _shell_command_end;
+        extern const unsigned int __start_shellCommand;
+        extern const unsigned int __stop_shellCommand;
     #endif
 #else
     extern const ShellCommand shellCommandList[];
@@ -212,9 +212,9 @@ void shellInit(Shell *shell, char *buffer, unsigned short size)
                                 - (size_t)(__section_begin("shellCommand")))
                                 / sizeof(ShellCommand);
     #elif defined(__GNUC__)
-        shell->commandList.base = (ShellCommand *)(&_shell_command_start);
-        shell->commandList.count = ((size_t)(&_shell_command_end)
-                                - (size_t)(&_shell_command_start))
+        shell->commandList.base = (ShellCommand *)(&__start_shellCommand);
+        shell->commandList.count = ((size_t)(&__stop_shellCommand)
+                                - (size_t)(&__start_shellCommand))
                                 / sizeof(ShellCommand);
     #else
         #error not supported compiler, please use command table mode
