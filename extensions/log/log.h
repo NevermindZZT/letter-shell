@@ -74,17 +74,19 @@ extern "C" {
  * log级别字符(包含颜色)
  */
 #if LOG_USING_COLOR == 1
-#define     ERROR_TEXT          CSI(31) "E(%d) %s:" CSI(39)     /**< 错误标签 */
-#define     WARNING_TEXT        CSI(33) "W(%d) %s:" CSI(39)     /**< 警告标签 */
-#define     INFO_TEXT           CSI(32) "I(%d) %s:" CSI(39)     /**< 信息标签 */
-#define     DEBUG_TEXT          CSI(34) "D(%d) %s:" CSI(39)     /**< 调试标签 */
-#define     VERBOSE_TEXT        CSI(36) "V(%d) %s:" CSI(39)     /**< 冗余信息标签 */
+#define     ERROR_TEXT          CSI(31) "E(%lld) %s:" CSI(39)     /**< 错误标签 */
+#define     WARNING_TEXT        CSI(33) "W(%lld) %s:" CSI(39)     /**< 警告标签 */
+#define     INFO_TEXT           CSI(32) "I(%lld) %s:" CSI(39)     /**< 信息标签 */
+#define     DEBUG_TEXT          CSI(34) "D(%lld) %s:" CSI(39)     /**< 调试标签 */
+#define     VERBOSE_TEXT        CSI(36) "V(%lld) %s:" CSI(39)     /**< 冗余信息标签 */
+#define     DEFAULT_TEXT        CSI(39)                           /**< 颜色输出后恢复原色 */
 #else
-#define     ERROR_TEXT          "E(%d) %s:"
-#define     WARNING_TEXT        "W(%d) %s:"
-#define     INFO_TEXT           "I(%d) %s:"
-#define     DEBUG_TEXT          "D(%d) %s:"
-#define     VERBOSE_TEXT        "V(%d) %s:"
+#define     ERROR_TEXT          "E(%lld) %s:"
+#define     WARNING_TEXT        "W(%lld) %s:"
+#define     INFO_TEXT           "I(%lld) %s:"
+#define     DEBUG_TEXT          "D(%lld) %s:"
+#define     VERBOSE_TEXT        "V(%lld) %s:"
+#define     DEFAULT_TEXT        ""                         
 #endif
 
 
@@ -142,7 +144,7 @@ typedef struct log_def
  */
 #define logFormat(text, level, fmt, ...) \
         if (LOG_ENABLE) {\
-            logWrite(LOG_ALL_OBJ, level, text " " fmt "" LOG_END, \
+            logWrite(LOG_ALL_OBJ, level, text " " fmt "" LOG_END DEFAULT_TEXT, \
                 LOG_TIME_STAMP, LOG_TAG, ##__VA_ARGS__); }
 
 /**
