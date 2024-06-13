@@ -76,7 +76,7 @@ static void shellCmdGroupHelp(Shell *shell, char *name, ShellCommand *group)
         if (item->data.cmd.desc) {
             shellWriteString(shell, item->data.cmd.desc);
         }
-        shellWriteString(shell, "\r\n");
+        shellWriteString(shell, "\r\n\r\n");
         item++;
     }
 }

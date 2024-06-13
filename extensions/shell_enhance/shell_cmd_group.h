@@ -43,14 +43,35 @@
  * @param _type 命令类型(SHELL_TYPE_CMD_MAIN or SHELL_TYPE_CMD_FUNC)
  * @param _func 命令函数
  * @param _desc 命令描述
+ * @param ... 其他参数
  */
-#define SHELL_CMD_GROUP_ITEM(_type, _name, _func, _desc) \
+#define SHELL_CMD_GROUP_ITEM(_type, _name, _func, _desc, ...) \
         { \
             .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(_type)|SHELL_CMD_DISABLE_RETURN, \
             .data.cmd.name = #_name, \
             .data.cmd.function = (int (*)())_func, \
-            .data.cmd.desc = #_desc \
+            .data.cmd.desc = #_desc, \
+            ##__VA_ARGS__ \
         }
+
+#if SHELL_USING_FUNC_SIGNATURE == 1
+    /**
+    * @brief shell 命令组item定义
+    * 
+    * @param _type 命令类型(SHELL_TYPE_CMD_MAIN or SHELL_TYPE_CMD_FUNC)
+    * @param _func 命令函数
+    * @param _desc 命令描述
+    * @param _sign 命令签名
+    */
+    #define SHELL_CMD_GROUP_ITEM_SIGN(_type, _name, _func, _desc, _sign) \
+            { \
+            .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(_type)|SHELL_CMD_DISABLE_RETURN, \
+            .data.cmd.name = #_name, \
+            .data.cmd.function = (int (*)())_func, \
+            .data.cmd.desc = #_desc, \
+            .data.cmd.signature = #_sign, \
+            }
+#endif
 
 /**
  * @brief shell 命令组定义结尾
