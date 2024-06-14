@@ -43,7 +43,7 @@ static int telnetdPort = TELNETD_DEFAULT_SERVER_PORT;
 
 static void telnetdServer(void);
 static void telnetdConnection(int client);
-static void telentdWrite(char *data, short len);
+static void telnetdWrite(char *data, short len);
 
 /**
  * @brief telnet 协议命令
@@ -150,7 +150,7 @@ static void telnetdConnection(int client)
     send(client, telnetCmd, 9, 0);
     recv(client, data, 6, 0);
 
-    telnetdShell->write = telentdWrite;
+    telnetdShell->write = telnetdWrite;
     shellCompanionAdd(telnetdShell, SHELL_COMPANION_ID_TELNETD, (void *)client);
     shellInit(telnetdShell, shellBuffer, TELNETD_SHELL_BUFFER_SIZE);
 
@@ -186,7 +186,7 @@ static void telnetdConnection(int client)
  * @param len 数据长度
  * 
  */
-static void telentdWrite(char *data, short len)
+static void telnetdWrite(char *data, short len)
 {
     int client = (int) shellCompanionGet(telnetdShell, SHELL_COMPANION_ID_TELNETD);
     if (client != 0)
