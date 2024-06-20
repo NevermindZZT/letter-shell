@@ -173,6 +173,7 @@ ShellCommand* shellSeekCommand(Shell *shell,
                                ShellCommand *base,
                                unsigned short compareLength);
 static void shellWriteCommandHelp(Shell *shell, char *cmd);
+static char shellInterceptKey(Shell *shell, char data);
 
 /**
  * @brief shell 初始化
@@ -1759,6 +1760,81 @@ SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(SHELL_TYPE_CMD_MAIN)|SHELL_CMD_DISABLE_RE
 help, shellHelp, show command info\r\nhelp [cmd]);
 
 /**
+ * @brief shell 按键拦截
+ *        parser.keyValue 保存上一次已经匹配的数值位
+ *        keyFilter       保存之前匹配过的掩码值
+ *        keyByteOffset   当前需要匹配的字节偏移位置
+ *        keyName     keyValue        parser.keyValue     keyByteOffset       keyFilter
+ *        backspace   0x08000000      0x00000000          24                  0x00000000
+ *        CRLF        0x0D0A0000      0x0D000000          16                  0xFF000000
+ *        up          0x1B5B4100      0x1B5B0000          8                   0xFFFF0000
+ *        delete      0x1B5B337E      0x1B5B3300          0                   0xFFFFFF00
+ *
+ * @param shell shell 对象
+ * @param data 输入字符
+ */
+static char shellInterceptKey(Shell *shell, char data)
+{
+    char keyByteOffset;
+    int keyFilter;
+    char keyHit = 0;        // 按键匹配标志
+
+
+    /* 根据记录的按键键值计算当前字节在按键键值中的偏移 */
+    char *pkey = (char *)&shell->parser.keyValue;
+    char i = sizeof(shell->parser.keyValue);
+
+    while(pkey[--i] != 0)
+    {
+        ;
+    }
+
+    keyFilter = 0xFFFFFFFF << ((i + 1) * 8);
+    keyByteOffset = i * 8;
+
+
+    /* 遍历 ShellCommand 列表，尝试进行按键键值匹配 */
+    ShellCommand *base = (ShellCommand *)shell->commandList.base;
+    for (short i = 0; i < shell->commandList.count; i++)
+    {
+        /* 判断是否是按键定义并验证权限 */
+        if (base[i].attr.attrs.type == SHELL_TYPE_KEY
+            && shellCheckPermission(shell, &(base[i])) == 0)
+        {
+            /* 对输入的字节同按键键值进行匹配 */
+            if ((base[i].data.key.value & keyFilter) == shell->parser.keyValue
+                && ((base[i].data.key.value >> keyByteOffset) & 0xFF) == data)
+            {
+                keyHit = 1;
+
+                /* 测试按键键值匹配位置的后一个字节是否为 0x00，用于表示匹配是否完成 */
+                if (keyByteOffset == 0
+                    || ((base[i].data.key.value >> (keyByteOffset - 8)) & 0xFF) == 0x00)
+                {
+                    if (base[i].data.key.function)
+                    {
+                        base[i].data.key.function(shell);
+                    }
+                    shell->parser.keyValue = 0;
+                    break;
+                }
+                else
+                {
+                    shell->parser.keyValue |= data << keyByteOffset;
+                }
+            }
+        }
+    }
+
+    if (!keyHit)
+    {
+        shell->parser.keyValue = 0;
+    }
+
+    return keyHit;
+}
+
+/**
  * @brief shell 输入处理
  * 
  * @param shell shell对象
@@ -1781,58 +1857,8 @@ void shellHandler(Shell *shell, char data)
     }
 #endif
 
-    /* 根据记录的按键键值计算当前字节在按键键值中的偏移 */
-    char keyByteOffset = 24;
-    int keyFilter = 0x00000000;
-    if ((shell->parser.keyValue & 0x0000FF00) != 0x00000000)
+    if (!shellInterceptKey(shell, data))
     {
-        keyByteOffset = 0;
-        keyFilter = 0xFFFFFF00;
-    }
-    else if ((shell->parser.keyValue & 0x00FF0000) != 0x00000000)
-    {
-        keyByteOffset = 8;
-        keyFilter = 0xFFFF0000;
-    }
-    else if ((shell->parser.keyValue & 0xFF000000) != 0x00000000)
-    {
-        keyByteOffset = 16;
-        keyFilter = 0xFF000000;
-    }
-
-    /* 遍历ShellCommand列表，尝试进行按键键值匹配 */
-    ShellCommand *base = (ShellCommand *)shell->commandList.base;
-    for (short i = 0; i < shell->commandList.count; i++)
-    {
-        /* 判断是否是按键定义并验证权限 */
-        if (base[i].attr.attrs.type == SHELL_TYPE_KEY
-            && shellCheckPermission(shell, &(base[i])) == 0)
-        {
-            /* 对输入的字节同按键键值进行匹配 */
-            if ((base[i].data.key.value & keyFilter) == shell->parser.keyValue
-                && (base[i].data.key.value & (0xFF << keyByteOffset))
-                    == (data << keyByteOffset))
-            {
-                shell->parser.keyValue |= data << keyByteOffset;
-                data = 0x00;
-                if (keyByteOffset == 0 
-                    || (base[i].data.key.value & (0xFF << (keyByteOffset - 8)))
-                        == 0x00000000)
-                {
-                    if (base[i].data.key.function)
-                    {
-                        base[i].data.key.function(shell);
-                    }
-                    shell->parser.keyValue = 0x00000000;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (data != 0x00)
-    {
-        shell->parser.keyValue = 0x00000000;
         shellNormalInput(shell, data);
     }
 
