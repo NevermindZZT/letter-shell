@@ -78,6 +78,6 @@
  * 
  * @note 需要添加在每个命令数组的最后一条
  */
-#define SHELL_CMD_GROUP_END()   {0}
+#define SHELL_CMD_GROUP_END()   {.data.cmd.name = NULL}
 
 int shellCmdGroupRun(ShellCommand *group, int argc, char *argv[]);
