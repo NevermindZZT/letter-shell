@@ -47,7 +47,7 @@
  */
 #define SHELL_CMD_GROUP_ITEM(_type, _name, _func, _desc, ...) \
         { \
-            .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(_type)|SHELL_CMD_DISABLE_RETURN, \
+            .attr.value = SHELL_CMD_PERMISSION(0)|SHELL_CMD_TYPE(_type), \
             .data.cmd.name = #_name, \
             .data.cmd.function = (int (*)())_func, \
             .data.cmd.desc = #_desc, \

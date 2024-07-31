@@ -1,8 +1,8 @@
 # letter shell 3.x
 
-![version](https://img.shields.io/badge/version-3.2.2-brightgreen.svg)
+![version](https://img.shields.io/badge/version-3.2.4-brightgreen.svg)
 ![standard](https://img.shields.io/badge/standard-c99-brightgreen.svg)
-![build](https://img.shields.io/badge/build-2023.10.25-brightgreen.svg)
+![build](https://img.shields.io/badge/build-2024.07.31-brightgreen.svg)
 ![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 一个功能强大的嵌入式shell
