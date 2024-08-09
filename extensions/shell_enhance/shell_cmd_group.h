@@ -9,6 +9,7 @@
  * 
  */
 #include "shell.h"
+#include <stddef.h>
 
 /**
  * @brief shell 命令组函数名

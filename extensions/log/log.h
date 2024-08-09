@@ -4,9 +4,9 @@
  * @brief log
  * @version 1.0.0
  * @date 2020-07-30
- * 
+ *
  * @copyright (c) 2020 Letter
- * 
+ *
  */
 #ifndef __LOG_H__
 #define __LOG_H__
@@ -27,7 +27,7 @@ extern "C" {
 #define     LOG_MAX_NUMBER     5                /**< 允许注册的最大log对象数量 */
 #define     LOG_AUTO_TAG       1                /**< 是否自动添加TAG */
 #define     LOG_END            "\r\n"           /**< log信息结尾 */
-#define     LOG_TIME_STAMP     0                /**< 设置获取系统时间戳 */
+#define     LOG_TIME_STAMP     SHELL_GET_TICK() /**< 设置获取系统时间戳 */
 
 #ifndef LOG_TAG
     #define LOG_TAG            __FUNCTION__     /**< 自定添加的TAG */
@@ -90,7 +90,7 @@ extern "C" {
 
 /**
  * @brief 日志级别定义
- * 
+ *
  */
 typedef enum
 {
@@ -106,14 +106,14 @@ typedef enum
 
 /**
  * @brief log对象定义
- * 
+ *
  */
 typedef struct log_def
 {
     void (*write)(char *, short);                   /**< 写buffer */
     char active;                                    /**< 是否激活 */
     LogLevel level;                                 /**< 日志级别 */
-#if LOG_USING_LOCK == 1   
+#if LOG_USING_LOCK == 1
     int (*lock)(struct log_def *);                  /**< log 加锁 */
     int (*unlock)(struct log_def *);                /**< log 解锁 */
 #endif /** LOG_USING_LOCK == 1 */
@@ -124,7 +124,7 @@ typedef struct log_def
 
 /**
  * @brief log打印(自动换行)
- * 
+ *
  * @param fmt 格式
  * @param ... 参数
  */
@@ -134,7 +134,7 @@ typedef struct log_def
 
 /**
  * @brief 日志格式化输出
- * 
+ *
  * @param text 消息文本
  * @param level 日志级别
  * @param fmt 格式
@@ -147,7 +147,7 @@ typedef struct log_def
 
 /**
  * @brief 错误log输出
- * 
+ *
  * @param fmt 格式
  * @param ... 参数
  */
@@ -156,7 +156,7 @@ typedef struct log_def
 
 /**
  * @brief 警告log输出
- * 
+ *
  * @param fmt 格式
  * @param ... 参数
  */
@@ -165,7 +165,7 @@ typedef struct log_def
 
 /**
  * @brief 信息log输出
- * 
+ *
  * @param fmt 格式
  * @param ... 参数
  */
@@ -174,7 +174,7 @@ typedef struct log_def
 
 /**
  * @brief 调试log输出
- * 
+ *
  * @param fmt 格式
  * @param ... 参数
  */
@@ -183,7 +183,7 @@ typedef struct log_def
 
 /**
  * @brief 冗余log输出
- * 
+ *
  * @param fmt 格式
  * @param ... 参数
  */
@@ -192,7 +192,7 @@ typedef struct log_def
 
 /**
  * @brief 断言
- * 
+ *
  * @param expr 表达式
  * @param action 断言失败操作
  */
@@ -204,7 +204,7 @@ typedef struct log_def
 
 /**
  * @brief 16进制输出到所有终端
- * 
+ *
  * @param base 内存基址
  * @param length 长度
  */
