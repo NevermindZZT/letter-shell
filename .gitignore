@@ -8,3 +8,6 @@ demo/x86-gcc/compile_commands.json
 demo/x86-gcc/.cache/
 .vscode
 build
+output/
+cmsis-pack/*.pack
+.waylog

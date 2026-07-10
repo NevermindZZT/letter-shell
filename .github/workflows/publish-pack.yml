@@ -1,0 +1,87 @@
+name: Publish pack on release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  publish-pack:
+    name: Publish pack files to branches
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch tags
+        run: |
+          git fetch --tags --force
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+
+      - name: Make pack script executable
+        run: |
+          chmod +x ./gen_pack.sh
+
+      - uses: Open-CMSIS-Pack/gen-pack-action@main
+        with:
+          doxygen-version: 1.9.5
+          packchk-version: 1.3.96
+          gen-pack-script: ./gen_pack.sh
+          gen-pack-output: ./output
+
+      - name: Copy pack to cmsis-pack directory
+        run: |
+          mkdir -p cmsis-pack
+          cp -v ./output/*.pack cmsis-pack/ || true
+
+      - name: Upload pack artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmsis-pack
+          path: cmsis-pack/*.pack
+          if-no-files-found: error
+
+      - name: Get all branches and push pack files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          branches=$(git branch -r | grep -v HEAD | sed 's/origin\///' | sort -u)
+
+          echo "Found branches: $branches"
+          echo ""
+
+          for branch in $branches; do
+            echo "Processing branch: $branch"
+
+            git checkout "$branch" 2>/dev/null || git checkout -b "$branch" "origin/$branch" 2>/dev/null
+
+            mkdir -p cmsis-pack
+            cp -v ./output/*.pack cmsis-pack/ 2>/dev/null || true
+
+            git add -f cmsis-pack/*.pack
+            if ! git diff --staged --quiet; then
+              git commit -m "chore: Update CMSIS pack files from release [skip ci]"
+              git push origin "$branch"
+              echo "Updated pack files on branch: $branch"
+            else
+              echo "No changes on branch: $branch"
+            fi
+            echo ""
+          done
+
+          echo "All branches processed successfully"
+
+      - name: Trigger pack workflow
+        run: |
+          gh workflow run cmake-single-platform.yml --ref ${{ github.event.release.target_commitish || 'master' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

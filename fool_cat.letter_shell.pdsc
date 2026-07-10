@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package schemaVersion="1.7.7" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+  xs:noNamespaceSchemaLocation="https://raw.githubusercontent.com/Open-CMSIS-Pack/Open-CMSIS-Pack-Spec/v1.7.7/schema/PACK.xsd">
+  <vendor>fool_cat</vendor>
+  <name>letter_shell</name>
+  <description>letter shell 3.x - lightweight embedded command-line shell for C projects</description>
+  <url>https://github.com/fool-cat/letter-shell/releases/download/</url>
+  <supportContact>https://github.com/fool-cat/letter-shell</supportContact>
+  <license>LICENSE</license>
+
+  <releases>
+    <release version="3.2.4" date="2024-07-31">
+      Initial CMSIS-Pack release for letter shell 3.2.4.
+
+      Components Overview:
+      - Core layer: shell runtime, parser, command list, companion support, and configuration header.
+      - Extension layer: log, file-system support, shell enhance helpers, C++ support, telnet, and games.
+
+      Pack Flow:
+      - Added PDSC metadata with core and optional extension components.
+      - Added local and CI pack generation scripts matching the fc_embed workflow.
+    </release>
+  </releases>
+
+  <keywords>
+    <keyword>Embedded</keyword>
+    <keyword>Shell</keyword>
+    <keyword>CLI</keyword>
+    <keyword>Command Line</keyword>
+    <keyword>RTOS</keyword>
+    <keyword>Debug</keyword>
+  </keywords>
+
+  <conditions>
+    <condition id="Cortex-M">
+      <description>Cortex-M based device</description>
+      <accept Dcore="Cortex-M0" />
+      <accept Dcore="Cortex-M0+" />
+      <accept Dcore="Cortex-M3" />
+      <accept Dcore="Cortex-M4" />
+      <accept Dcore="Cortex-M7" />
+      <accept Dcore="Cortex-M23" />
+      <accept Dcore="Cortex-M33" />
+      <accept Dcore="Cortex-M35P" />
+      <accept Dcore="Cortex-M55" />
+      <accept Dcore="Cortex-M85" />
+    </condition>
+
+    <condition id="letter_shell_core_shell">
+      <description>letter shell core runtime</description>
+      <require condition="Cortex-M" />
+    </condition>
+
+    <condition id="letter_shell_extension_base">
+      <description>letter shell extension requiring the core runtime</description>
+      <require Cclass="letter_shell" Cgroup="core" Csub="shell" />
+    </condition>
+
+    <condition id="letter_shell_extension_cmd_group">
+      <description>letter shell command group helper</description>
+      <require Cclass="letter_shell" Cgroup="extension" Csub="cmd_group" />
+    </condition>
+  </conditions>
+
+  <components>
+    <!-- letter shell core:shell (user port) -->
+    <component Cclass="letter_shell" Cgroup="core" Csub="shell" Cvariant="user" Cversion="3.2.4" condition="letter_shell_core_shell">
+      <description>letter shell runtime with a project-local user port config file for custom transport integration.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_CORE_SHELL           /* letter_shell core:shell:user */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="README.md" />
+        <file category="header" attr="template" select="Shell Config Header" name="src/shell_cfg.h" />
+        <file category="source" attr="config" version="1.0.0" select="User Port Source" name="templates/user/shell_port.c" />
+        <file category="header" attr="config" version="1.0.0" select="Common Port Header" name="templates/shell_port.h" />
+        <file category="source" name="src/shell.c" />
+        <file category="source" name="src/shell_ext.c" />
+        <file category="source" name="src/shell_cmd_list.c" />
+        <file category="source" name="src/shell_companion.c" />
+        <file category="header" attr="template" select="Shell Header" name="src/shell.h" />
+        <file category="header" attr="template" select="Shell Extension Header" name="src/shell_ext.h" />
+        <file category="include" name="templates/" />
+        <file category="include" name="templates/user/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell core:shell (SEGGER RTT port) -->
+    <component Cclass="letter_shell" Cgroup="core" Csub="shell" Cvariant="SEGGER RTT" Cversion="3.2.4" condition="letter_shell_core_shell">
+      <description>letter shell runtime with a project-local SEGGER RTT port config file.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_CORE_SHELL           /* letter_shell core:shell:SEGGER RTT */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="README.md" />
+        <file category="header" attr="template" select="Shell Config Header" name="src/shell_cfg.h" />
+        <file category="source" attr="config" version="1.0.0" select="SEGGER RTT Port Source" name="templates/segger-rtt/shell_port.c" />
+        <file category="header" attr="config" version="1.0.0" select="Common Port Header" name="templates/shell_port.h" />
+        <file category="source" name="src/shell.c" />
+        <file category="source" name="src/shell_ext.c" />
+        <file category="source" name="src/shell_cmd_list.c" />
+        <file category="source" name="src/shell_companion.c" />
+        <file category="header" attr="template" select="Shell Header" name="src/shell.h" />
+        <file category="header" attr="template" select="Shell Extension Header" name="src/shell_ext.h" />
+        <file category="include" name="templates/" />
+        <file category="include" name="templates/segger-rtt/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell extension:log -->
+    <component Cclass="letter_shell" Cgroup="extension" Csub="log" Cversion="1.0.1" condition="letter_shell_extension_base">
+      <description>Logging helper with level filtering, ANSI colors, optional locks, shell command exports, and hex dump support.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_EXTENSION_LOG        /* letter_shell extension:log */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="extensions/log/readme.md" />
+        <file category="source" name="extensions/log/log.c" />
+        <file category="header" attr="template" select="Log Header" name="extensions/log/log.h" />
+        <file category="include" name="extensions/log/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell extension:fs_support -->
+    <component Cclass="letter_shell" Cgroup="extension" Csub="fs_support" Cversion="1.0.0" condition="letter_shell_extension_base">
+      <description>File-system command helpers for cd and ls. Requires SHELL_USING_COMPANION, SHELL_MALLOC, and SHELL_FREE in the user configuration.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_EXTENSION_FS_SUPPORT /* letter_shell extension:fs_support */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="extensions/fs_support/readme.md" />
+        <file category="source" name="extensions/fs_support/shell_fs.c" />
+        <file category="header" attr="template" select="File System Support Header" name="extensions/fs_support/shell_fs.h" />
+        <file category="include" name="extensions/fs_support/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell extension:cmd_group -->
+    <component Cclass="letter_shell" Cgroup="extension" Csub="cmd_group" Cversion="1.0.0" condition="letter_shell_extension_base">
+      <description>Command group helper used to expose grouped subcommands through a single shell command.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_EXTENSION_CMD_GROUP  /* letter_shell extension:cmd_group */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="extensions/shell_enhance/readme.md" />
+        <file category="source" name="extensions/shell_enhance/shell_cmd_group.c" />
+        <file category="header" attr="template" select="Command Group Header" name="extensions/shell_enhance/shell_cmd_group.h" />
+        <file category="include" name="extensions/shell_enhance/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell extension:passthrough -->
+    <component Cclass="letter_shell" Cgroup="extension" Csub="passthrough" Cversion="1.0.0" condition="letter_shell_extension_base">
+      <description>Passthrough mode helper for command handlers that need to receive raw terminal input until an exit key is pressed.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_EXTENSION_PASSTHROUGH /* letter_shell extension:passthrough */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="extensions/shell_enhance/readme.md" />
+        <file category="source" name="extensions/shell_enhance/shell_passthrough.c" />
+        <file category="header" attr="template" select="Passthrough Header" name="extensions/shell_enhance/shell_passthrough.h" />
+        <file category="include" name="extensions/shell_enhance/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell extension:secure_user -->
+    <component Cclass="letter_shell" Cgroup="extension" Csub="secure_user" Cversion="1.0.0" condition="letter_shell_extension_base">
+      <description>Secure user helper that resolves user passwords at login time through an application callback.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_EXTENSION_SECURE_USER /* letter_shell extension:secure_user */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="extensions/shell_enhance/readme.md" />
+        <file category="source" name="extensions/shell_enhance/shell_secure_user.c" />
+        <file category="header" attr="template" select="Secure User Header" name="extensions/shell_enhance/shell_secure_user.h" />
+        <file category="include" name="extensions/shell_enhance/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell extension:cpp_support -->
+    <component Cclass="letter_shell" Cgroup="extension" Csub="cpp_support" Cversion="1.0.0" condition="letter_shell_extension_base">
+      <description>C++ command export wrappers that preserve the shell command section layout when compiling C++ sources.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_EXTENSION_CPP_SUPPORT /* letter_shell extension:cpp_support */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="extensions/cpp_support/readme.md" />
+        <file category="header" attr="template" select="C++ Support Header" name="extensions/cpp_support/shell_cpp.h" />
+        <file category="include" name="extensions/cpp_support/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell extension:telnet -->
+    <component Cclass="letter_shell" Cgroup="extension" Csub="telnet" Cversion="1.0.0" condition="letter_shell_extension_cmd_group">
+      <description>POSIX-socket telnet server bridge for exposing a letter shell instance over TCP.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_EXTENSION_TELNET     /* letter_shell extension:telnet */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="extensions/telnet/readme.md" />
+        <file category="source" name="extensions/telnet/telnetd.c" />
+        <file category="header" attr="template" select="Telnet Header" name="extensions/telnet/telnetd.h" />
+        <file category="include" name="extensions/telnet/" />
+        <file category="include" name="extensions/shell_enhance/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+
+    <!-- letter shell extension:game -->
+    <component Cclass="letter_shell" Cgroup="extension" Csub="game" Cversion="1.0.0" condition="letter_shell_extension_cmd_group">
+      <description>Terminal games exposed as shell commands through the command group helper.</description>
+      <RTE_Components_h>
+        #define RTE_LETTER_SHELL_EXTENSION_GAME       /* letter_shell extension:game */
+      </RTE_Components_h>
+      <files>
+        <file category="doc" name="extensions/game/readme.md" />
+        <file category="source" name="extensions/game/game.c" />
+        <file category="source" name="extensions/game/2048/2048.c" />
+        <file category="source" name="extensions/game/pushbox/pushbox.c" />
+        <file category="include" name="extensions/game/" />
+        <file category="include" name="extensions/game/2048/" />
+        <file category="include" name="extensions/game/pushbox/" />
+        <file category="include" name="extensions/shell_enhance/" />
+        <file category="include" name="src/" />
+      </files>
+    </component>
+  </components>
+
+  <taxonomy>
+    <description Cclass="letter_shell">letter shell - embedded command-line shell and optional extensions</description>
+  </taxonomy>
+
+</package>
