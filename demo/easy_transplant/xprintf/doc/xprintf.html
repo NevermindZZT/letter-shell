@@ -1,0 +1,214 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<link rel="alternate" hreflang="ja" title="Japanese" href="xprintf_j.html">
+<link rel="stylesheet" href="css_e.css" type="text/css" media="screen" title="ELM Default">
+<title>ELM - Embedded String Functions</title>
+</head>
+
+<body>
+<h1>xprintf - Embedded String Functions</h1>
+<hr>
+
+<div class="abst">
+<p>xprintf is a compact string I/O library. It is ideal for tiny microcontrollers that has insufficient program memory for regular printf function. The recommended use is: writing formatted strings into LCD or UART and for debug/maintenance console.</p>
+<p>xprintf can be configured with configuration options to reduce the module size. Following table shows the example of code size in Cortex-M3 (gcc -Os). long long and float want C99 or later.</p>
+<table class="lst1">
+<tr><th>Feature</th><th>.text</th></tr>
+<tr><td>Basic output</td><td>789</td></tr>
+<tr><td>long long integer</td><td>+91</td></tr>
+<tr><td>Floating point</td><td>+1027</td></tr>
+<tr><td>Input</td><td>+238</td></tr>
+</table>
+</div>
+
+<div class="para">
+<h3>Application Interface</h3>
+<p>The Embedded String Functions provides following functions.</p>
+<h4>Output</h4>
+<pre>
+<span class="c">/*----------------------------------------------/
+/  xputc - Put a character
+/----------------------------------------------*/</span>
+
+void xputc (
+    int <span class="arg">chr</span>           <span class="c">/* A character to be output (0-255) */</span>
+);
+
+void xfputc (
+    void(*<span class="arg">func</span>)(int), <span class="c">/* Pointer to the output function */</span>
+    int <span class="arg">chr</span>           <span class="c">/* Character to be output (0-255) */</span>
+);
+</pre>
+<pre>
+<span class="c">/*----------------------------------------------/
+/  xputs - Put a null-terminated string
+/----------------------------------------------*/</span>
+
+void xputs (
+    const char* <span class="arg">str</span>   <span class="c">/* Pointer to the null-terminated string to be output */</span>
+);
+
+void xfputs (
+    void(*<span class="arg">func</span>)(int), <span class="c">/* Pointer to the output function */</span>
+    const char* <span class="arg">str</span>   <span class="c">/* Pointer to the null-terminated string to be output */</span>
+);
+</pre>
+<pre>
+<span class="c">/*----------------------------------------------/
+/  xprintf - Formatted string output
+/----------------------------------------------*/</span>
+
+void xprintf (        <span class="c">/* Put a formatted string to the default device */</span>
+    const char* <span class="arg">fmt</span>,  <span class="c">/* Pointer to the null-terminated format string */</span>
+    ...               <span class="c">/* Optional arguments... */</span>
+);
+
+void xfprintf (       <span class="c">/* Put a formatted string to the specified device */</span>
+    void(*<span class="arg">func</span>)(int), <span class="c">/* Pointer to the output function */</span>
+    const char* <span class="arg">fmt</span>,  <span class="c">/* Pointer to the null-terminated format string */</span>
+    ...               <span class="c">/* Optional arguments... */</span>
+);
+
+void xsprintf (       <span class="c">/* Put a formatted string to the memory */</span>
+    char* <span class="arg">buff</span>,       <span class="c">/* Pointer to the buffer to store output string */</span>
+    const char* <span class="arg">fmt</span>,  <span class="c">/* Pointer to the null-terminated format string */</span>
+    ...               <span class="c">/* Optional arguments... */</span>
+);
+</pre>
+<pre>
+<span class="c">/*----------------------------------------------/
+/  put_dump - Put a line of binary dump
+/----------------------------------------------*/</span>
+
+void put_dump (
+    const void* <span class="arg">buff</span>,   <span class="c">/* Pointer to the data to be displayed */</span>
+    unsigned long <span class="arg">adr</span>,  <span class="c">/* Heading address */</span>
+    int <span class="arg">cnt</span>,            <span class="c">/* Number of items to be displayed */</span>
+    int <span class="arg">width</span>           <span class="c">/* Size of item (1, 2 or 4) */</span>
+);
+</pre>
+<p>
+The format control directive is a sub-set of standard library shown as follows:
+</p>
+<pre>
+    %[flag][width][precision][size]type
+</pre>
+<dl>
+<dt>flag</dt><dd>Padding options. A <tt>-</tt> specifies left-aligned. A <tt>0</tt> specifies zero padded. The default setting is in right-aligned and space padded.</dd>
+<dt>width</dt><dd>Minimum width of the field, <tt>1-99</tt> or <tt>*</tt>. If the width of generated string is less than the specified value, rest field is padded with spaces or zeros. An <tt>*</tt> specifies the value comes from an argument in int type.</dd>
+<dt>precision</dt><dd>Specifies number of fractional digits or maximum width of string, <tt>.0-.99</tt> or <tt>.*</tt>. If number is omitted, it will be same as <tt>.0</tt>. Default setting is 6 for number and no limit for string.</dd>
+<dt>size</dt><dd>Specifies size of integer argument, <tt>l</tt>(long) and <tt>ll</tt>(long long). If <tt>sizeof (long) == sizeof (int)</tt> is true (this is typical of 32-bit systems), prefix <tt>l</tt> can be omitted for long integer argument. The default size is int for integer arrument and floating point argument is always assumed double.</dd>
+<dt>type</dt><dd>Specifies type of the output format and the argument as shown below. The length of generated string is in assumtion of int is 32-bit.
+<table class="lst1">
+<tr><th>Type</th><th>Format</th><th>Argument</th><th>Length</th></tr>
+<tr><td><tt>d</tt></td><td>Signed&nbsp;decimal</td><td rowspan="5"><tt>int</tt>,<br><tt>long</tt>,<br><tt>long long</tt></td><td>1 to 11 (20 for ll) characters.</td></tr>
+<tr><td><tt>u</tt></td><td>Unsigned&nbsp;decimal</td><td>1 to 10 (20 for ll) characters.</td></tr>
+<tr><td><tt>o</tt></td><td>Unsigned&nbsp;octal</td><td>1 to 11 (22 for ll) characters.</td></tr>
+<tr><td><tt>x X</tt></td><td>Unsigned&nbsp;hexdecimal</td><td>1 to 8 (16 for ll) characters.</td></tr>
+<tr><td><tt>b</tt></td><td>Unsigned&nbsp;binary</td><td>1 to 32 characters. Limited to lower 32 digits when ll is specified.</td></tr>
+<tr><td><tt>c</tt></td><td>Character</td><td><tt>int</tt></td><td>1 character.</td></tr>
+<tr><td><tt>s</tt></td><td>String</td><td><tt>char*</tt></td><td>As input string. If the maximum length of input string is unkown, precision should be specified to avoid output buffer overflow. Null pointer generates a null string.</td></tr>
+<tr><td><tt>f</tt></td><td>Floating point<br>(decimal)</td><td rowspan="2"><tt>double</tt></td><td>1 to 31 characters. If the number of characters exceeds 31, it generates <tt>"±OV"</tt>. Not a number and infinite generate <tt>"NaN"</tt> and <tt>"±INF"</tt>.</td></tr>
+<tr><td><tt>e E</tt></td><td>Floating point<br>(e notation)</td><td>4 to 31 characters. If the number of characters exceeds 31 or exponent exceeds +99, it generates <tt>"±OV"</tt>.</td></tr>
+</table>
+</dd>
+</dl>
+<pre>
+Examples:
+    xprintf("%d", 1234);             <span class="c">/* "1234" */</span>
+    xprintf("%6d,%3d%%", -200, 5);   <span class="c">/* "  -200,  5%" */</span>
+    xprintf("%-6u", 100);            <span class="c">/* "100   " */</span>
+    xprintf("%ld", 12345678);        <span class="c">/* "12345678" */</span>
+    xprintf("%llu", 0x100000000);    <span class="c">/* "4294967296"   &lt;XF_USE_LLI&gt; */</span>
+    xprintf("%lld", -1LL);           <span class="c">/* "-1"           &lt;XF_USE_LLI&gt; */</span>
+    xprintf("%04x", 0xA3);           <span class="c">/* "00a3" */</span>
+    xprintf("%08lX", 0x123ABC);      <span class="c">/* "00123ABC" */</span>
+    xprintf("%016b", 0x550F);        <span class="c">/* "0101010100001111" */</span>
+    xprintf("%*d", 6, 100);          <span class="c">/* "   100" */</span>
+    xprintf("%s", "abcdefg");        <span class="c">/* "abcdefg" */</span>
+    xprintf("%5s", "abc");           <span class="c">/* "  abc" */</span>
+    xprintf("%-5s", "abc");          <span class="c">/* "abc  " */</span>
+    xprintf("%.5s", "abcdefg");      <span class="c">/* "abcde" */</span>
+    xprintf("%-5.2s", "abcdefg");    <span class="c">/* "ab   " */</span>
+    xprintf("%c", 'a');              <span class="c">/* "a" */</span>
+    xprintf("%12f", 10.0);           <span class="c">/* "   10.000000" &lt;XF_USE_FP&gt; */</span>
+    xprintf("%.4E", 123.45678);      <span class="c">/* "1.2346E+02"   &lt;XF_USE_FP&gt; */</span>
+</pre>
+
+
+
+<h4>Input</h4>
+<pre>
+<span class="c">/*----------------------------------------------/
+/  xgets - Get a line from the input device
+/----------------------------------------------*/</span>
+
+int xgets (     <span class="c">/* 0:End of stream, 1:A line arrived */</span>
+    char* <span class="arg">buff</span>, <span class="c">/* Pointer to the buffer to input */</span>
+    int <span class="arg">len</span>     <span class="c">/* Buffer length */</span>
+);
+</pre>
+<pre>
+<span class="c">/*----------------------------------------------/
+/  xatoi - Get a value of integer string
+/----------------------------------------------*/
+/* "123 -5    0x3ff 0b1111 0377 1.5 "
+       ^                            1st call returns 123 and next ptr
+          ^                         2nd call returns -5 and next ptr
+                   ^                3rd call returns 1023 and next ptr
+                          ^         4th call returns 15 and next ptr
+                               ^    5th call returns 255 and next ptr
+                                 ^  6th call fails and returns 0
+*/</span>
+
+int xatoi (      <span class="c">/* 0:Failed, 1:Succeeded */</span>
+    char** <span class="arg">str</span>,  <span class="c">/* Pointer to pointer to the string */</span>
+    long* <span class="arg">res</span>    <span class="c">/* Pointer to the valiable to store the value */</span>
+);
+</pre>
+<pre>
+<span class="c">/*----------------------------------------------/
+/  xatof - Get a value of floating point string
+/----------------------------------------------*/
+/* "123 -5.75 .6   +8.88E+5 1e-6  .  "
+       ^                              1st call returns 1.23e2 and next ptr
+             ^                        2nd call returns -5.75e0 and next ptr
+                ^                     3rd call returns 6e-1 and next ptr
+                           ^          4th call returns 8.88e5 and next ptr
+                                ^     5th call returns 1e-6 and next ptr
+                                   ^  6th call fails and returns 0
+*/</span>
+
+int xatof (      <span class="c">/* 0:Failed, 1:Succeded */</span>
+    char** <span class="arg">str</span>,  <span class="c">/* Pointer to pointer to the string */</span>
+    double* <span class="arg">res</span>  <span class="c">/* Pointer to the valiable to store the value */</span>
+);
+</pre>
+
+</div>
+
+
+<div class="para">
+<h3>Device I/O functions</h3>
+<p>The output function is a user provided call-back function to write a byte to the output device. Its address should be set to the function pointer <tt><em>xfunc_output</em></tt> in the module, default output device. Typically, this function puts the byte to UART, LCD or some output device. The output function is called-back from <tt>xputc()</tt>. There is a macro to set it easy. For example, when attach <tt>void uart1_putc (uint8_t chr);</tt> to the module, <tt>xdev_out(uart1_putc);</tt> will do. If the output function has multiple arguments or simple output function is not available, a glue function will be needed. <tt>xfputc()</tt>, <tt>xfputs()</tt>, <tt>xfprintf()</tt> and <tt>xsprintf()</tt> override the default output device with its argument.</p>
+<p>The input function is a user provided call-back function to read a byte from the input device. Its address should be set to the function pointer <tt><em>xfunc_input</em></tt>, default input device. There is a macro <tt>xdev_in()</tt> to set it easy. e.g. <tt>xdev_in(uart1_getc);</tt> The <tt>xfgets()</tt> function override the default input device with its argument. The input function is called-back from the <tt>xgets()</tt> function. Typically, input function reads a byte from input device or file. When the input device reported end of stream, the input function should return -1. The <tt>xgets()</tt> function aborts with zero and the application will able to detect it.</p>
+<pre>
+<span class="c">/* Write a byte to the output dechvice */</span>
+
+void output_func (
+    int <span class="arg">chr</span>  <span class="c">/* A byte to be written */</span>
+);
+</pre>
+<pre>
+<span class="c">/* Read a byte from the input device */</span>
+
+int input_func (void);  <span class="c">/* Returns 0 to 255 as a read character, -1 as EOF */</span>
+</pre>
+</div>
+
+
+</body>
+</html>

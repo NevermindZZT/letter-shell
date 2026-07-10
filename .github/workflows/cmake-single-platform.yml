@@ -1,0 +1,62 @@
+name: Build documentation and pack
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, develop, CMSIS-Pack]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  pack:
+    name: Generate pack
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch tags
+        run: |
+          git fetch --tags --force
+
+      - name: Get submodules
+        run: |
+          git submodule update --init
+
+      - name: Make pack script executable
+        run: |
+          chmod +x ./gen_pack.sh
+
+      - uses: Open-CMSIS-Pack/gen-pack-action@main
+        with:
+          doxygen-version: 1.9.5
+          packchk-version: 1.3.96
+          gen-pack-script: ./gen_pack.sh
+          gen-pack-output: ./output
+
+      - name: Copy pack to cmsis-pack directory
+        run: |
+          mkdir -p cmsis-pack
+          cp -v ./output/*.pack cmsis-pack/ || true
+
+      - name: Upload pack artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmsis-pack
+          path: cmsis-pack/*.pack
+          if-no-files-found: error
+
+      - name: Commit pack to repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/CMSIS-Pack'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f cmsis-pack/*.pack
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: Update CMSIS pack files [skip ci]"
+            git push origin HEAD:CMSIS-Pack
+          fi

@@ -1,0 +1,103 @@
+---
+#------------------------------------
+# clang-format v12 配置
+#------------------------------------
+
+# 按 C/C++ 规则解析文件。
+Language: Cpp
+
+# 保持 include 原始顺序，不自动排序。
+SortIncludes: false
+
+# 以 Chromium 风格为基础，再用下面的项目配置覆盖。
+BasedOnStyle: Chromium
+
+# 函数调用需要换行时，每个参数尽量单独成行。
+BinPackParameters: false
+
+# 位域冒号两侧都加空格。
+BitFieldColonSpacing: Both
+
+# 左花括号单独放一行。
+BreakBeforeBraces: Allman
+
+# 构造函数初始化列表在逗号前换行。
+BreakConstructorInitializers: BeforeComma
+
+# 短代码块不压成单行。
+AllowShortBlocksOnASingleLine: false
+
+# 允许短 case 标签保持单行。
+AllowShortCaseLabelsOnASingleLine: true
+
+# 函数定义总是展开，不把短函数压成单行。
+AllowShortFunctionsOnASingleLine: None
+
+# 短 if 语句不压成单行。
+AllowShortIfStatementsOnASingleLine: false
+
+# 函数调用换行时，允许所有参数整体移到下一行。
+AllowAllArgumentsOnNextLine: true
+
+# 函数声明换行时，允许所有参数整体移到下一行。
+AllowAllParametersOfDeclarationOnNextLine: true
+
+# 构造函数初始化列表优先选择全在一行或每项一行。
+ConstructorInitializerAllOnOneLineOrOnePerLine: "true"
+
+# 构造函数初始化列表续行缩进 4 个空格。
+ConstructorInitializerIndentWidth: "4"
+
+# namespace 内部代码缩进。
+NamespaceIndentation: All
+
+# 嵌套预处理指令在 # 前缩进，例如 "    #define"。
+IndentPPDirectives: BeforeHash
+
+# 指针星号靠右绑定。
+PointerAlignment: Right
+
+# 关闭强制列宽换行。
+ColumnLimit: "0"
+
+# 续行缩进 4 个空格。
+ContinuationIndentWidth: "4"
+
+# 使用空格，不使用 tab。
+UseTab: Never
+
+# 读取已有 tab 时按 4 列宽度计算。
+TabWidth: "4"
+
+# 普通缩进使用 4 个空格。
+IndentWidth: "4"
+
+# public/private 等访问控制符向外缩进 4 个空格。
+AccessModifierOffset: "-4"
+
+# case 标签和 switch 对齐，不额外缩进。
+IndentCaseLabels: false
+
+# 使用 C++11 花括号初始化列表规则。
+Cpp11BracedListStyle: "true"
+
+# 换行后按左括号位置对齐。
+AlignAfterOpenBracket: Align
+
+# 连续声明按列对齐。
+AlignConsecutiveDeclarations: true
+#------------------------------------
+# clang-format v12 不支持的配置
+#------------------------------------
+# 新版本选项：继承列表在逗号后换行。
+# BreakInheritanceList: AfterComma
+
+# 新版本选项：访问控制段前插入空行。
+# EmptyLineBeforeAccessModifier: Always
+
+# 新版本选项：访问控制段后插入空行。
+# EmptyLineAfterAccessModifier: Always
+
+# 新版本选项：引用符号靠左绑定。
+# ReferenceAlignment: Left
+
